@@ -1,7 +1,7 @@
 #include <WebARKitTrackers/WebARKitOpticalTracking/WebARKitOrbTracker.h>
 #include <WebARKitTrackers/WebARKitOpticalTracking/WebARKitConfig.h>
 
-void WebARKitOrbTracker::initialise(uchar refData[], size_t refCols, size_t refRows) {
+void WebARKitOrbTracker::initialize(uchar refData[], size_t refCols, size_t refRows) {
     orb = cv::ORB::create(MAX_FEATURES);
     matcher = cv::BFMatcher::create();
 
