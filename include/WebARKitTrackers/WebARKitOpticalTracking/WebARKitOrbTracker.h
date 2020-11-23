@@ -25,15 +25,15 @@ private:
     std::vector<cv::KeyPoint> refKeyPts;
 
     cv::Mat H;
-    std::vector<cv::Point2f> corners{ cv::Point2f{0.0, 0.0}} ;
+    std::vector<cv::Point2f> corners;
 
     cv::Mat framePrev;
     int numMatches = 0;
     std::vector<cv::Point2f> framePts;
-    double *output = new double[17]; // 9 from homography matrix, 8 from warped corners
-    static cv::Mat im_gray(uchar data[], size_t cols, size_t rows);
-    static inline bool homographyValid(cv::Mat H);
-    static inline void fill_output(cv::Mat H);
-    static inline void clear_output();
+    double *output; // 9 from homography matrix, 8 from warped corners
+    cv::Mat im_gray(uchar data[], size_t cols, size_t rows);
+    bool homographyValid(cv::Mat H);
+    void fill_output(cv::Mat H);
+    void clear_output();
 };
 #endif
