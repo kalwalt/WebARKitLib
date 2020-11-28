@@ -1,11 +1,18 @@
 #include <WebARKitTrackers/WebARKitOpticalTracking/WebARKitOrbTracker.h>
 #include <WebARKitTrackers/WebARKitOpticalTracking/WebARKitConfig.h>
+#include <WebARKitTrackers/WebARKitOpticalTracking/WebARKitUtils.h>
 
-void WebARKitOrbTracker::initialize(uchar refData[], size_t refCols, size_t refRows) {
+void WebARKitOrbTracker::initialize(std::string filename, size_t refCols, size_t refRows) {
+    JpegImageT *jpegImage;
     orb = cv::ORB::create(MAX_FEATURES);
     matcher = cv::BFMatcher::create();
 
-    cv::Mat refGray = im_gray(refData, refCols, refRows);
+    std::string ext;
+    ext = 'jpg';
+
+    jpegImage = ar2ReadJpegImage(filename.c_str(), ext.c_str());
+    cv::Mat refGray = im_gray((unsigned char*)jpegImage->image, refCols, refRows);
+
     orb->detectAndCompute(refGray, cv::noArray(), refKeyPts, refDescr);
 
     corners[0] = cvPoint( 0, 0 );
