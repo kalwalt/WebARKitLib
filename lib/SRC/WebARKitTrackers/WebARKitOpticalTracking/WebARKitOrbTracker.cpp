@@ -2,10 +2,12 @@
 #include <WebARKitTrackers/WebARKitOpticalTracking/WebARKitConfig.h>
 
 void WebARKitOrbTracker::initialize(uchar refData[], size_t refCols, size_t refRows) {
+    std::cout << "Start!" << std::endl;
     orb = cv::ORB::create(MAX_FEATURES);
     matcher = cv::BFMatcher::create();
 
     cv::Mat refGray = im_gray(refData, refCols, refRows);
+    std::cout << "Gray Image!" << std::endl;
     orb->detectAndCompute(refGray, cv::noArray(), refKeyPts, refDescr);
 
     corners[0] = cvPoint( 0, 0 );
