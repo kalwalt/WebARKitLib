@@ -15,11 +15,14 @@ void WebARKitOrbTracker::initialize(uchar refData[], size_t refCols, size_t refR
     cv::Mat refGray = im_gray(refData, refCols, refRows);
     std::cout << "Gray Image!" << std::endl;
     orb->detectAndCompute(refGray, cv::noArray(), refKeyPts, refDescr);
+    std::cout << "Orb Detect and Compute passed!" << std::endl;
 
     corners[0] = cvPoint( 0, 0 );
     corners[1] = cvPoint( refCols, 0 );
     corners[2] = cvPoint( refCols, refRows );
     corners[3] = cvPoint( 0, refRows );
+
+    std::cout << "corners filled!" << std::endl;
 
     initialized = true;
     std::cout << "Ready!" << std::endl;
