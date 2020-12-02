@@ -1,9 +1,15 @@
 #include <WebARKitTrackers/WebARKitOpticalTracking/WebARKitOrbTracker.h>
 #include <WebARKitTrackers/WebARKitOpticalTracking/WebARKitConfig.h>
 
+WebARKitOrbTracker::WebARKitOrbTracker()
+{
+}
+
 void WebARKitOrbTracker::initialize(uchar refData[], size_t refCols, size_t refRows) {
     std::cout << "Start!" << std::endl;
+    std::cout << MAX_FEATURES << std::endl;
     orb = cv::ORB::create(MAX_FEATURES);
+    std::cout << "Orb created!" << std::endl;
     matcher = cv::BFMatcher::create();
 
     cv::Mat refGray = im_gray(refData, refCols, refRows);
@@ -115,8 +121,8 @@ double* WebARKitOrbTracker::track(uchar frameData[], size_t frameCols, size_t fr
 cv::Mat WebARKitOrbTracker::im_gray(uchar data[], size_t cols, size_t rows) {
     uint32_t idx;
     uchar gray[rows][cols];
-    for (int i = 0; i < rows; ++i) {
-        for (int j = 0; j < cols; ++j) {
+    for (size_t i = 0; i < rows; ++i) {
+        for (size_t j = 0; j < cols; ++j) {
             idx = (i * cols * 4) + j * 4;
 
             // rgba to rgb

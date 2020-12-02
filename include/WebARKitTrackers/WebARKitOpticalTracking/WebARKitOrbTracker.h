@@ -12,6 +12,7 @@
 
 class WebARKitOrbTracker {
 public:
+    WebARKitOrbTracker();
     void initialize(uchar refData[], size_t refCols, size_t refRows);
     double *resetTracking(uchar frameData[], size_t frameCols, size_t frameRows);
     double *track(uchar frameData[], size_t frameCols, size_t frameRows);
