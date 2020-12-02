@@ -1,7 +1,7 @@
 #include <WebARKitTrackers/WebARKitOpticalTracking/WebARKitOrbTracker.h>
 #include <WebARKitTrackers/WebARKitOpticalTracking/WebARKitConfig.h>
 
-WebARKitOrbTracker::WebARKitOrbTracker()
+WebARKitOrbTracker::WebARKitOrbTracker():corners(4)
 {
 }
 
