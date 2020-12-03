@@ -11,7 +11,7 @@ void WebARKitOrbTracker::initialize(uchar refData[], size_t refCols, size_t refR
     orb = cv::ORB::create(MAX_FEATURES);
     std::cout << "Orb created!" << std::endl;
     matcher = cv::BFMatcher::create();
-
+    std::cout << "BFMatcher created!" << std::endl;
     cv::Mat refGray = im_gray(refData, refCols, refRows);
     std::cout << "Gray Image!" << std::endl;
     orb->detectAndCompute(refGray, cv::noArray(), refKeyPts, refDescr);
