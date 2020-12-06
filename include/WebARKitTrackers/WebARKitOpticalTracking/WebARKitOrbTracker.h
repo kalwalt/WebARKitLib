@@ -32,7 +32,6 @@ private:
     int numMatches = 0;
     std::vector<cv::Point2f> framePts;
     double *output; // 9 from homography matrix, 8 from warped corners
-    cv::Mat im_gray(uchar data[], size_t cols, size_t rows);
     bool homographyValid(cv::Mat H);
     void fill_output(cv::Mat H);
     void clear_output();
