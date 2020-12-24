@@ -2,7 +2,7 @@
 #include <WebARKitTrackers/WebARKitOpticalTracking/WebARKitConfig.h>
 #include <WebARKitTrackers/WebARKitOpticalTracking/WebARKitUtils.h>
 
-void WebARKitOrbTracker::initialize(std::string filename, size_t refCols, size_t refRows) {
+void WebARKitOrbTracker::initialize(const char *filename, size_t refCols, size_t refRows) {
     JpegImageT *jpegImage;
     orb = cv::ORB::create(MAX_FEATURES);
     matcher = cv::BFMatcher::create();
