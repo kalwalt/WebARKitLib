@@ -6,14 +6,17 @@ void WebARKitOrbTracker::initialize(std::string filename, size_t refCols, size_t
     JpegImageT *jpegImage;
     orb = cv::ORB::create(MAX_FEATURES);
     matcher = cv::BFMatcher::create();
+    std::cout << "Orb and BFMatcher created!" << std::endl;
 
     std::string ext;
     ext = 'jpg';
 
     jpegImage = ar2ReadJpegImage(filename.c_str(), ext.c_str());
+    std::cout << "Reading the jpeg image!" << std::endl;
     cv::Mat refGray = im_gray((unsigned char*)jpegImage->image, refCols, refRows);
-
+    std::cout << "Jpeg loaded" << std::endl;
     orb->detectAndCompute(refGray, cv::noArray(), refKeyPts, refDescr);
+    std::cout << "detectAndCompute ok" << std::endl;
 
     corners[0] = cvPoint( 0, 0 );
     corners[1] = cvPoint( refCols, 0 );
