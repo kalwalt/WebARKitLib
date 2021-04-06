@@ -14,11 +14,15 @@ void WebARKitOrbTracker::initialize(uchar refData[], size_t refCols, size_t refR
     matcher = cv::BFMatcher::create();
     std::cout << "BFMatcher created!" << std::endl;
     //std::cout << refData << std::endl;
-    uchar data[4] = { 0x20, 0x21, 0x22, 0x23, 0x24};
+    uchar data[4] = { 0x20, 0x21, 0x22, 0x23};
+    for (int i=0; i<4; i++) {
+        std::cout << data[i] << std::endl;
+    }
     size_t cols = 2;
     size_t rows = 2;
     //cv::Mat refGray = im_gray(refData, refCols, refRows);
-    cv::Mat refGray = im_gray(data, cols, rows);
+    cv::Mat refGray = im_gray2(data, cols, rows);
+    free(data);
     std::cout << "Gray Image!" << std::endl;
     orb->detectAndCompute(refGray, cv::noArray(), refKeyPts, refDescr);
     std::cout << "Orb Detect and Compute passed!" << std::endl;
@@ -159,3 +163,26 @@ void WebARKitOrbTracker::fill_output(cv::Mat H) {
 void WebARKitOrbTracker::clear_output() {
     for (int i = 0; i < 17; i++) output[i] = 0;
 };
+
+static cv::Mat im_gray2(uchar data[], size_t cols, size_t rows) {
+    std::cout << data << std::endl;
+    uint32_t idx;
+    uchar gray[rows][cols];
+    for (int i = 0; i < rows; ++i) {
+        for (int j = 0; j < cols; ++j) {
+            idx = (i * cols * 4) + j * 4;
+
+            // rgba to rgb
+            uchar r = data[idx];
+            uchar g = data[idx + 1];
+            uchar b = data[idx + 2];
+            // uchar a = data[idx + 3];
+
+            // turn frame image to gray scale
+            gray[i][j] = (0.30 * r) + (0.59 * g) + (0.11 * b);
+            std::cout << gray[i][j] << std::endl;
+        }
+    }
+
+    return cv::Mat(rows, cols, CV_8UC1, gray);
+}
