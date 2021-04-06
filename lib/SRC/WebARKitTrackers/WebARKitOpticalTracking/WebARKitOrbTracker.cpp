@@ -14,8 +14,10 @@ void WebARKitOrbTracker::initialize(uchar refData[], size_t refCols, size_t refR
     matcher = cv::BFMatcher::create();
     std::cout << "BFMatcher created!" << std::endl;
     //std::cout << refData << std::endl;
-    uchar data[4] = { 0x20, 0x21, 0x22, 0x23};
-    for (int i=0; i<4; i++) {
+    uchar data[12] = { 0x20, 0x21, 0x22, 0x23,
+                      0x20, 0x21, 0x22, 0x23,
+                      0x20, 0x21, 0x22, 0x23};
+    for (int i=0; i<12; i++) {
         std::cout << data[i] << std::endl;
     }
     size_t cols = 2;
