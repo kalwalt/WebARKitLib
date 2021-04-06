@@ -1,4 +1,6 @@
+#include <iostream>
 static cv::Mat im_gray(uchar data[], size_t cols, size_t rows) {
+    std::cout << data << std::endl;
     uint32_t idx;
     uchar gray[rows][cols];
     for (int i = 0; i < rows; ++i) {
@@ -13,6 +15,7 @@ static cv::Mat im_gray(uchar data[], size_t cols, size_t rows) {
 
             // turn frame image to gray scale
             gray[i][j] = (0.30 * r) + (0.59 * g) + (0.11 * b);
+            std::cout << gray[i][j] << std::endl;
         }
     }
 

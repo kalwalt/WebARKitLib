@@ -13,8 +13,12 @@ void WebARKitOrbTracker::initialize(uchar refData[], size_t refCols, size_t refR
     std::cout << "Orb created!" << std::endl;
     matcher = cv::BFMatcher::create();
     std::cout << "BFMatcher created!" << std::endl;
-    std::cout << refData << std::endl;
-    cv::Mat refGray = im_gray(refData, refCols, refRows);
+    //std::cout << refData << std::endl;
+    uchar data[4] = { 0x20, 0x21, 0x22, 0x23, 0x24};
+    size_t cols = 2;
+    size_t rows = 2;
+    //cv::Mat refGray = im_gray(refData, refCols, refRows);
+    cv::Mat refGray = im_gray(data, cols, rows);
     std::cout << "Gray Image!" << std::endl;
     orb->detectAndCompute(refGray, cv::noArray(), refKeyPts, refDescr);
     std::cout << "Orb Detect and Compute passed!" << std::endl;
