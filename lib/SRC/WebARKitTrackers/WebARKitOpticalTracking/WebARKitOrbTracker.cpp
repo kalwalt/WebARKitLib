@@ -43,7 +43,7 @@ double* WebARKitOrbTracker::resetTracking(uchar frameData[], size_t frameCols, s
 
     cv::Mat frameCurr = im_gray(frameData, frameCols, frameRows);
     std::cout << "im_gray..." << std::endl;
-    std::cout << frameData << std::endl;
+    std::cout << frameCurr << std::endl;
 
     cv::Mat frameDescr;
     std::vector<cv::KeyPoint> frameKeyPts;
