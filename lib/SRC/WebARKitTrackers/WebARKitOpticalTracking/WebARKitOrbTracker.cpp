@@ -17,8 +17,10 @@ void WebARKitOrbTracker::initialize(uchar refData[], size_t refCols, size_t refR
     cv::Mat refGray = im_gray(refData, refCols, refRows);
     //free(data);
     std::cout << "Gray Image!" << std::endl;
+    //std::cout << refGray << std::endl;
     orb->detectAndCompute(refGray, cv::noArray(), refKeyPts, refDescr);
     std::cout << "Orb Detect and Compute passed!" << std::endl;
+    std::cout << refDescr << std::endl;
 
     corners[0] = cvPoint( 0, 0 );
     corners[1] = cvPoint( refCols, 0 );
@@ -43,11 +45,11 @@ double* WebARKitOrbTracker::resetTracking(uchar frameData[], size_t frameCols, s
 
     cv::Mat frameCurr = im_gray(frameData, frameCols, frameRows);
     std::cout << "im_gray..." << std::endl;
-    std::cout << frameCurr << std::endl;
+    std::cout << frameCurr.size << std::endl;
 
     cv::Mat frameDescr;
     std::vector<cv::KeyPoint> frameKeyPts;
-    std::cout << frameDescr << std::endl;
+    std::cout << refDescr << std::endl;
     orb->detectAndCompute(frameCurr, cv::noArray(), frameKeyPts, frameDescr);
     std::cout << "detectAndCompute is ok..." << std::endl;
     std::vector<std::vector<cv::DMatch>> knnMatches;
