@@ -7,15 +7,18 @@ WebARKitOrbTracker::WebARKitOrbTracker():corners(4)
     output = new double[17];
 }
 
-void WebARKitOrbTracker::initialize(uchar refData[], size_t refCols, size_t refRows) {
+void WebARKitOrbTracker::initialize(unsigned char * refData, size_t refCols, size_t refRows) {
     std::cout << "Start!" << std::endl;
     std::cout << MAX_FEATURES << std::endl;
     orb = cv::ORB::create(MAX_FEATURES);
     std::cout << "Orb created!" << std::endl;
     matcher = cv::BFMatcher::create();
     std::cout << "BFMatcher created!" << std::endl;
-    cv::Mat refGray = im_gray(refData, refCols, refRows);
-    //free(data);
+    //cv::Mat refGray = im_gray(refData, refCols, refRows);
+    //free(refData);
+    cv::Mat colorFrame(refCols, refRows, CV_8UC4, refData);
+    cv::Mat refGray(refCols, refRows, CV_8UC1);
+    cv::cvtColor(colorFrame, refGray, cv::COLOR_RGBA2GRAY);
     std::cout << "Gray Image!" << std::endl;
     //std::cout << refGray << std::endl;
     orb->detectAndCompute(refGray, cv::noArray(), refKeyPts, refDescr);
