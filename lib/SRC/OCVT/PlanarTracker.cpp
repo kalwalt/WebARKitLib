@@ -49,6 +49,7 @@
 #include <opencv2/video.hpp>
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/imgcodecs/imgcodecs.hpp>
 #include <iostream>
 
 class PlanarTracker::PlanarTrackerImpl
