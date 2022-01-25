@@ -2,6 +2,7 @@
 #include <WebARKitTrackers/WebARKitOpticalTracking/WebARKitConfig.h>
 #include <WebARKitTrackers/WebARKitOpticalTracking/WebARKitUtils.h>
 
+
 WebARKitOrbTracker::WebARKitOrbTracker():corners(4)
 {
     output = new double[17];
@@ -15,15 +16,15 @@ void WebARKitOrbTracker::initialize(unsigned char * refData, size_t refCols, siz
     matcher = cv::BFMatcher::create();
     std::cout << "BFMatcher created!" << std::endl;
     //cv::Mat refGray = im_gray(refData, refCols, refRows);
-    //free(refData);
     cv::Mat colorFrame(refCols, refRows, CV_8UC4, refData);
+    free(refData);
     cv::Mat refGray(refCols, refRows, CV_8UC1);
     cv::cvtColor(colorFrame, refGray, cv::COLOR_RGBA2GRAY);
     std::cout << "Gray Image!" << std::endl;
     //std::cout << refGray << std::endl;
     orb->detectAndCompute(refGray, cv::noArray(), refKeyPts, refDescr);
     std::cout << "Orb Detect and Compute passed!" << std::endl;
-    std::cout << refDescr << std::endl;
+    //std::cout << refDescr << std::endl;
 
     corners[0] = cvPoint( 0, 0 );
     corners[1] = cvPoint( refCols, 0 );
@@ -38,10 +39,10 @@ void WebARKitOrbTracker::initialize(unsigned char * refData, size_t refCols, siz
 }
 
 double* WebARKitOrbTracker::resetTracking(uchar frameData[], size_t frameCols, size_t frameRows) {
-    /*if (!initialized) {
+    if (!initialized) {
         std::cout << "Reference image not found. AR is unintialized!" << std::endl;
         return NULL;
-    }*/
+    }
     std::cout << initialized << std::endl;
 
     clear_output();
@@ -52,12 +53,12 @@ double* WebARKitOrbTracker::resetTracking(uchar frameData[], size_t frameCols, s
 
     cv::Mat frameDescr;
     std::vector<cv::KeyPoint> frameKeyPts;
-    std::cout << refDescr << std::endl;
+    //std::cout << refDescr << std::endl;
     orb->detectAndCompute(frameCurr, cv::noArray(), frameKeyPts, frameDescr);
     std::cout << "detectAndCompute is ok..." << std::endl;
     std::vector<std::vector<cv::DMatch>> knnMatches;
     matcher->knnMatch(frameDescr, refDescr, knnMatches, 2);
-
+    std::cout << "knnmatch !" << std::endl;
     framePts.clear();
     std::vector<cv::Point2f> refPts;
     // find the best matches
@@ -67,6 +68,7 @@ double* WebARKitOrbTracker::resetTracking(uchar frameData[], size_t frameCols, s
             refPts.push_back( refKeyPts[knnMatches[i][0].trainIdx].pt );
         }
     }
+    std::cout << "best matches !" << std::endl;
 
     // need at least 4 pts to define homography
     if (framePts.size() > 10) {
@@ -76,6 +78,7 @@ double* WebARKitOrbTracker::resetTracking(uchar frameData[], size_t frameCols, s
             fill_output(H);
         }
     }
+    std::cout << "Homography !" << std::endl;
 
     framePrev = frameCurr.clone();
 
@@ -83,10 +86,10 @@ double* WebARKitOrbTracker::resetTracking(uchar frameData[], size_t frameCols, s
 }
 
 double* WebARKitOrbTracker::track(uchar frameData[], size_t frameCols, size_t frameRows) {
-    /*if (!initialized) {
+    if (!initialized) {
         std::cout << "Reference image not found. AR is unintialized!" << std::endl;
         return NULL;
-    }*/
+    }
 
     if (framePrev.empty()) {
         std::cout << "Tracking is uninitialized!" << std::endl;
