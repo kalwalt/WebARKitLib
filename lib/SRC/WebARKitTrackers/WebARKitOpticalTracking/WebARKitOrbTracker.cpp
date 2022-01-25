@@ -82,6 +82,9 @@ double* WebARKitOrbTracker::resetTracking(uchar frameData[], size_t frameCols, s
 
     framePrev = frameCurr.clone();
 
+    std::cout << "cloned frame" << std::endl;
+    std::cout << output << std::endl;
+
     return output;
 }
 
