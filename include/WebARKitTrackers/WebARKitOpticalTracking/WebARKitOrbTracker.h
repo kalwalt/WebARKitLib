@@ -11,12 +11,6 @@
 #include <opencv2/features2d.hpp>
 
 class WebARKitOrbTracker {
-public:
-    WebARKitOrbTracker();
-    void initialize(unsigned char * refData, size_t refCols, size_t refRows);
-    double *resetTracking(uchar frameData[], size_t frameCols, size_t frameRows);
-    double *track(uchar frameData[], size_t frameCols, size_t frameRows);
-private:
     bool initialized = false;
 
     cv::Ptr<cv::ORB> orb = NULL;
@@ -31,7 +25,14 @@ private:
     cv::Mat framePrev;
     int numMatches = 0;
     std::vector<cv::Point2f> framePts;
-    double *output; // 9 from homography matrix, 8 from warped corners
+    double *output; // 9 from homography matrix, 8 from warped corners*/
+public:
+    WebARKitOrbTracker();
+    void initialize(unsigned char * refData, size_t refCols, size_t refRows);
+    double *resetTracking(uchar frameData[], size_t frameCols, size_t frameRows);
+    double *track(uchar frameData[], size_t frameCols, size_t frameRows);
+private:
+   
     bool homographyValid(cv::Mat H);
     void fill_output(cv::Mat H);
     void clear_output();
