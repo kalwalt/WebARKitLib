@@ -34,7 +34,7 @@ public:
 private:
    
     bool homographyValid(cv::Mat H);
-    void fill_output(cv::Mat H);
+    void fill_output(cv::Mat H, double *output);
     void clear_output();
 };
 #endif
