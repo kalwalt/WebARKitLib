@@ -124,8 +124,6 @@ output_t *resetTracking(uchar imageData[], size_t cols, size_t rows) {
             fill_output(H, valid);
             prevIm = currIm.clone();
         }
-        
-    prevIm = currIm.clone();
     }
 
     return output;
