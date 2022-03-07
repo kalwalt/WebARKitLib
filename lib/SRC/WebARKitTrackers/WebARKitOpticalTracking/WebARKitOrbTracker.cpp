@@ -66,8 +66,12 @@ static inline void clear_output() {
 int initAR(uchar refData[], size_t refCols, size_t refRows) {
     orb = ORB::create();
     matcher = BFMatcher::create();
+    cv::Mat colorFrame(refCols, refRows, CV_8UC4, refData);
+    free(refData);
 
     Mat refGray = Mat(refRows, refCols, CV_8UC1, refData);
+    cvtColor(colorFrame, refGray, cv::COLOR_RGBA2GRAY);
+    std::cout << "Gray Image!" << std::endl;
 
     orb->detectAndCompute(refGray, noArray(), refKeyPts, refDescr);
 
@@ -78,6 +82,7 @@ int initAR(uchar refData[], size_t refCols, size_t refRows) {
     corners[3] = cvPoint( 0, refRows );
 
     initialized = true;
+    std::cout << initialized << std::endl;
     cout << "Ready!" << endl;
 
     return 0;
@@ -119,6 +124,8 @@ output_t *resetTracking(uchar imageData[], size_t cols, size_t rows) {
             fill_output(H, valid);
             prevIm = currIm.clone();
         }
+        
+    prevIm = currIm.clone();
     }
 
     return output;
