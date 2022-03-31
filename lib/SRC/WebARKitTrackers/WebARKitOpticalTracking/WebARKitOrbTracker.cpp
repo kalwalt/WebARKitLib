@@ -58,7 +58,9 @@ static inline void fill_output(Mat H, bool valid) {
 }
 
 static inline void clear_output() {
+    cout << "clearing outptut..." << endl;
     memset(output, 0, sizeof(output_t));
+    cout << "cleared output" << endl;
 }
 
 //extern "C" {
@@ -119,7 +121,8 @@ output_t *resetTracking(uchar imageData[], size_t cols, size_t rows) {
             refPts.push_back( refKeyPts[knnMatches[i][0].trainIdx].pt );
         }
     }
-    prevIm = currIm.clone();
+    // this is required?
+    // prevIm = currIm.clone();
     // framePts give me 3 so currIm never copied into prevIm
     cout << "frame points size: " << framePts.size() << endl;
     // need at least 4 pts to define homography
@@ -143,17 +146,23 @@ output_t *track(uchar imageData[], size_t cols, size_t rows) {
     }
 
     if (prevIm.empty()) {
+        output_t *output = new output_t;
+        output->data = new double[OUTPUT_SIZE];
+        output->valid = 0;
         cout << "Tracking is uninitialized!" << endl;
-        return NULL;
+        return output;
     }
 
     clear_output();
+
+    cout << "preparing to convert frames"  << endl;
 
     Mat colorFrame(cols, rows, CV_8UC4, imageData);
     
     Mat currIm = Mat(rows, cols, CV_8UC1, imageData);
 
     cvtColor(colorFrame, currIm, COLOR_RGBA2GRAY);
+    cout << "frames converted" << endl;
     // GaussianBlur(currIm, currIm, Size(3,3), 2);
 
     // use optical flow to track keypoints
