@@ -119,7 +119,9 @@ output_t *resetTracking(uchar imageData[], size_t cols, size_t rows) {
             refPts.push_back( refKeyPts[knnMatches[i][0].trainIdx].pt );
         }
     }
-
+    prevIm = currIm.clone();
+    // framePts give me 3 so currIm never copied into prevIm
+    cout << "frame points size: " << framePts.size() << endl;
     // need at least 4 pts to define homography
     if (framePts.size() > 15) {
         H = findHomography(refPts, framePts, RANSAC);
@@ -203,7 +205,7 @@ output_t *track(uchar imageData[], size_t cols, size_t rows) {
             fill_output(H, valid);
         }
     }
-
+    cout << 'preparing to copy' << endl;
     prevIm = currIm.clone();
 
     return output;
