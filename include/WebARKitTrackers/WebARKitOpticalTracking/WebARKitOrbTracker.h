@@ -18,5 +18,6 @@ typedef struct {
 int initAR(uchar refData[], size_t refCols, size_t refRows);
 output_t *resetTracking(uchar imageData[], size_t cols, size_t rows);
 output_t *track(uchar imageData[], size_t cols, size_t rows);
+output_t *track2(uchar imageData[], size_t cols, size_t rows);
 
 #endif
