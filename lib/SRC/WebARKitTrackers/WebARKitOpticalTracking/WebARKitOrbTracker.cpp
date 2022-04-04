@@ -225,6 +225,8 @@ output_t *track2(uchar imageData[], size_t cols, size_t rows) {
     cout << "Reference image not found!" << endl;
     return NULL;
   }
+  // trying make previm internal
+  Mat prevIm2;
 
   clear_output();
 
@@ -253,7 +255,7 @@ output_t *track2(uchar imageData[], size_t cols, size_t rows) {
   }
   // this is required?
   // prevIm = currIm.clone();
-  // framePts give me 3 so currIm never copied into prevIm
+  // framePts give me 3 or less, so currIm never copied into prevIm
   cout << "frame points size: " << framePts.size() << endl;
   // need at least 4 pts to define homography
   if (framePts.size() > 15) {
@@ -262,16 +264,17 @@ output_t *track2(uchar imageData[], size_t cols, size_t rows) {
     if ((valid = homographyValid(H))) {
       numMatches = framePts.size();
       fill_output(H, valid);
-      prevIm = currIm.clone();
+      prevIm2 = currIm.clone();
     }
   }
-  if (prevIm.empty()) {
+  if (prevIm2.empty()) {
     output_t *output = new output_t;
     output->data = new double[OUTPUT_SIZE];
     output->valid = 0;
     cout << "Tracking is uninitialized!" << endl;
-    return output;
+    //return output;
   } else {
+    cout << "clearing outptut" << endl;
     clear_output();
 
     cout << "preparing to calc optical flow" << endl;
@@ -286,7 +289,7 @@ output_t *track2(uchar imageData[], size_t cols, size_t rows) {
     vector<float> err;
     vector<uchar> status;
     vector<Point2f> currPts, goodPtsCurr, goodPtsPrev;
-    calcOpticalFlowPyrLK(prevIm, currIm, framePts, currPts, status, err);
+    calcOpticalFlowPyrLK(prevIm2, currIm, framePts, currPts, status, err);
 
     // calculate average variance
     double mean, avg_variance = 0.0;
@@ -331,7 +334,7 @@ output_t *track2(uchar imageData[], size_t cols, size_t rows) {
       }
     }
     cout << 'preparing to copy' << endl;
-    prevIm = currIm.clone();
+    prevIm2 = currIm.clone();
   }
 
   return output;
