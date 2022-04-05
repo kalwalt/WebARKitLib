@@ -636,6 +636,8 @@ int arSetImageProcMode( ARHandle *handle, int mode );
 */
 int arGetImageProcMode( ARHandle *handle, int *mode );
 
+int arGetImageProcMode2(ARHandle *handle);
+
 /*!
     @brief   Set the pattern detection mode
     @details
