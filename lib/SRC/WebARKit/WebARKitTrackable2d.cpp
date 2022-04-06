@@ -37,7 +37,7 @@
  */
 
 #include <WebARKit/WebARKitTrackable2d.h>
-#include <OCVTUtil/image_utils.h>
+#include <ARUtil/image_utils.h>
 
 
 #if HAVE_2D
@@ -65,7 +65,7 @@ bool WebARKitTrackable2d::load(const char* dataSetPathname_in)
     int refImageX, refImageY;
     try {
         int nc;
-        if (!ReadImageFromFile(dataSetPathname_in, refImage, &refImageX, &refImageY, &nc, true)) {
+        if (!ReadImageFromFile2(dataSetPathname_in, refImage, &refImageX, &refImageY, &nc, true)) {
             ARLOGi("Unable to load image '%s'.\n", dataSetPathname_in);
             return(false);
         }

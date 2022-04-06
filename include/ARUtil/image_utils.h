@@ -44,13 +44,15 @@
 #include <memory>
 #include <ARUtil/types.h>
 
-ARUTIL_EXTERN std::string getFileExtension(const std::string& filename);
+std::string getFileExtension(const std::string& filename);
 
-ARUTIL_EXTERN bool ReadImageFromFile(const char* fileName, std::shared_ptr<unsigned char*> &refImage, int *cols, int *rows, bool colourImage = false);
+bool ReadImageFromFile(const char* fileName, std::shared_ptr<unsigned char*> &refImage, int *cols, int *rows, bool colourImage = false);
 
-ARUTIL_EXTERN bool WriteImageTofile(unsigned char* data, int width, int height, int stride, std::string fileName, bool colourImage = false);
+bool ReadImageFromFile2(const char* fileName, std::shared_ptr<unsigned char> &refImage, int *cols, int *rows, int *nc, bool forceMono);
 
-ARUTIL_EXTERN void ReleaseSTBImage(unsigned char* data);
+bool WriteImageTofile(unsigned char* data, int width, int height, int stride, std::string fileName, bool colourImage = false);
+
+void ReleaseSTBImage(unsigned char* data);
 
 
 #endif // !__ARUtil_image_utils_h__

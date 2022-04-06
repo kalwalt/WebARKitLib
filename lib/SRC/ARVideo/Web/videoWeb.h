@@ -34,7 +34,7 @@
  *
  */
 
-#include <ARX/ARVideo/video.h>
+#include <ARVideo/video.h>
 
 #ifdef  __cplusplus
 extern "C" {

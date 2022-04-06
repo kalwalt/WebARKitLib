@@ -36,7 +36,7 @@
  */
 
 #include <math.h>
-#include <ARX/ARG/mtx.h>
+#include <ARG/mtx.h>
 
 #define DTORf 0.01745329251994f
 #define DTORd 0.01745329251994

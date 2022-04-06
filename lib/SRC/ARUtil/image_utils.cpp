@@ -73,6 +73,23 @@ bool ReadImageFromFile(const char* fileName, std::shared_ptr<unsigned char*> &re
     }
 }
 
+bool ReadImageFromFile2(const char* fileName, std::shared_ptr<unsigned char> &refImage, int *cols, int *rows, int *nc, bool forceMono)
+{
+    if (!fileName || !cols || !rows) return false;
+    std::string ext = getFileExtension(fileName);
+    try {
+        unsigned char* data = stbi_load(fileName, cols, rows, nc, forceMono ? 1 : 0);
+        if (data) {
+            refImage.reset(data, free);
+            return true;
+        } else {
+            return false;
+        }
+    } catch (const std::exception& e) {
+        return false;
+    }
+}
+
 bool WriteImageTofile(unsigned char* data, int width, int height, int stride, std::string fileName, bool colourImage)
 {
     if (!data) return false;

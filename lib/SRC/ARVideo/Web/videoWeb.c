@@ -41,7 +41,7 @@
 #include <stdbool.h>
 #include <sys/time.h>
 #include <pthread.h>
-#include <ARX/ARVideo/videoRGBA.h>
+#include <ARVideo/videoRGBA.h>
 #include <unistd.h>
 
 struct _AR2VideoParamWebT {
