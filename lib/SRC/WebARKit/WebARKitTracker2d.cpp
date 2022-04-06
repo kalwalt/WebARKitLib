@@ -123,10 +123,10 @@ bool WebARKitTracker2d::loadTwoDData(std::vector<WebARKitTrackable *>& trackable
     int pageCount = 0;
     for (std::vector<WebARKitTrackable *>::iterator it = trackables.begin(); it != trackables.end(); ++it) {
         if ((*it)->type == WebARKitTrackable::TwoD) {
-            ((ARTrackable2d *)(*it))->pageNo = pageCount;
+            ((WebARKitTrackable2d *)(*it))->pageNo = pageCount;
             // N.B.: AddMarker takes a copy of the image data.
             m_2DTracker->AddMarker(((WebARKitTrackable2d *)(*it))->m_refImage.get(),((WebARKitTrackable2d *)(*it))->datasetPathname,((WebARKitTrackable2d *)(*it))->m_refImageX,((WebARKitTrackable2d *)(*it))->m_refImageY,((WebARKitTrackable2d *)(*it))->UID, ((WebARKitTrackable2d *)(*it))->TwoDScale());
-            ARLOGi("'%s' assigned page no. %d.\n", ((ARTrackable2d *)(*it))->datasetPathname, pageCount);
+            ARLOGi("'%s' assigned page no. %d.\n", ((WebARKitTrackable2d *)(*it))->datasetPathname, pageCount);
             pageCount++;
         }
     }

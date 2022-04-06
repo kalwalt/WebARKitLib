@@ -37,7 +37,7 @@
  */
 
 #include <WebARKit/WebARKitTrackable2d.h>
-#include <ARUtil/image_utils.h>
+#include <OCVTUtil/image_utils.h>
 
 
 #if HAVE_2D
@@ -130,7 +130,7 @@ bool WebARKitTrackable2d::updateWithTwoDResults(int detectedPage, float tracking
         }
     } else visible = false;
     
-    return (ARTrackable::update(transL2R)); // Parent class will finish update.
+    return (WebARKitTrackable::update(transL2R)); // Parent class will finish update.
 }
 
 void WebARKitTrackable2d::setTwoDScale(const float scale)
