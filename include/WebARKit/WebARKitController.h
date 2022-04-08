@@ -217,17 +217,6 @@ public:
 	bool startRunningStereo(const char* vconfL, const char* cparaNameL, const char* cparaBuffL, const long cparaBuffLenL,
                             const char* vconfR, const char* cparaNameR, const char* cparaBuffR, const long cparaBuffLenR,
                             const char* transL2RName, const char* transL2RBuff, const long transL2RBuffLen);
-
-/*#if ARX_TARGET_PLATFORM_ANDROID
-    jint androidVideoPushInit(JNIEnv *env, jobject obj, jint videoSourceIndex, jint width, jint height, const char *pixelFormat, jint camera_index, jint camera_face);
-    jint androidVideoPush1(JNIEnv *env, jobject obj, jint videoSourceIndex, jbyteArray buf, jint bufSize);
-    jint androidVideoPush2(JNIEnv *env, jobject obj, jint videoSourceIndex,
-                           jobject buf0, jint buf0PixelStride, jint buf0RowStride,
-                           jobject buf1, jint buf1PixelStride, jint buf1RowStride,
-                           jobject buf2, jint buf2PixelStride, jint buf2RowStride,
-                           jobject buf3, jint buf3PixelStride, jint buf3RowStride);
-    jint androidVideoPushFinal(JNIEnv *env, jobject obj, jint videoSourceIndex);
-#endif*/
     
 	/**
 	 * Reports width, height and pixel format of a video source.

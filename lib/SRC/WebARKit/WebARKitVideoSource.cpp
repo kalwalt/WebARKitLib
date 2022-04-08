@@ -335,12 +335,12 @@ bool WebARKitVideoSource::close()
         deviceState = DEVICE_OPEN;
     }
 
-    ARLOGi("Closing artoolkitX video.\n");
+    ARLOGi("Closing webarkit video.\n");
     if (ar2VideoClose(m_vid) != 0)
         ARLOGe("Error closing video.\n");
 
     m_vid = NULL;
-    deviceState = DEVICE_CLOSED; // artoolkitX video source is always ready to be opened.
+    deviceState = DEVICE_CLOSED; // webarkit video source is always ready to be opened.
 
     return true;
 }
@@ -455,45 +455,3 @@ int WebARKitVideoSource::webVideoPushInit(int width, int height, const char *pix
     return ret;
 }
 #endif
-
-/*#if ARX_TARGET_PLATFORM_ANDROID
-jint ARVideoSource::androidVideoPushInit(JNIEnv *env, jobject obj, jint width, jint height, const char *pixelFormat, jint camera_index, jint camera_face)
-{
-    if (deviceState == DEVICE_GETTING_READY) return 0; // This path will be exercised if another frame arrives while we're waiting for the callback.
-    else if (deviceState != DEVICE_OPEN) {
-        ARLOGe("ARVideoSource::androidVideoPushInit: Error: device not open.\n");
-        return -1;
-    }
-    deviceState = DEVICE_GETTING_READY;
-
-    return (ar2VideoPushInit(m_vid, env, obj, width, height, pixelFormat, camera_index, camera_face));
-}
-
-jint ARVideoSource::androidVideoPush1(JNIEnv *env, jobject obj, jbyteArray buf, jint bufSize)
-{
-    if (deviceState != DEVICE_RUNNING && deviceState != DEVICE_GETTING_READY) return 0;
-
-    return (ar2VideoPush1(m_vid, env, obj, buf, bufSize));
-}
-
-jint ARVideoSource::androidVideoPush2(JNIEnv *env, jobject obj,
-                                      jobject buf0, jint buf0PixelStride, jint buf0RowStride,
-                                      jobject buf1, jint buf1PixelStride, jint buf1RowStride,
-                                      jobject buf2, jint buf2PixelStride, jint buf2RowStride,
-                                      jobject buf3, jint buf3PixelStride, jint buf3RowStride)
-{
-    if (deviceState != DEVICE_RUNNING && deviceState != DEVICE_GETTING_READY) return 0;
-
-    return (ar2VideoPush2(m_vid, env, obj, buf0, buf0PixelStride, buf0RowStride, buf1, buf1PixelStride, buf1RowStride, buf2, buf2PixelStride, buf2RowStride, buf3, buf3PixelStride, buf3RowStride));
-}
-
-jint ARVideoSource::androidVideoPushFinal(JNIEnv *env, jobject obj)
-{
-    if (deviceState == DEVICE_CLOSED) {
-        ARLOGe("ARVideoSource::androidVideoPushFinal: Error: device not open.\n");
-        return -1;
-    }
-
-    return (ar2VideoPushFinal(m_vid, env, obj));
-}
-#endif*/

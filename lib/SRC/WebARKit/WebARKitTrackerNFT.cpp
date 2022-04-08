@@ -302,7 +302,7 @@ bool WebARKitTrackerNFT::stop()
     }
 
     // NFT cleanup.
-    //ARLOGd("Cleaning up artoolkitX NFT handles.\n");
+    //ARLOGd("Cleaning up webarkit NFT handles.\n");
     if (m_ar2Handle) {
         ar2DeleteHandle(&m_ar2Handle); // Sets m_ar2Handle to NULL.
     }

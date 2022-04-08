@@ -420,7 +420,7 @@ bool WebARKitTrackerSquare::update(AR2VideoBufferT *buff0, AR2VideoBufferT *buff
 
 bool WebARKitTrackerSquare::stop()
 {
-    //ARLOGd("Cleaning up artoolkitX handles.\n");
+    //ARLOGd("Cleaning up webarkit handles.\n");
     if (m_ar3DHandle) {
         ar3DDeleteHandle(&m_ar3DHandle); // Sets ar3DHandle0 to NULL.
     }
