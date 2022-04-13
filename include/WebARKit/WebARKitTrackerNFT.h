@@ -88,8 +88,9 @@ private:
     bool m_nftMultiMode;
     bool m_kpmRequired;
     bool m_kpmBusy;
+    int m_detectedPage;
     // NFT data.
-    THREAD_HANDLE_T     *trackingThreadHandle;
+    //THREAD_HANDLE_T     *trackingThreadHandle;
     AR2HandleT          *m_ar2Handle;
     KpmHandle           *m_kpmHandle;
     AR2SurfaceSetT      *m_surfaceSet[PAGES_MAX]; // Weak-reference. Strong reference is now in WebARKitTrackableNFT class.
