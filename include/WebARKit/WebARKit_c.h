@@ -58,6 +58,8 @@ extern "C" {
 	ARX_EXTERN void arwRegisterLogCallback(PFN_LOGCALLBACK callback);
 
     ARX_EXTERN void arwSetLogLevel(const int logLevel);
+
+    ARX_EXTERN int arwGetLogLevel();
     
     // ----------------------------------------------------------------------------------------------------
 #pragma mark  webarkit lifecycle functions

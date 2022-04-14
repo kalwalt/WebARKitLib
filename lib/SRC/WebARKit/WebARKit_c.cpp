@@ -83,6 +83,11 @@ void arwSetLogLevel(const int logLevel)
     }
 }
 
+int arwGetLogLevel()
+{
+    return arLogLevel;
+}
+
 // ----------------------------------------------------------------------------------------------------
 #pragma mark  webarkit lifecycle functions
 // ----------------------------------------------------------------------------------------------------
