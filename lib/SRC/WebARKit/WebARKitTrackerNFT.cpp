@@ -196,6 +196,14 @@ bool WebARKitTrackerNFT::loadNFTData(std::vector<WebARKitTrackable *>& trackable
                 ARLOGe("Maximum number of NFT pages (%d) loaded.\n", PAGES_MAX);
                 break;
             }
+            // Load AR2 data.
+            ARLOGi("Reading %s.fset", ((WebARKitTrackableNFT *)(*it))->datasetPathname);
+
+            if ((m_surfaceSet[pageCount] = ar2ReadSurfaceSet(((WebARKitTrackableNFT *)(*it))->datasetPathname, "fset", NULL)) == NULL ) {
+                ARLOGe("Error reading data from %s.fset", ((WebARKitTrackableNFT *)(*it))->datasetPathname);
+                return {};
+            }
+             
         }
     }
     if (kpmSetRefDataSet(m_kpmHandle, refDataSet) < 0) {
