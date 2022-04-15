@@ -42,6 +42,9 @@
 #include <WebARKit/WebARKitTrackable.h>
 #if HAVE_NFT
 #include <AR2/tracking.h>
+#include <KPM/kpm.h>
+
+#define PAGES_MAX 64
 
 /**
  * NFT marker type of WebARKitTrackable.
@@ -64,7 +67,7 @@ public:
 	WebARKitTrackableNFT();
 	~WebARKitTrackableNFT();
 
-	bool load(const char* dataSetPathname_in);
+	bool load(const char* dataSetPathname_in, KpmHandle* m_kpmHandle);
 
 	bool updateWithNFTResults(int detectedPage, float trackingTrans[3][4], ARdouble transL2R[3][4] = NULL);
 

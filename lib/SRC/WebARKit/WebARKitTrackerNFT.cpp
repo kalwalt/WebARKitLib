@@ -231,7 +231,7 @@ bool WebARKitTrackerNFT::isRunning()
 
 bool WebARKitTrackerNFT::update(AR2VideoBufferT *buff, std::vector<WebARKitTrackable *>& trackables)
 {
-    ARLOGd("WebARKit::WebARKitTrackerNFT::update()\n");
+    ARLOGi("WebARKit::WebARKitTrackerNFT::update()\n");
 
     if (!m_kpmHandle || !m_ar2Handle) return false;
     
@@ -258,7 +258,7 @@ bool WebARKitTrackerNFT::update(AR2VideoBufferT *buff, std::vector<WebARKitTrack
                 int pageNo;
                 KpmResult *kpmResult = NULL;
 		        int kpmResultNum = -1;
-
+        //if (arc->detectedPage == -2) {
 		if (m_detectedPage == -2) { // from jsartoolkitNFT
             //kpmMatching( arc->kpmHandle, arc->videoLuma );
             kpmMatching( m_kpmHandle, buff->buffLuma );
@@ -270,12 +270,13 @@ bool WebARKitTrackerNFT::update(AR2VideoBufferT *buff, std::vector<WebARKitTrack
 
                     //float trackingTrans[3][4];
                     //arc->detectedPage = kpmResult[i].pageNo;
-                    pageNo = kpmResult[i].pageNo;
+                    m_detectedPage = kpmResult[i].pageNo;
                     for (int j = 0; j < 3; j++) {
                         for (int k = 0; k < 4; k++) {
                             trackingTrans[j][k] = kpmResult[i].camPose[j][k];
                         }
                     }
+                    ARLOGi("Detected page %d.\n", pageNo);
                     //ar2SetInitTrans(arc->surfaceSet[arc->detectedPage], trans);
                     ar2SetInitTrans(m_surfaceSet[pageNo], trackingTrans);
                 }
@@ -311,10 +312,10 @@ bool WebARKitTrackerNFT::update(AR2VideoBufferT *buff, std::vector<WebARKitTrack
                 
                 if (m_surfaceSet[page]->contNum > 0) {
                     if (ar2Tracking(m_ar2Handle, m_surfaceSet[page], buff->buffLuma, trackingTrans, &err) < 0) {
-                        ARLOGd("Tracking lost on page %d.\n", page);
+                        ARLOGi("Tracking lost on page %d.\n", page);
                         success &= ((WebARKitTrackableNFT *)(*it))->updateWithNFTResults(-1, NULL, NULL);
                     } else {
-                        ARLOGd("Tracked page %d (pos = {% 4f, % 4f, % 4f}).\n", page, trackingTrans[0][3], trackingTrans[1][3], trackingTrans[2][3]);
+                        ARLOGi("Tracked page %d (pos = {% 4f, % 4f, % 4f}).\n", page, trackingTrans[0][3], trackingTrans[1][3], trackingTrans[2][3]);
                         success &= ((WebARKitTrackableNFT *)(*it))->updateWithNFTResults(page, trackingTrans, (ARdouble (*)[4])transL2R);
                         pagesTracked++;
                     }
@@ -394,7 +395,7 @@ WebARKitTrackable *WebARKitTrackerNFT::newTrackable(std::vector<std::string> con
     
     WebARKitTrackableNFT *ret = new WebARKitTrackableNFT();
     if (scale != 0.0f) ret->setNFTScale(scale);
-    bool ok = ret->load(config.at(1).c_str());
+    bool ok = ret->load(config.at(1).c_str(), m_kpmHandle);
     if (!ok) {
         // Marker failed to load, or was not added
         delete ret;

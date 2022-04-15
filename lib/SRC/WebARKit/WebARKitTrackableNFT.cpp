@@ -54,11 +54,43 @@ WebARKitTrackableNFT::~WebARKitTrackableNFT()
 	if (m_loaded) unload();
 }
 
-bool WebARKitTrackableNFT::load(const char* dataSetPathname_in)
+bool WebARKitTrackableNFT::load(const char* dataSetPathname_in, KpmHandle* m_kpmHandle)
 {
     if (m_loaded) unload();
     
 	visible = visiblePrev = false;
+
+    KpmRefDataSet *refDataSet = NULL;
+    int pageCount = 0;
+
+    // Load KPM data.
+    KpmRefDataSet *refDataSet2;
+    ARLOGi("Reading '%s.fset3'.\n", dataSetPathname_in);
+    if (kpmLoadRefDataSet(dataSetPathname_in, "fset3", &refDataSet2) < 0) {
+        ARLOGe("Error reading KPM data from '%s.fset3'.\n", dataSetPathname_in);
+        pageNo = -1;
+        //continue;
+    }
+    pageNo = pageCount;
+    ARLOGi("  Assigned page no. %d.\n", pageCount);
+    if (kpmChangePageNoOfRefDataSet(refDataSet2, KpmChangePageNoAllPages, pageCount) < 0) {
+        ARLOGe("kpmChangePageNoOfRefDataSet\n");
+        exit(-1);
+    }
+    if (kpmMergeRefDataSet(&refDataSet, &refDataSet2) < 0) {
+        ARLOGe("kpmMergeRefDataSet\n");
+        exit(-1);
+    }
+    ARLOGi("Done.\n");
+
+    // For convenience, create a weak reference to the AR2 data.
+    //m_surfaceSet[pageCount] = surfaceSet;
+            
+    pageCount++;
+    if (pageCount == PAGES_MAX) {
+        ARLOGe("Maximum number of NFT pages (%d) loaded.\n", PAGES_MAX);
+        exit(-1);
+    }
 	
     // Load AR2 data.
     ARLOGi("Loading '%s.fset'.\n", dataSetPathname_in);
@@ -66,9 +98,16 @@ bool WebARKitTrackableNFT::load(const char* dataSetPathname_in)
         ARLOGe("Error reading data from '%s.fset'.\n", dataSetPathname_in);
         return (false);
     }
+    ARLOGi("kpmHandle: %d.\n", m_kpmHandle);
+    if (kpmSetRefDataSet(m_kpmHandle, refDataSet) < 0) {
+        ARLOGe("kpmSetRefDataSet\n");
+        exit(-1);
+    }
+    kpmDeleteRefDataSet(&refDataSet);
  	datasetPathname = strdup(dataSetPathname_in);
     
     allocatePatterns(1);
+
     patterns[0]->loadISet(surfaceSet->surface[0].imageSet, m_nftScale);
    
     m_loaded = true;
