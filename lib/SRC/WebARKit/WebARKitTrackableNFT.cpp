@@ -60,7 +60,7 @@ bool WebARKitTrackableNFT::load(const char* dataSetPathname_in, KpmHandle* m_kpm
     
 	visible = visiblePrev = false;
 
-    KpmRefDataSet *refDataSet = NULL;
+    /*KpmRefDataSet *refDataSet = NULL;
     int pageCount = 0;
 
     // Load KPM data.
@@ -103,7 +103,7 @@ bool WebARKitTrackableNFT::load(const char* dataSetPathname_in, KpmHandle* m_kpm
         ARLOGe("kpmSetRefDataSet\n");
         exit(-1);
     }
-    kpmDeleteRefDataSet(&refDataSet);
+    kpmDeleteRefDataSet(&refDataSet);*/
  	datasetPathname = strdup(dataSetPathname_in);
     
     allocatePatterns(1);

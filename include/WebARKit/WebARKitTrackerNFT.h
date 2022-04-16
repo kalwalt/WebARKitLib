@@ -88,6 +88,7 @@ private:
     bool m_nftMultiMode;
     bool m_kpmRequired;
     bool m_kpmBusy;
+    bool m_nft_loaded;
     int m_detectedPage;
     // NFT data.
     //THREAD_HANDLE_T     *trackingThreadHandle;

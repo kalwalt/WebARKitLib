@@ -53,7 +53,8 @@ WebARKitTrackerNFT::WebARKitTrackerNFT() :
     m_ar2Handle(NULL),
     m_kpmHandle(NULL),
     m_surfaceSet{NULL},
-    m_detectedPage(-2)
+    m_detectedPage(-2),
+    m_nft_loaded(false)
 {
 }
 
@@ -219,6 +220,7 @@ bool WebARKitTrackerNFT::loadNFTData(std::vector<WebARKitTrackable *>& trackable
         ARLOGe("trackingInitInit()\n");
         return false;
     }*/
+    m_nft_loaded = true;
     
     ARLOGi("Loading of NFT data complete.\n");
     return true;
@@ -242,6 +244,9 @@ bool WebARKitTrackerNFT::update(AR2VideoBufferT *buff, std::vector<WebARKitTrack
             return false;
         }
     }*/
+    if (!m_nft_loaded) { 
+        loadNFTData(trackables);
+    }
     
     //if (trackingThreadHandle) {
         
