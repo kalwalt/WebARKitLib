@@ -646,7 +646,8 @@ bool WebARKitTrackerSquare::updateDebugTextureRGBA32(const int videoSourceIndex,
     uint8_t *src;
     uint32_t* dest = buffer;
     int h = arHandle->ysize;
-    if (arGetImageProcMode2(arHandle) == AR_IMAGE_PROC_FIELD_IMAGE) {
+    // back to ARX code so need the modified arGetImageProcMode2
+    if (arGetImageProcMode(arHandle) == AR_IMAGE_PROC_FIELD_IMAGE) {
         int wdiv2 = arHandle->xsize >> 1;
         for (int y = 0; y < h; y++) {
             src = &(arHandle->labelInfo.bwImage[(h >> 1) * wdiv2]);

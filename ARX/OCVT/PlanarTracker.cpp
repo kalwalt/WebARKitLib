@@ -47,7 +47,7 @@
 #include "HomographyInfo.h"
 #include "OCVUtils.h"
 #include <opencv2/video.hpp>
-#include <opencv2/highgui.hpp>
+//#include <opencv2/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <iostream>
 
@@ -611,7 +611,7 @@ public:
         }
     }
     
-    void AddMarker(std::string imageName, int uid, float scale)
+    /*void AddMarker(std::string imageName, int uid, float scale)
     {
         TrackableInfo newTrackable;
         newTrackable._image = cv::imread(imageName, 0);
@@ -636,7 +636,7 @@ public:
             
             _trackables.push_back(newTrackable);
         }
-    }
+    }*/
     
     float* GetTrackablePose(int trackableId)
     {
@@ -765,10 +765,10 @@ void PlanarTracker::AddMarker(unsigned char* buff, std::string fileName, int wid
     _trackerImpl->AddMarker(buff, fileName, width, height, uid, scale);
 }
 
-void PlanarTracker::AddMarker(std::string imageName, int uid, float scale)
+/*void PlanarTracker::AddMarker(std::string imageName, int uid, float scale)
 {
     _trackerImpl->AddMarker(imageName, uid, scale);
-}
+}*/
 
 float* PlanarTracker::GetTrackablePose(int trackableId)
 {
