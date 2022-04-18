@@ -38,7 +38,7 @@
 #define WEBARKITTRACKABLEMAP_H
 
 #include <WebARKit/WebARKitTrackable.h>
-#include <AR/arMulti.h>
+#include <ARX/AR/arMulti.h>
 
 /**
  * An WebARKitTrackable that auto-builds a map of matrix (2D barcode) markers.

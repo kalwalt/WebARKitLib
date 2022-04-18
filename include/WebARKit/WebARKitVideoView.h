@@ -40,8 +40,8 @@
 #include <WebARKit/Platform.h>
 #include <WebARKit/WebARKitVideoSource.h>
 
-#include <AR/ar.h>
-#include <ARG/arg.h>
+#include <ARX/AR/ar.h>
+#include <ARX/ARG/arg.h>
 
 /**
  * WebARKitVideoView draws the output of an ARVideoSource to a rendering context, usually

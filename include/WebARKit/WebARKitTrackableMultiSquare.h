@@ -40,7 +40,7 @@
 #define WEBARKITMARKERMULTI_H
 
 #include <WebARKit/WebARKitTrackable.h>
-#include <AR/arMulti.h>
+#include <ARX/AR/arMulti.h>
 
 /**
  * Multiple marker type of WebARKitTrackable.

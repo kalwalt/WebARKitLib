@@ -39,8 +39,8 @@
 
 #include <WebARKit/Platform.h>
 
-#include <AR/ar.h>
-#include <ARVideo/video.h>
+#include <ARX/AR/ar.h>
+#include <ARX/ARVideo/video.h>
 
 #include <mutex>
 #include <pthread.h>

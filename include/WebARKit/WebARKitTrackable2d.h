@@ -41,7 +41,8 @@
 
 #include <WebARKit/WebARKitTrackable.h>
 #if HAVE_2D
-//#include <ARX/AR2/imageSet.h>
+//this include was excluded, maybe that was the issue?
+#include <ARX/AR2/imageSet.h>
 
 /**
  * 2D marker type of ARTrackable.

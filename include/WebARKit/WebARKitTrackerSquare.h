@@ -45,7 +45,7 @@
 #include <WebARKit/WebARKitTrackableSquare.h>
 #include <WebARKit/WebARKitTrackableMultiSquare.h>
 #include <WebARKit/WebARKitTrackerVideo.h>
-#include <AR/ar.h>
+#include <ARX/AR/ar.h>
 
 class WebARKitTrackerSquare : public WebARKitTrackerVideo {
 public:

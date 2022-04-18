@@ -43,7 +43,7 @@
 #define WEBARKITCONTROLLER_H
 
 #include <WebARKit/Platform.h>
-#include <AR/ar.h>
+#include <ARX/AR/ar.h>
 #include <WebARKit/WebARKitVideoSource.h>
 #include <WebARKit/WebARKitVideoView.h>
 #include <WebARKit/WebARKitTrackerSquare.h>

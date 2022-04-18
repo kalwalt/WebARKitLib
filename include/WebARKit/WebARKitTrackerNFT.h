@@ -47,8 +47,8 @@
 
 #include <WebARKit/WebARKitTrackableNFT.h>
 #include <WebARKit/WebARKitTrackerVideo.h>
-#include <AR2/tracking.h>
-#include <KPM/kpm.h>
+#include <ARX/AR2/tracking.h>
+#include <ARX/KPM/kpm.h>
 
 #define PAGES_MAX 64
 

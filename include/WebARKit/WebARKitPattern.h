@@ -39,9 +39,9 @@
 #ifndef WEBARKITPATTERN_H
 #define WEBARKITPATTERN_H
 
-#include <AR/ar.h>
+#include <ARX/AR/ar.h>
 #if HAVE_NFT
-#  include <AR2/imageSet.h>
+#  include <ARX/AR2/imageSet.h>
 #endif
 #include <memory>
 

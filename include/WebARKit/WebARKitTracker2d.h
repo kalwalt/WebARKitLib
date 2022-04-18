@@ -47,8 +47,8 @@
 
 #include <WebARKit/WebARKitTrackable2d.h>
 #include <WebARKit/WebARKitTrackerVideo.h>
-#include <AR2/tracking.h>
-#include <OCVT/PlanarTracker.h>
+#include <ARX/AR2/tracking.h>
+#include <ARX/OCVT/PlanarTracker.h>
 
 class WebARKitTracker2d : public WebARKitTrackerVideo {
 public:

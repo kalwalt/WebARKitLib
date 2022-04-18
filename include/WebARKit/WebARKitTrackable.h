@@ -39,8 +39,8 @@
 #ifndef WEBARKITTRACKABLE_H
 #define WEBARKITTRACKABLE_H
 
-#include <AR/ar.h>
-#include <AR/arFilterTransMat.h>
+#include <ARX/AR/ar.h>
+#include <ARX/AR/arFilterTransMat.h>
 
 #include <WebARKit/WebARKitPattern.h>
 
