@@ -43,18 +43,19 @@
 #if HAVE_NFT
 #include <WebARKit/WebARKitTrackableNFT.h>
 #include "trackingMod.h"
+#include "trackingSubMod.h"
 
 WebARKitTrackerNFT::WebARKitTrackerNFT() :
     m_videoSourceIsStereo(false),
     m_nftMultiMode(false),
     m_kpmRequired(true),
     m_kpmBusy(false),
-    //trackingThreadHandle(NULL),
+    trackingThreadHandle(false),
     m_ar2Handle(NULL),
     m_kpmHandle(NULL),
-    m_surfaceSet{NULL},
-    m_detectedPage(-2),
-    m_nft_loaded(false)
+    m_surfaceSet{NULL}
+    //m_detectedPage(-2),
+    //m_nft_loaded(false)
 {
 }
 
@@ -143,13 +144,15 @@ bool WebARKitTrackerNFT::unloadNFTData(void)
 {
     int i;
     
-    /*if (trackingThreadHandle) {
+    if (trackingThreadHandle) {
         ARLOGi("Stopping NFT tracking thread.\n");
-        trackingInitQuit(&trackingThreadHandle);
+        //trackingInitQuit(&trackingThreadHandle);
+        trackingInitQuit();
         m_kpmBusy = false;
-    }*/
+    }
     for (i = 0; i < PAGES_MAX; i++) m_surfaceSet[i] = NULL; // Discard weak-references.
     m_kpmRequired = true;
+    trackingThreadHandle = false;
     
     return true;
 }
@@ -157,12 +160,12 @@ bool WebARKitTrackerNFT::unloadNFTData(void)
 bool WebARKitTrackerNFT::loadNFTData(std::vector<WebARKitTrackable *>& trackables)
 {
     // If data was already loaded, stop KPM tracking thread and unload previously loaded data.
-    /*if (trackingThreadHandle) {
+    if (trackingThreadHandle) {
         ARLOGi("Reloading NFT data.\n");
         unloadNFTData();
     } else {
         ARLOGi("Loading NFT data.\n");
-    }*/
+    }
     
     KpmRefDataSet *refDataSet = NULL;
     int pageCount = 0;
@@ -215,12 +218,12 @@ bool WebARKitTrackerNFT::loadNFTData(std::vector<WebARKitTrackable *>& trackable
     
     // Start the KPM tracking thread.
     ARLOGi("Starting NFT tracking thread.\n");
-    /*trackingThreadHandle = trackingInitInit(m_kpmHandle);
+    trackingThreadHandle = trackingInitInit(m_kpmHandle);
     if (!trackingThreadHandle) {
         ARLOGe("trackingInitInit()\n");
         return false;
-    }*/
-    m_nft_loaded = true;
+    }
+    //m_nft_loaded = true;
     
     ARLOGi("Loading of NFT data complete.\n");
     return true;
@@ -237,18 +240,18 @@ bool WebARKitTrackerNFT::update(AR2VideoBufferT *buff, std::vector<WebARKitTrack
 
     if (!m_kpmHandle || !m_ar2Handle) return false;
     
-    /*if (!trackingThreadHandle) {
+    if (!trackingThreadHandle) {
         loadNFTData(trackables);
         if (!trackingThreadHandle) {
             ARLOGe("Unable to load NFT data.\n");
             return false;
         }
-    }*/
-    if (!m_nft_loaded) { 
-        loadNFTData(trackables);
     }
+    /*if (!m_nft_loaded) { 
+        loadNFTData(trackables);
+    }*/
     
-    //if (trackingThreadHandle) {
+    if (trackingThreadHandle) {
         
         // Do KPM tracking.
         float err;
@@ -257,6 +260,7 @@ bool WebARKitTrackerNFT::update(AR2VideoBufferT *buff, std::vector<WebARKitTrack
         if (m_kpmRequired) {
             if (!m_kpmBusy) {
                 //trackingInitStart(trackingThreadHandle, buff->buffLuma);
+                trackingInitStart(buff->buffLuma);
                 m_kpmBusy = true;
             } else {
                 int ret;
@@ -264,15 +268,18 @@ bool WebARKitTrackerNFT::update(AR2VideoBufferT *buff, std::vector<WebARKitTrack
                 KpmResult *kpmResult = NULL;
 		        int kpmResultNum = -1;
         //if (arc->detectedPage == -2) {
-		if (m_detectedPage == -2) { // from jsartoolkitNFT
+		/*if (m_detectedPage == -2) { // from jsartoolkitNFT
             //kpmMatching( arc->kpmHandle, arc->videoLuma );
             kpmMatching( m_kpmHandle, buff->buffLuma );
             //kpmGetResult( arc->kpmHandle, &kpmResult, &kpmResultNum );
             kpmGetResult( m_kpmHandle, &kpmResult, &kpmResultNum );
+            
+            
 
 			for(int i = 0; i < kpmResultNum; i++ ) {
+                ARLOGi("kpmResult: %d\n", kpmResult[i].pageNo);
 				if (kpmResult[i].camPoseF == 0 ) {
-
+                    ARLOGd("kpmGetPose OK.\n");
                     //float trackingTrans[3][4];
                     //arc->detectedPage = kpmResult[i].pageNo;
                     m_detectedPage = kpmResult[i].pageNo;
@@ -286,9 +293,10 @@ bool WebARKitTrackerNFT::update(AR2VideoBufferT *buff, std::vector<WebARKitTrack
                     ar2SetInitTrans(m_surfaceSet[pageNo], trackingTrans);
                 }
             }
-        } ///from jsartoolkitnft
+        } ///from jsartoolkitnft*/
                 //ret = trackingInitGetResult(trackingThreadHandle, trackingTrans, &pageNo);
-                /*if (ret != 0) {
+                ret = trackingInitGetResult(trackingTrans, &pageNo);
+                if (ret != 0) {
                     m_kpmBusy = false;
                     if (ret == 1) {
                         if (pageNo >= 0 && pageNo < PAGES_MAX) {
@@ -299,10 +307,10 @@ bool WebARKitTrackerNFT::update(AR2VideoBufferT *buff, std::vector<WebARKitTrack
                         } else {
                             ARLOGe("Detected page with bad page number %d.\n", pageNo);
                         }
-                    } else /*if (ret < 0)*/ /*{
+                    } else if (ret < 0) {
                         ARLOGd("No page detected.\n");
-                    }*/
-                //}*/
+                    }
+                }
             }
         }
         
@@ -332,7 +340,7 @@ bool WebARKitTrackerNFT::update(AR2VideoBufferT *buff, std::vector<WebARKitTrack
         
         m_kpmRequired = (pagesTracked < (m_nftMultiMode ? page : 1));
         
-    //} // trackingThreadHandle
+    } // trackingThreadHandle
 
     return true;
 }
@@ -347,9 +355,9 @@ bool WebARKitTrackerNFT::stop()
     // Tracking thread is holding a reference to the camera parameters. Closing the
     // video source will dispose of the camera parameters, thus invalidating this reference.
     // So must stop tracking before closing the video source.
-    /*if (trackingThreadHandle) {
+    if (trackingThreadHandle) {
         unloadNFTData();
-    }*/
+    }
 
     // NFT cleanup.
     //ARLOGd("Cleaning up webarkit NFT handles.\n");
