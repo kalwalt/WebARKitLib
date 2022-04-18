@@ -46,7 +46,9 @@ void arRefineCorners(ARfloat vertex[4][2], const unsigned char *buff, int width,
 }
 
 #else
-
+void arRefineCorners(float vertex[4][2], const unsigned char *buff, int width, int height)
+{}
+/*
 #include <opencv2/opencv.hpp>
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgproc.hpp>
@@ -87,5 +89,5 @@ void arRefineCorners(float vertex[4][2], const unsigned char *buff, int width, i
     }
     corners.clear();
 }
-
+*/
 #endif // HAVE_OPENCV
