@@ -41,14 +41,14 @@
 
 #include <WebARKit/WebARKitController.h>
 #include <WebARKit/Error.h>
-#include <ARG/mtx.h>
+#include <ARX/ARG/mtx.h>
 #ifdef __APPLE__
 #  include <syslog.h>
 #endif
 #if HAVE_NFT
 #  include "trackingSub.h"
 #endif
-#include <AR/paramGL.h>
+#include <ARX/AR/paramGL.h>
 
 #include <stdarg.h>
 

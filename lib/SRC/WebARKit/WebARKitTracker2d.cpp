@@ -43,7 +43,7 @@
 #if HAVE_2D
 #include <WebARKit/WebARKitTrackable2d.h>
 #include "trackingSub.h"
-#include <OCVT/PlanarTracker.h>
+#include <ARX/OCVT/PlanarTracker.h>
 
 WebARKitTracker2d::WebARKitTracker2d() :
 m_videoSourceIsStereo(false),

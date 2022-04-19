@@ -42,7 +42,7 @@
 #ifndef WEBARKITTRACKER2D_H
 #define WEBARKITTRACKER2D_H
 
-#include <AR/config.h>
+#include <ARX/AR/config.h>
 #if HAVE_2D
 
 #include <WebARKit/WebARKitTrackable2d.h>

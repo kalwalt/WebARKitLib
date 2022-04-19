@@ -42,7 +42,7 @@
 #ifndef WEBARKITTRACKERNFT_H
 #define WEBARKITTRACKERNFT_H
 
-#include <AR/config.h>
+#include <ARX/AR/config.h>
 #if HAVE_NFT
 
 #include <WebARKit/WebARKitTrackableNFT.h>

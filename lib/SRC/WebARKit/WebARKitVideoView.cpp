@@ -36,7 +36,7 @@
  
 #include <WebARKit/WebARKitVideoView.h>
 #if USE_GL_STATE_CACHE
-#  include <ARG/glStateCache2.h>
+#  include <ARX/ARG/glStateCache2.h>
 #endif
 #include <algorithm>
 

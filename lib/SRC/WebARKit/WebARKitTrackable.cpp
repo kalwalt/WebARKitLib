@@ -46,7 +46,7 @@
 #  include <WebARKit/WebARKitTrackable2d.h>
 #endif
 #include <WebARKit/WebARKitController.h>
-#include <AR/paramGL.h>
+#include <ARX/AR/paramGL.h>
 
 #ifdef _WIN32
 #  define MAXPATHLEN MAX_PATH

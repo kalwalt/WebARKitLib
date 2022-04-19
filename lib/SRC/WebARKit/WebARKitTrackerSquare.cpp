@@ -42,7 +42,7 @@
 #include <WebARKit/WebARKitTrackableSquare.h>
 #include <WebARKit/WebARKitTrackableMultiSquare.h>
 #include <WebARKit/WebARKitTrackableMultiSquareAuto.h>
-#include <AR/ar.h>
+#include <ARX/AR/ar.h>
 
 WebARKitTrackerSquare::WebARKitTrackerSquare() :
     m_threshold(AR_DEFAULT_LABELING_THRESH),

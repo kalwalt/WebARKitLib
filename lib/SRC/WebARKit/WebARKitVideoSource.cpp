@@ -40,7 +40,7 @@
 #include <WebARKit/WebARKitVideoSource.h>
 #include <WebARKit/Error.h>
 #include <WebARKit/WebARKitController.h>
-#include <ARVideo/videoRGBA.h>
+#include <ARX/ARVideo/videoRGBA.h>
 #if HAVE_ARM_NEON || HAVE_ARM64_NEON
 #  include <arm_neon.h>
 #  ifdef ANDROID
