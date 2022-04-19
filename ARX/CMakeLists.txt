@@ -16,6 +16,7 @@ set(HAVE_GLES2 0)
 set(USE_GL_STATE_CACHE 0)
 set(USE_CPARAM_SEARCH 0)
 set(HAVE_GTSAM 0)
+set(HAVE_OPENCV 0)
 
 # Create ARX/AR/config.h and allow subdirectories to find it.
 configure_file(AR/include/ARX/AR/config.h.in AR/include/ARX/AR/config.h @ONLY)
