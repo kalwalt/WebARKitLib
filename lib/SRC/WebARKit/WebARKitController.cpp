@@ -46,7 +46,7 @@
 #  include <syslog.h>
 #endif
 #if HAVE_NFT
-#  include "trackingSub.h"
+#  include "trackingSubMod.h"
 #endif
 #include <ARX/AR/paramGL.h>
 
