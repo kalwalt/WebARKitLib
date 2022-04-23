@@ -131,7 +131,9 @@ public:
         for(int i=0;i<_trackables.size(); i++) {
             if(!_trackables[i]._isDetected) {
                 std::vector< std::vector<cv::DMatch> >  matches = _featureDetector.MatchFeatures(newFrameDescriptors, _trackables[i]._descriptors);
+                ARLOGi("Matches: %d\n", matches.size());
                 if(matches.size()>minRequiredDetectedFeatures) {
+                     ARLOGi("Matches ok!!\n");
                     std::vector<cv::KeyPoint> matched1, matched2;
                     std::vector<uchar> status;
                     int totalGoodMatches = 0;
@@ -165,7 +167,7 @@ public:
             
             HomographyInfo homoInfo = GetHomographyInliers(Points(finalMatched2), Points(finalMatched1));
             if(homoInfo.validHomography) {
-                //std::cout << "New marker detected" << std::endl;
+                std::cout << "New marker detected" << std::endl;
                 _trackables[bestMatchIndex]._trackSelection.SelectPoints();
                 _trackables[bestMatchIndex]._trackSelection.SetHomography(homoInfo.homography);
                 _trackables[bestMatchIndex]._isDetected = true;
