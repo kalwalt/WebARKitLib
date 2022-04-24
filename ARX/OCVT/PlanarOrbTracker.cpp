@@ -51,10 +51,10 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include <iostream>
 
-class PlanarTracker::PlanarTrackerImpl
+class PlanarOrbTracker::PlanarOrbTrackerImpl
 {
 private:
-    OCVFeatureDetector _featureDetector;
+    cv::Ptr<cv::Feature2D> _featureDetector;
     HarrisDetector _harrisDetector;
     std::vector<cv::Mat> _pyramid, _prevPyramid;
     
@@ -69,10 +69,10 @@ private:
     
     int _selectedFeatureDetectorType;
 public:
-    PlanarTrackerImpl()
+    PlanarOrbTrackerImpl()
     {
-        _featureDetector = OCVFeatureDetector();
-        SetFeatureDetector(defaultDetectorType);
+        _featureDetector = ORB::create();
+        //SetFeatureDetector(defaultDetectorType);
         _harrisDetector = HarrisDetector();
         _currentlyTrackedMarkers = 0;
         _frameCount = 0;
