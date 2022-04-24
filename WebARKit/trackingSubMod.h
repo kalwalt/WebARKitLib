@@ -1,5 +1,5 @@
 /*
- *  trackingSub.h
+ *  trackingSubMod.h
  *  artoolkitX
  *
  *  This file is part of artoolkitX.
@@ -40,19 +40,23 @@
 #define TRACKING_SUB_H
 
 #include <WebARKit/Platform.h>
-#include <AR/ar.h>
+#include <ARX/AR/ar.h>
 #if HAVE_NFT
-#include <ARUtil/thread_sub.h>
-#include <KPM/kpm.h>
+//#include <ARUtil/thread_sub.h>
+#include <ARX/KPM/kpm.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-THREAD_HANDLE_T *trackingInitInit( KpmHandle *kpmHandle );
-int trackingInitStart( THREAD_HANDLE_T *threadHandle, ARUint8 *imagePtrLuma );
-int trackingInitGetResult( THREAD_HANDLE_T *threadHandle, float trans[3][4], int *page );
-int trackingInitQuit( THREAD_HANDLE_T **threadHandle_p );
+//THREAD_HANDLE_T *trackingInitInit( KpmHandle *kpmHandle );
+bool trackingInitInit( KpmHandle *kpmHandle );
+//int trackingInitStart( THREAD_HANDLE_T *threadHandle, ARUint8 *imagePtrLuma );
+int trackingInitStart( ARUint8 *imagePtrLuma );
+//int trackingInitGetResult( THREAD_HANDLE_T *threadHandle, float trans[3][4], int *page );
+int trackingInitGetResult( float trans[3][4], int *page );
+//int trackingInitQuit( THREAD_HANDLE_T **threadHandle_p );
+int trackingInitQuit();
 
 #ifdef __cplusplus
 }

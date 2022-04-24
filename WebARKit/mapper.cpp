@@ -10,7 +10,7 @@
  *
  */
 
-#include <AR/config.h>
+#include <ARX/AR/config.h>
 
 #if HAVE_GTSAM
 #include "mapper.hpp"

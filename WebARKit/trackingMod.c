@@ -37,18 +37,18 @@
  *
  */
  #include "trackingMod.h"
- #include <AR/ar.h>
+ #include <ARX/AR/ar.h>
  #include <stdio.h>
  #include <stdlib.h>
  #ifndef _WIN32
  #include <strings.h>
  #endif
  #include <math.h>
- #include <AR/icp.h>
- #include <AR2/coord.h>
- #include <AR2/imageSet.h>
- #include <AR2/featureSet.h>
- #include <AR2/template.h>
+ #include <ARX/AR/icp.h>
+ #include <ARX/AR2/coord.h>
+ #include <ARX/AR2/imageSet.h>
+ #include <ARX/AR2/featureSet.h>
+ #include <ARX/AR2/template.h>
 
 AR2HandleT *ar2CreateHandleMod( ARParamLT *cparamLT, AR_PIXEL_FORMAT pixFormat/*, int threadNum*/ )
 {

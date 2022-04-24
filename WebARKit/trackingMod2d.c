@@ -36,15 +36,15 @@
  *
  */
 
-#include <AR/ar.h>
+#include <ARX/AR/ar.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#include <AR2/config.h>
-#include <AR2/featureSet.h>
-#include <AR2/template.h>
-#include <AR2/searchPoint.h>
-#include <AR2/tracking.h>
+#include <ARX/AR2/config.h>
+#include <ARX/AR2/featureSet.h>
+#include <ARX/AR2/template.h>
+#include <ARX/AR2/searchPoint.h>
+#include <ARX/AR2/tracking.h>
 
 #if AR2_CAPABLE_ADAPTIVE_TEMPLATE
 int ar2Tracking2dSub ( AR2HandleT *handle, AR2SurfaceSetT *surfaceSet, AR2TemplateCandidateT *candidate,

@@ -35,8 +35,8 @@
 #include <gtsam/slam/BetweenFactor.h>
 
 // Map is stored as an ARMultiMarkerInfoT structure.
-#include <AR/ar.h>
-#include <AR/arMulti.h>
+#include <ARX/AR/ar.h>
+#include <ARX/AR/arMulti.h>
 
 namespace arx_mapper {
     
