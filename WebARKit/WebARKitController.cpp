@@ -147,7 +147,12 @@ bool WebARKitController::initialiseBase()
 #if HAVE_2D
     m_twoDTracker = std::shared_ptr<WebARKitTracker2d>(new WebARKitTracker2d);
     if (!m_twoDTracker->initialize()) {
-        ARLOGe("Error initialising NFT tracker.\n");
+        ARLOGe("Error initialising 2d tracker.\n");
+        goto bail2;
+    }
+    m_OrbTwoDTracker = std::shared_ptr<WebARKitTrackerOrb2d>(new WebARKitTrackerOrb2d);
+    if (!m_twoDTracker->initialize()) {
+        ARLOGe("Error initialising 2d Orb tracker.\n");
         goto bail2;
     }
 #endif
@@ -391,6 +396,12 @@ bool WebARKitController::update()
             if (!ret) goto done;
         }
         m_twoDTracker->update(image0, image1, m_trackables);
+        if (!m_OrbTwoDTracker->isRunning()) {
+            if (!m_videoSourceIsStereo) ret = m_OrbTwoDTracker->start(m_videoSource0->getCameraParameters(), m_videoSource0->getPixelFormat());
+            else ret = m_OrbTwoDTracker->start(m_videoSource0->getCameraParameters(), m_videoSource0->getPixelFormat(), m_videoSource1->getCameraParameters(), m_videoSource1->getPixelFormat(), m_transL2R);
+            if (!ret) goto done;
+        }
+        m_OrbTwoDTracker->update(image0, image1, m_trackables);
     }
 #endif
 done:
@@ -422,6 +433,7 @@ bool WebARKitController::stopRunning()
 #endif
 #if HAVE_2D
     m_twoDTracker->stop();
+    m_OrbTwoDTracker->stop();
 #endif
     if (m_videoSource0) {
         if (m_videoSource0->isOpen()) {
@@ -471,6 +483,8 @@ bool WebARKitController::shutdown()
 #if HAVE_2D
                 m_twoDTracker->terminate();
                 m_twoDTracker.reset();
+                m_OrbTwoDTracker->terminate();
+                m_OrbTwoDTracker.reset();
 #endif
                 state = NOTHING_INITIALISED;
                 // Fall though.
@@ -655,6 +669,7 @@ int WebARKitController::addTrackable(const std::string& cfgs)
 #endif
 #if HAVE_2D
     } else if ((trackable = m_twoDTracker->newTrackable(config)) != nullptr) {
+    } else if ((trackable = m_OrbTwoDTracker->newTrackable(config)) != nullptr) {    
 #endif
     }
     if (!trackable) {
@@ -694,6 +709,11 @@ bool WebARKitController::addTrackable(WebARKitTrackable* trackable)
     if (trackable->type == WebARKitTrackable::TwoD) {
         if (!doTwoDMarkerDetection)
             ARLOGi("First 2D marker trackable added; enabling 2D marker tracker.\n");
+        doTwoDMarkerDetection = true;
+    } else if
+    (trackable->type == WebARKitTrackable::OrbTwoD) {
+        if (!doTwoDMarkerDetection)
+            ARLOGi("First 2D orb marker trackable added; enabling 2D orb marker tracker.\n");
         doTwoDMarkerDetection = true;
     } else
 #endif
@@ -741,6 +761,7 @@ bool WebARKitController::removeTrackable(WebARKitTrackable* trackable)
 #endif
 #if HAVE_2D
     m_twoDTracker->deleteTrackable(&trackable);
+    m_OrbTwoDTracker->deleteTrackable(&trackable);   
 #endif
 
     // Remove from our trackable list.
@@ -782,6 +803,7 @@ int WebARKitController::removeAllTrackables()
 #endif
 #if HAVE_2D
         m_twoDTracker->deleteTrackable(&(*it));
+        m_OrbTwoDTracker->deleteTrackable(&(*it));
 #endif
     }
     m_trackables.clear();

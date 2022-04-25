@@ -52,6 +52,7 @@
 #endif
 #if HAVE_2D
 #  include <WebARKit/WebARKitTracker2d.h>
+#  include <WebARKit/WebARKitTrackerOrb2d.h>
 #endif
 #include <WebARKit/WebARKitTrackable.h>
 
@@ -116,6 +117,7 @@ private:
 #if HAVE_2D
     bool doTwoDMarkerDetection;
     std::shared_ptr<WebARKitTracker2d> m_twoDTracker;
+    std::shared_ptr<WebARKitTrackerOrb2d> m_OrbTwoDTracker;
 #endif
     int m_error;
     void setError(int error);

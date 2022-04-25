@@ -80,6 +80,7 @@ public:
 		MULTI,								///< A composite marker made up of multiple square markers.
         NFT,                                ///< A rectangular textured marker backed by an NFT data set.
         TwoD,                               ///< A 2D textured marker backed by an image.
+		OrbTwoD,                            ///< A 2D textured marker backed by an image, based on Orb.
         MULTI_AUTO                          ///< An automatically mapped composite marker made up of multiple square matrix (2D barcode) markers.
 	};
 
