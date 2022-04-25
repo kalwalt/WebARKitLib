@@ -1,5 +1,5 @@
 /*
- *  PlanarTracker.h
+ *  OrbFeatureDetector.h
  *  artoolkitX
  *
  *  A C++ class implementing the artoolkitX square fiducial marker tracker.
@@ -38,68 +38,34 @@
  *
  */
 
-#ifndef PLANAR_ORB_TRACKER_H
-#define PLANAR_ORB_TRACKER_H
-#include <memory>
-#include <string>
-#include <sstream>
-#include <iostream>
+#ifndef ORBFEATUREDETECTOR_H
+#define ORBFEATUREDETECTOR_H
+#include <opencv2/features2d.hpp>
 #include <vector>
-#include <opencv2/core.hpp>
-#include <opencv2/core/types_c.h>
-#include <ARX/AR/ar.h> // ARdouble
+#include <map>
 
-#define OUTPUT_SIZE     17
-class TrackedOrbImageInfo
+class OrbFeatureDetector
 {
 public:
-    std::shared_ptr<unsigned char> imageData;
-    int uid;
-    float scale;
-    int width;
-    int height;
-    std::string fileName;
-};
-
-typedef struct {
-    char valid;
-    double *data;   // 9 elems in homography matrix + 8 elems in warped corners
-} output_t;
-
-
-class PlanarOrbTracker
-{
-public:
-    PlanarOrbTracker();
-    ~PlanarOrbTracker();
-    PlanarOrbTracker(PlanarOrbTracker&&);
-    PlanarOrbTracker& operator = (PlanarOrbTracker&&);
+    OrbFeatureDetector();
     
-    void Initialise(int xFrameSize, int yFrameSize, ARdouble cParam[][4]);
+    bool AddDescriptorsToDictionary(int id, cv::Mat descriptors);
     
-    void ProcessFrameData(unsigned char * frame);
-    output_t *resetTracking(uchar imageData[], size_t cols, size_t rows);
-    output_t *track(uchar imageData[], size_t cols, size_t rows);
-    
-    void RemoveAllMarkers();
-    void AddMarker(unsigned char* buff, std::string fileName, int width, int height, int uid, float scale);
-    //void AddMarker(std::string imageName, int uid, float scale);
-    
-    float* GetTrackablePose(int trackableId);
-    
-    bool IsTrackableVisible(int trackableId);
-    //bool LoadTrackableDatabase(std::string fileName);
-    //bool SaveTrackableDatabase(std::string fileName);
-    
-    bool ChangeImageId(int prevId, int newId);
-    std::vector<int> GetImageIds();
-    TrackedOrbImageInfo GetTrackableImageInfo(int trackableId);
+    std::vector<cv::KeyPoint> DetectAndCompute(cv::Mat frame, cv::Mat mask, cv::Mat &desc);
+        
+    std::vector< std::vector<cv::DMatch> >  MatchFeatures(cv::Mat first_desc, cv::Mat desc);
     
     void SetFeatureDetector(int detectorType);
 
-private:
-    class PlanarOrbTrackerImpl;
-    std::shared_ptr<PlanarOrbTrackerImpl> _trackerImpl;
+    // static int count;
     
+private:
+    void CreateORBFeatureDetector();
+    
+    std::map<int, cv::Mat> _visualDictionary;
+    cv::Ptr<cv::DescriptorMatcher> _matcher;
+    cv::Ptr<cv::Feature2D> _featureDetector;
+    float _akaze_thresh;
 };
-#endif
+
+#endif //ORBFEATUREDETECTOR_H

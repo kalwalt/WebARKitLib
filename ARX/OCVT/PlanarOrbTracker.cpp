@@ -1,5 +1,5 @@
 /*
- *  PlanarTracker.cpp
+ *  PlanarOrbTracker.cpp
  *  artoolkitX
  *
  *  A C++ class implementing the artoolkitX square fiducial marker tracker.
@@ -41,11 +41,12 @@
 #include "PlanarOrbTracker.h"
 
 #include "OCVConfig.h"
-#include "OCVFeatureDetector.h"
+//#include "OCVFeatureDetector.h"
+#include "OrbFeatureDetector.h"
 #include "HarrisDetector.h"
 #include "TrackableInfo.h"
 #include "HomographyInfo.h"
-#include "OCVUtils.h"
+//#include "OCVUtils.h" // temporary not including because duplicate symbol err. (about Points)
 #include <opencv2/video.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <iostream>
@@ -53,7 +54,7 @@
 class PlanarOrbTracker::PlanarOrbTrackerImpl
 {
 private:
-    OCVFeatureDetector _featureDetector;
+    OrbFeatureDetector _featureDetector;
     HarrisDetector _harrisDetector;
     std::vector<cv::Mat> _pyramid, _prevPyramid;
     
@@ -71,7 +72,7 @@ private:
 public:
     PlanarOrbTrackerImpl()
     {
-        _featureDetector = OCVFeatureDetector();
+        _featureDetector = OrbFeatureDetector();
         SetFeatureDetector(defaultDetectorType);
         _harrisDetector = HarrisDetector();
         _currentlyTrackedMarkers = 0;
@@ -240,9 +241,9 @@ public:
         }
         return imageIds;
     }
-    TrackedImageInfo GetTrackableImageInfo(int trackableId)
+    TrackedOrbImageInfo GetTrackableImageInfo(int trackableId)
     {
-        TrackedImageInfo info;
+        TrackedOrbImageInfo info;
         for(int i=0;i<_trackables.size(); i++) {
             if(_trackables[i]._id==trackableId) {
                 info.uid = _trackables[i]._id;
@@ -326,7 +327,7 @@ std::vector<int> PlanarOrbTracker::GetImageIds()
     return _trackerImpl->GetImageIds();
 }
 
-TrackedImageInfo PlanarOrbTracker::GetTrackableImageInfo(int trackableId)
+TrackedOrbImageInfo PlanarOrbTracker::GetTrackableImageInfo(int trackableId)
 {
     return _trackerImpl->GetTrackableImageInfo(trackableId);
 }
