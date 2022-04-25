@@ -94,6 +94,7 @@ public:
         _K = cv::Mat();
         numMatches = 0;
         initialized = false;
+        _valid = false;
         corners = std::vector<cv::Point2f>(4);
     }
 
@@ -127,8 +128,9 @@ public:
         ARLOGi("output is: %d\n", output->data[0]);
     }
 
-    void clear_output() {
-    memset(output, 0, sizeof(output_t));
+    void clear_output()
+    {
+        memset(output, 0, sizeof(output_t));
     }
 
     void fill_output(cv::Mat H, bool valid)
@@ -166,10 +168,11 @@ public:
     //bool resetTracking(uchar imageData[], size_t cols, size_t rows)
     bool resetTracking(cv::Mat frame, size_t cols, size_t rows)
     {
-        if (!initialized) {
-        std::cout << "Reference image not found!" << std::endl;
-        return NULL;
-    }
+        ARLOGi("initialized is: %s\n", initialized ? "true" : "false");
+        if (!IsImageInitialized()) {
+           std::cout << "Reference image not found!" << std::endl;
+           return NULL;
+        }
 
     clear_output();
 
@@ -251,6 +254,10 @@ public:
     
     void ProcessFrame(cv::Mat frame)
     {
+        if(!_valid) {
+            _valid = resetTracking(frame, _frameSizeX, _frameSizeY);
+            ARLOGi("valid tracking is: %s\n", _valid);  
+        }
     }
     
     void RemoveAllMarkers()
@@ -298,8 +305,15 @@ public:
             newTrackable._trackSelection = TrackingPointSelector(newTrackable._cornerPoints, newTrackable._width, newTrackable._height, markerTemplateWidth);
             
             _trackables.push_back(newTrackable);
+            //initialized = true;
             std::cout << "Marker Added" << std::endl;
         }
+        initialized = true;
+    }
+
+    bool IsImageInitialized()
+    {
+        return initialized;
     }
 
     float* GetTrackablePose(int trackableId)
@@ -402,6 +416,11 @@ void PlanarOrbTracker::RemoveAllMarkers()
 void PlanarOrbTracker::AddMarker(unsigned char* buff, std::string fileName, int width, int height, int uid, float scale)
 {
     _trackerImpl->AddMarker(buff, fileName, width, height, uid, scale);
+}
+
+bool PlanarOrbTracker::IsImageInitialized()
+{
+    _trackerImpl->IsImageInitialized();
 }
 
 

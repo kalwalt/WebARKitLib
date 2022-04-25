@@ -90,6 +90,7 @@ public:
     float* GetTrackablePose(int trackableId);
     
     bool IsTrackableVisible(int trackableId);
+    bool IsImageInitialized();
     //bool LoadTrackableDatabase(std::string fileName);
     //bool SaveTrackableDatabase(std::string fileName);
     
