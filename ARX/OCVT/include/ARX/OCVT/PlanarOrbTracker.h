@@ -62,7 +62,6 @@ public:
 };
 
 typedef struct {
-    char valid;
     double *data;   // 9 elems in homography matrix + 8 elems in warped corners
 } output_t;
 
@@ -78,7 +77,10 @@ public:
     void Initialise(int xFrameSize, int yFrameSize, ARdouble cParam[][4]);
     
     void ProcessFrameData(unsigned char * frame);
-    output_t *resetTracking(uchar imageData[], size_t cols, size_t rows);
+    bool homographyValid(cv::Mat H);
+    void clear_output();
+    void fill_output(cv::Mat H, bool valid);
+    bool resetTracking(cv::Mat frame, size_t cols, size_t rows);
     output_t *track(uchar imageData[], size_t cols, size_t rows);
     
     void RemoveAllMarkers();

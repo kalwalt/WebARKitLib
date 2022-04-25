@@ -51,6 +51,10 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include <iostream>
 
+#define N   10
+#define GOOD_MATCH_RATIO    0.7f
+
+
 class PlanarOrbTracker::PlanarOrbTrackerImpl
 {
 private:
@@ -66,8 +70,15 @@ private:
     int _frameSizeX;
     int _frameSizeY;
     cv::Mat _K;
+    cv::Mat _H;
+    cv::Mat prevIm;
     output_t *output;
-    
+    bool _valid;
+    int numMatches;
+    bool initialized;
+    std::vector<cv::Point2f> framePts;
+    std::vector<cv::KeyPoint> refKeyPts;
+    std::vector<cv::Point2f> corners;   
     int _selectedFeatureDetectorType;
 public:
     PlanarOrbTrackerImpl()
@@ -81,6 +92,9 @@ public:
         _frameSizeX = 0;
         _frameSizeY = 0;
         _K = cv::Mat();
+        numMatches = 0;
+        initialized = false;
+        corners = std::vector<cv::Point2f>(4);
     }
 
     output_t *create_output() {
@@ -99,12 +113,104 @@ public:
                 _K.at<double>(i,j) = (double)(cParam[i][j]);
             }
         }
+        /*corners[0] = cvPoint( 0, 0 );
+        corners[1] = cvPoint( refCols, 0 );
+        corners[2] = cvPoint( refCols, refRows );
+        corners[3] = cvPoint( 0, refRows );*/
+        corners[0] = cvPoint( 0, 0 );
+        corners[1] = cvPoint( xFrameSize, 0 );
+        corners[2] = cvPoint( xFrameSize, yFrameSize );
+        corners[3] = cvPoint( 0, yFrameSize );
 
         output = create_output();
+
         ARLOGi("output is: %d\n", output->data[0]);
     }
+
+    void clear_output() {
+    memset(output, 0, sizeof(output_t));
+    }
+
+    void fill_output(cv::Mat H, bool valid)
+    {
+        std::vector<cv::Point2f> warped(4);
+        cv::perspectiveTransform(corners, warped, H);
+
+        //output->valid = valid;
+
+        output->data[0] = H.at<double>(0,0);
+        output->data[1] = H.at<double>(0,1);
+        output->data[2] = H.at<double>(0,2);
+        output->data[3] = H.at<double>(1,0);
+        output->data[4] = H.at<double>(1,1);
+        output->data[5] = H.at<double>(1,2);
+        output->data[6] = H.at<double>(2,0);
+        output->data[7] = H.at<double>(2,1);
+        output->data[8] = H.at<double>(2,2);
+
+        output->data[9]  = warped[0].x;
+        output->data[10] = warped[0].y;
+        output->data[11] = warped[1].x;
+        output->data[12] = warped[1].y;
+        output->data[13] = warped[2].x;
+        output->data[14] = warped[2].y;
+        output->data[15] = warped[3].x;
+        output->data[16] = warped[3].y;
+    }
+
+    bool homographyValid(cv::Mat H) {
+    const double det = H.at<double>(0,0)*H.at<double>(1,1)-H.at<double>(1,0)*H.at<double>(0,1);
+    return 1/N < fabs(det) && fabs(det) < N;
+    }
+
+    //bool resetTracking(uchar imageData[], size_t cols, size_t rows)
+    bool resetTracking(cv::Mat frame, size_t cols, size_t rows)
+    {
+        if (!initialized) {
+        std::cout << "Reference image not found!" << std::endl;
+        return NULL;
+    }
+
+    clear_output();
+
+    //cv::Mat currIm = cv::Mat(rows, cols, CV_8UC1, imageData);
+
+    cv::Mat frameDescr;
+    std::vector<cv::KeyPoint> frameKeyPts;
+    cv::Mat detectionFrame;
+    cv::pyrDown(frame, detectionFrame, cv::Size(frame.cols/featureDetectPyramidLevel, frame.rows/featureDetectPyramidLevel));
+    cv::Mat featureMask = CreateFeatureMask(detectionFrame);
+    //orb->detectAndCompute(currIm, cv::noArray(), frameKeyPts, frameDescr); // from webarkit-testing
+    frameKeyPts = _featureDetector.DetectAndCompute(frame, featureMask, frameDescr);
+
+    std::vector<std::vector<cv::DMatch>> knnMatches;
+    //matcher->knnMatch(frameDescr, refDescr, knnMatches, 2);
+    knnMatches = _featureDetector.MatchFeatures(frameDescr, _trackables[0]._descriptors);
+
+    framePts.clear();
+    std::vector<cv::Point2f> refPts;
+    // find the best matches
+    for (size_t i = 0; i < knnMatches.size(); ++i) {
+        if (knnMatches[i][0].distance < GOOD_MATCH_RATIO * knnMatches[i][1].distance) {
+            framePts.push_back( frameKeyPts[knnMatches[i][0].queryIdx].pt );
+            refPts.push_back( refKeyPts[knnMatches[i][0].trainIdx].pt );
+        }
+    }
+    bool valid;
+    // need at least 4 pts to define homography
+    if (framePts.size() > 15) {
+        _H = cv::findHomography(refPts, framePts, cv::RANSAC);    
+        if ( (valid = homographyValid(_H)) ) {
+            numMatches = framePts.size();
+            fill_output(_H, valid);
+            prevIm = frame.clone();
+        }
+    }
+
+    return valid;
+    };
     
-  /*  cv::Mat CreateFeatureMask(cv::Mat frame)
+    cv::Mat CreateFeatureMask(cv::Mat frame)
     {
         cv::Mat featureMask;
         for(int i=0;i<_trackables.size(); i++) {
@@ -121,7 +227,7 @@ public:
             }
         }
         return featureMask;
-    }*/
+    }
     
     
     
