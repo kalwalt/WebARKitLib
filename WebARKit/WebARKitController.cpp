@@ -77,6 +77,7 @@ WebARKitController::WebARKitController() :
 #endif
 #if HAVE_2D
     doTwoDMarkerDetection(false),
+    doOrbTwoDMarkerDetection(false),
 #endif
     m_error(WEBARKIT_ERROR_NONE)
 {
@@ -396,7 +397,8 @@ bool WebARKitController::update()
             if (!ret) goto done;
         }
         m_twoDTracker->update(image0, image1, m_trackables);
-
+    }
+    if (doOrbTwoDMarkerDetection) {
         if (!m_OrbTwoDTracker->isRunning()) {
             if (!m_videoSourceIsStereo) ret = m_OrbTwoDTracker->start(m_videoSource0->getCameraParameters(), m_videoSource0->getPixelFormat());
             else ret = m_OrbTwoDTracker->start(m_videoSource0->getCameraParameters(), m_videoSource0->getPixelFormat(), m_videoSource1->getCameraParameters(), m_videoSource1->getPixelFormat(), m_transL2R);
@@ -713,9 +715,9 @@ bool WebARKitController::addTrackable(WebARKitTrackable* trackable)
         doTwoDMarkerDetection = true;
     } else if
     (trackable->type == WebARKitTrackable::OrbTwoD) {
-        if (!doTwoDMarkerDetection)
+        if (!doOrbTwoDMarkerDetection)
             ARLOGi("First 2D orb marker trackable added; enabling 2D orb marker tracker.\n");
-        doTwoDMarkerDetection = true;
+        doOrbTwoDMarkerDetection = true;
     } else
 #endif
     if (trackable->type == WebARKitTrackable::SINGLE || trackable->type == WebARKitTrackable::MULTI || trackable->type == WebARKitTrackable::MULTI_AUTO) {
@@ -788,9 +790,9 @@ bool WebARKitController::removeTrackable(WebARKitTrackable* trackable)
         doTwoDMarkerDetection = false;
     }
     if (countTrackables(WebARKitTrackable::OrbTwoD) == 0) {
-        if (doTwoDMarkerDetection)
+        if (doOrbTwoDMarkerDetection)
             ARLOGi("Last 2D marker removed; disabling 2D marker tracking.\n");
-        doTwoDMarkerDetection = false;
+        doOrbTwoDMarkerDetection = false;
     }
 #endif
     ARLOGi("Removed trackable (UID=%d), now %d trackables loaded\n", UID, countTrackables());
@@ -819,6 +821,7 @@ int WebARKitController::removeAllTrackables()
 #endif
 #if HAVE_2D
     doTwoDMarkerDetection = false;
+    doOrbTwoDMarkerDetection = false;
 #endif
 	ARLOGi("Removed all %d trackables.\n", count);
 

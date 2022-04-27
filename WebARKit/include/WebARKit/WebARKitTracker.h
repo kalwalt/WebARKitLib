@@ -50,6 +50,7 @@
 enum class WebARKitTrackerType {
     SQUARE_FIDUCIAL,
     TEXTURE2D_FIDUCIAL,
+    TEXTURE2D_ORB_FIDUCIAL,
     GEODETIC,
     INERTIAL,
     VISUAL_SLAM,
@@ -67,7 +68,7 @@ public:
     virtual bool update() = 0;
     virtual bool stop() = 0;
     virtual void terminate() = 0;
-    
+
     virtual WebARKitTrackerType type() const = 0;
     virtual std::vector<std::string> trackableConfigurations() const = 0;
 

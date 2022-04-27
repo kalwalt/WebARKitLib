@@ -46,9 +46,9 @@
 
 WebARKitTrackerOrb2d::WebARKitTrackerOrb2d() :
 m_videoSourceIsStereo(false),
-m_2DTrackerDataLoaded(false),
-m_2DTrackerDetectedImageCount(0),
-m_2DTracker(NULL),
+m_Orb2DTrackerDataLoaded(false),
+m_Orb2DTrackerDetectedImageCount(0),
+m_Orb2DTracker(NULL),
 m_running(false)
 {
 }
@@ -60,10 +60,10 @@ WebARKitTrackerOrb2d::~WebARKitTrackerOrb2d()
 
 bool WebARKitTrackerOrb2d::initialize()
 {
-    if (!m_2DTracker) {
-        m_2DTracker = std::make_shared<PlanarOrbTracker>(PlanarOrbTracker());
+    if (!m_Orb2DTracker) {
+        m_Orb2DTracker = std::make_shared<PlanarOrbTracker>(PlanarOrbTracker());
     }
-    
+
     return true;
 }
 
@@ -80,12 +80,12 @@ bool WebARKitTrackerOrb2d::TwoDMultiMode() const
 bool WebARKitTrackerOrb2d::start(ARParamLT *paramLT, AR_PIXEL_FORMAT pixelFormat)
 {
     if (!paramLT || pixelFormat == AR_PIXEL_FORMAT_INVALID) return false;
-    
+
     m_cameraXSize = paramLT->param.xsize;
     m_cameraYSize = paramLT->param.ysize;
 
-    m_2DTracker->Initialise(m_cameraXSize,m_cameraYSize, paramLT->param.mat);
-    
+    m_Orb2DTracker->Initialise(m_cameraXSize,m_cameraYSize, paramLT->param.mat);
+
     m_videoSourceIsStereo = false;
     m_running = true;
 
@@ -96,24 +96,24 @@ bool WebARKitTrackerOrb2d::start(ARParamLT *paramLT, AR_PIXEL_FORMAT pixelFormat
 bool WebARKitTrackerOrb2d::start(ARParamLT *paramLT0, AR_PIXEL_FORMAT pixelFormat0, ARParamLT *paramLT1, AR_PIXEL_FORMAT pixelFormat1, const ARdouble transL2R[3][4])
 {
     if (!paramLT1 || pixelFormat1 == AR_PIXEL_FORMAT_INVALID || !transL2R) return false;
-    
+
     m_videoSourceIsStereo = true;
     m_running = true;
-    
+
     return start(paramLT0, pixelFormat0);
 }
 
 bool WebARKitTrackerOrb2d::unloadTwoDData(void)
 {
-    m_2DTracker->RemoveAllMarkers();
-    m_2DTrackerDataLoaded = false;
+    m_Orb2DTracker->RemoveAllMarkers();
+    m_Orb2DTrackerDataLoaded = false;
     return true;
 }
 
 bool WebARKitTrackerOrb2d::loadTwoDData(std::vector<WebARKitTrackable *>& trackables)
 {
     // If data was already loaded, stop KPM tracking thread and unload previously loaded data.
-    if (m_2DTrackerDataLoaded) {
+    if (m_Orb2DTrackerDataLoaded) {
         ARLOGi("Reloading 2D data.\n");
         unloadTwoDData();
     } else {
@@ -124,14 +124,14 @@ bool WebARKitTrackerOrb2d::loadTwoDData(std::vector<WebARKitTrackable *>& tracka
         if ((*it)->type == WebARKitTrackable::OrbTwoD) {
             ((WebARKitTrackableOrb2d *)(*it))->pageNo = pageCount;
             // N.B.: AddMarker takes a copy of the image data.
-            m_2DTracker->AddMarker(((WebARKitTrackableOrb2d *)(*it))->m_refImage.get(),((WebARKitTrackableOrb2d *)(*it))->datasetPathname,((WebARKitTrackableOrb2d *)(*it))->m_refImageX,((WebARKitTrackableOrb2d *)(*it))->m_refImageY,((WebARKitTrackableOrb2d *)(*it))->UID, ((WebARKitTrackableOrb2d *)(*it))->TwoDScale());
+            m_Orb2DTracker->AddMarker(((WebARKitTrackableOrb2d *)(*it))->m_refImage.get(),((WebARKitTrackableOrb2d *)(*it))->datasetPathname,((WebARKitTrackableOrb2d *)(*it))->m_refImageX,((WebARKitTrackableOrb2d *)(*it))->m_refImageY,((WebARKitTrackableOrb2d *)(*it))->UID, ((WebARKitTrackableOrb2d *)(*it))->TwoDScale());
             ARLOGi("'%s' assigned page no. %d.\n", ((WebARKitTrackableOrb2d *)(*it))->datasetPathname, pageCount);
             pageCount++;
         }
     }
-    
-    m_2DTrackerDataLoaded = true;
-    
+
+    m_Orb2DTrackerDataLoaded = true;
+
     ARLOGi("Loading of 2D data complete.\n");
     return true;
 }
@@ -145,26 +145,26 @@ bool WebARKitTrackerOrb2d::update(AR2VideoBufferT *buff, std::vector<WebARKitTra
 {
     ARLOGd("WebARKit::WebARKitTrackerOrb2d::update()\n");
     // Late loading of data now that we have image width and height.
-    if (!m_2DTrackerDataLoaded) {
+    if (!m_Orb2DTrackerDataLoaded) {
         if (!loadTwoDData(trackables)) {
             ARLOGe("Error loading 2D image tracker data.\n");
             return false;
         }
     }
-    
-    m_2DTracker->ProcessFrameData(buff->buff);
+
+    m_Orb2DTracker->ProcessFrameData(buff->buff);
     // Loop through all loaded 2D targets and match against tracking results.
-    m_2DTrackerDetectedImageCount = 0;
+    m_Orb2DTrackerDetectedImageCount = 0;
     for (std::vector<WebARKitTrackable *>::iterator it = trackables.begin(); it != trackables.end(); ++it) {
         if ((*it)->type == WebARKitTrackable::OrbTwoD) {
             WebARKitTrackableOrb2d *trackable2D = static_cast<WebARKitTrackableOrb2d *>(*it);
             bool trackable2DFound = false;
-            if (m_2DTracker->IsTrackableVisible(trackable2D->UID)) {
-                float* transMat = m_2DTracker->GetTrackablePose(trackable2D->UID);
+            if (m_Orb2DTracker->IsTrackableVisible(trackable2D->UID)) {
+                float* transMat = m_Orb2DTracker->GetTrackablePose(trackable2D->UID);
                 if (transMat) {
                     ARdouble *transL2R = (m_videoSourceIsStereo ? (ARdouble *)m_transL2R : NULL);
                     bool success = ((WebARKitTrackableOrb2d *)(*it))->updateWithTwoDResults(trackable2D->pageNo, (float (*)[4])transMat, (ARdouble (*)[4])transL2R);
-                    m_2DTrackerDetectedImageCount++;
+                    m_Orb2DTrackerDetectedImageCount++;
                     trackable2DFound = true;
                 } else {
                     trackable2D->updateWithTwoDResults(-1, NULL, NULL);
@@ -187,17 +187,17 @@ bool WebARKitTrackerOrb2d::stop()
     // Tracking thread is holding a reference to the camera parameters. Closing the
     // video source will dispose of the camera parameters, thus invalidating this reference.
     // So must stop tracking before closing the video source.
-    if (m_2DTrackerDataLoaded) {
+    if (m_Orb2DTrackerDataLoaded) {
         unloadTwoDData();
     }
     m_videoSourceIsStereo = false;
-    
+
     return true;
 }
 
 void WebARKitTrackerOrb2d::terminate()
 {
-    
+
 }
 
 WebARKitTrackable *WebARKitTrackerOrb2d::newTrackable(std::vector<std::string> config)
@@ -207,18 +207,18 @@ WebARKitTrackable *WebARKitTrackerOrb2d::newTrackable(std::vector<std::string> c
         ARLOGe("Trackable config. must contain at least trackable type.\n");
         return nullptr;
     }
-    
+
     // First token is trackable type.
     if (config.at(0).compare("orb_2d") != 0) {
         return nullptr;
     }
-    
+
     // Second token is path to 2D data.
     if (config.size() < 2) {
         ARLOGe("2D config. requires path to 2D data.\n");
         return nullptr;
     }
-    
+
     // Optional 3rd parameter: scale.
     float scale = 0.0f;
     if (config.size() > 2) {
@@ -227,7 +227,7 @@ WebARKitTrackable *WebARKitTrackerOrb2d::newTrackable(std::vector<std::string> c
             ARLOGw("2D config. specified with invalid scale parameter ('%s'). Ignoring.\n", config.at(2).c_str());
         }
     }
-    
+
     WebARKitTrackableOrb2d *ret = new WebARKitTrackableOrb2d();
     if (scale != 0.0f) ret->setTwoDScale(scale);
     bool ok = ret->load(config.at(1).c_str());
@@ -247,51 +247,50 @@ void WebARKitTrackerOrb2d::deleteTrackable(WebARKitTrackable **trackable_p)
     if (!trackable_p || !(*trackable_p)) return;
     if ((*trackable_p)->type != WebARKitTrackable::OrbTwoD) return;
 
-    m_2DTracker->RemoveAllMarkers();
+    m_Orb2DTracker->RemoveAllMarkers();
     delete (*trackable_p);
     (*trackable_p) = NULL;
-    
+
     unloadTwoDData();
 }
 
 std::vector<WebARKitTrackable*> WebARKitTrackerOrb2d::loadImageDatabase(std::string fileName)
 {
     std::vector<WebARKitTrackable*> loadedTrackables;
-    /*if (m_2DTracker->LoadTrackableDatabase(fileName)) {
-        std::vector<int> loadedIds = m_2DTracker->GetImageIds();
+    /*if (m_Orb2DTracker->LoadTrackableDatabase(fileName)) {
+        std::vector<int> loadedIds = m_Orb2DTracker->GetImageIds();
         for (int i = 0; i < loadedIds.size(); i++) {
             //Get loaded image infomation
             int loadedId = loadedIds[i];
-            TrackedImageInfo info = m_2DTracker->GetTrackableImageInfo(loadedId);
-            
+            TrackedImageInfo info = m_Orb2DTracker->GetTrackableImageInfo(loadedId);
+
             //Create trackable from loaded info
             WebARKitTrackableOrb2d *ret = new WebARKitTrackableOrb2d();
             ret->load2DData(info.fileName.c_str(), info.imageData, info.width, info.height);
             ret->setTwoDScale(info.scale);
             ret->pageNo = i;
             //Change ID to the Trackable generated UID
-            m_2DTracker->ChangeImageId(loadedId, ret->UID);
+            m_Orb2DTracker->ChangeImageId(loadedId, ret->UID);
             loadedTrackables.push_back(ret);
         }
     }
-    
+
     if (loadedTrackables.size() > 0) {
-        m_2DTrackerDataLoaded = true;
+        m_Orb2DTrackerDataLoaded = true;
     }*/
     return loadedTrackables;
 }
 
 bool WebARKitTrackerOrb2d::saveImageDatabase(std::string filename)
 {
-    //return m_2DTracker->SaveTrackableDatabase(filename);
+    //return m_Orb2DTracker->SaveTrackableDatabase(filename);
     return true;
 }
 
 void WebARKitTrackerOrb2d::setDetectorType(int detectorType)
 {
     if(unloadTwoDData()) {
-        m_2DTracker->SetFeatureDetector(detectorType);
+        m_Orb2DTracker->SetFeatureDetector(detectorType);
     }
 }
 #endif // HAVE_2D
-

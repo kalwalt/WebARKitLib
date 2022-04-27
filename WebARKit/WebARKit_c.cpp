@@ -102,7 +102,7 @@ bool arwGetARToolKitVersion(char *buffer, int length)
 {
 	if (!buffer) return false;
     if (!gARTK) return false;
-    
+
 	if (const char *version = gARTK->getARToolKitVersion()) {
 		strncpy(buffer, version, length - 1); buffer[length - 1] = '\0';
 		return true;
@@ -230,7 +230,7 @@ bool arwGetProjectionMatrixStereo(const float nearPlane, const float farPlane, f
 bool arwGetVideoParams(int *width, int *height, int *pixelSize, char *pixelFormatStringBuffer, int pixelFormatStringBufferLen)
 {
     AR_PIXEL_FORMAT pf;
-    
+
     if (!gARTK) return false;
 	if (!gARTK->videoParameters(0, width, height, &pf)) return false;
     if (pixelSize) *pixelSize = arUtilGetPixelSize(pf);
@@ -244,7 +244,7 @@ bool arwGetVideoParams(int *width, int *height, int *pixelSize, char *pixelForma
 bool arwGetVideoParamsStereo(int *widthL, int *heightL, int *pixelSizeL, char *pixelFormatStringBufferL, int pixelFormatStringBufferLenL, int *widthR, int *heightR, int *pixelSizeR, char *pixelFormatStringBufferR, int pixelFormatStringBufferLenR)
 {
     AR_PIXEL_FORMAT pfL, pfR;
-    
+
     if (!gARTK) return false;
 	if (!gARTK->videoParameters(0, widthL, heightL, &pfL)) return false;
 	if (!gARTK->videoParameters(1, widthR, heightR, &pfR)) return false;
@@ -291,28 +291,28 @@ bool arwUpdateTexture32Stereo(uint32_t *bufferL, uint32_t *bufferR)
 bool arwDrawVideoInit(const int videoSourceIndex)
 {
     if (!gARTK) return false;
-    
+
     return (gARTK->drawVideoInit(videoSourceIndex));
 }
 
 bool arwDrawVideoSettings(int videoSourceIndex, int width, int height, bool rotate90, bool flipH, bool flipV, int hAlign, int vAlign, int scalingMode, int32_t viewport[4])
 {
     if (!gARTK)return false;
-    
+
     return (gARTK->drawVideoSettings(videoSourceIndex, width, height, rotate90, flipH, flipV, (WebARKitVideoView::HorizontalAlignment)hAlign, (WebARKitVideoView::VerticalAlignment)vAlign, (WebARKitVideoView::ScalingMode)scalingMode, viewport));
 }
 
 bool arwDrawVideo(const int videoSourceIndex)
 {
     if (!gARTK)return false;
-    
+
     return (gARTK->drawVideo(videoSourceIndex));
 }
 
 bool arwDrawVideoFinal(const int videoSourceIndex)
 {
     if (!gARTK) return false;
-    
+
     return (gARTK->drawVideoFinal(videoSourceIndex));
 }
 
@@ -323,7 +323,7 @@ bool arwDrawVideoFinal(const int videoSourceIndex)
 void arwSetTrackerOptionBool(int option, bool value)
 {
     if (!gARTK) return;
-    
+
     if (option == ARW_TRACKER_OPTION_NFT_MULTIMODE) {
 #if HAVE_NFT
         gARTK->getNFTTracker()->setNFTMultiMode(value);
@@ -338,7 +338,7 @@ void arwSetTrackerOptionBool(int option, bool value)
 void arwSetTrackerOptionInt(int option, int value)
 {
     if (!gARTK) return;
-    
+
     if (option == ARW_TRACKER_OPTION_SQUARE_THRESHOLD) {
         if (value < 0 || value > 255) return;
         gARTK->getSquareTracker()->setThreshold(value);
@@ -360,6 +360,7 @@ void arwSetTrackerOptionInt(int option, int value)
 #if HAVE_2D
         if (value < 0 || value > 3) return;
         gARTK->get2dTracker()->setDetectorType(value);
+        gARTK->getOrb2dTracker()->setDetectorType(value);
 #else
         return;
 #endif
@@ -369,7 +370,7 @@ void arwSetTrackerOptionInt(int option, int value)
 void arwSetTrackerOptionFloat(int option, float value)
 {
     if (!gARTK) return;
-    
+
     if (option == ARW_TRACKER_OPTION_SQUARE_BORDER_SIZE) {
         if (value <= 0.0f || value >= 0.5f) return;
         gARTK->getSquareTracker()->setPattRatio(1.0f - 2.0f*value); // Convert from border size to pattern ratio.
@@ -379,7 +380,7 @@ void arwSetTrackerOptionFloat(int option, float value)
 bool arwGetTrackerOptionBool(int option)
 {
     if (!gARTK) return false;
-    
+
     if (option == ARW_TRACKER_OPTION_NFT_MULTIMODE) {
 #if HAVE_NFT
         return  gARTK->getNFTTracker()->NFTMultiMode();
@@ -395,7 +396,7 @@ bool arwGetTrackerOptionBool(int option)
 int arwGetTrackerOptionInt(int option)
 {
     if (!gARTK) return (INT_MAX);
-    
+
     if (option == ARW_TRACKER_OPTION_SQUARE_THRESHOLD) {
         return gARTK->getSquareTracker()->threshold();
     } else if (option == ARW_TRACKER_OPTION_SQUARE_THRESHOLD_MODE) {
@@ -419,7 +420,7 @@ int arwGetTrackerOptionInt(int option)
 float arwGetTrackerOptionFloat(int option)
 {
     if (!gARTK) return (NAN);
-    
+
     if (option == ARW_TRACKER_OPTION_SQUARE_BORDER_SIZE) {
         float value = gARTK->getSquareTracker()->pattRatio();
         if (value > 0.0f && value < 1.0f) return (1.0f - value)/2.0f; // Convert from pattern ratio to border size.
@@ -441,7 +442,7 @@ bool arwGetTrackables(int *count_p, ARWTrackableStatus **statuses_p)
 {
     if (!gARTK) return false;
     if (!count_p) return false;
-    
+
     unsigned int trackableCount = gARTK->countTrackables();
     *count_p = (int)trackableCount;
     if (statuses_p) {
@@ -467,7 +468,7 @@ bool arwGetTrackables(int *count_p, ARWTrackableStatus **statuses_p)
             *statuses_p = st;
         }
     }
-    
+
     return true;
 }
 
@@ -500,7 +501,7 @@ bool arwSave2dTrackableDatabase(const char *databaseFileName)
 bool arwQueryTrackableVisibilityAndTransformation(int trackableUID, float matrix[16])
 {
     WebARKitTrackable *trackable;
-    
+
     if (!gARTK) return false;
 	if (!(trackable = gARTK->findTrackable(trackableUID))) {
         ARLOGe("arwQueryTrackableVisibilityAndTransformation(): Couldn't locate trackable with UID %d.\n", trackableUID);
@@ -513,7 +514,7 @@ bool arwQueryTrackableVisibilityAndTransformation(int trackableUID, float matrix
 bool arwQueryTrackableVisibilityAndTransformationStereo(int trackableUID, float matrixL[16], float matrixR[16])
 {
     WebARKitTrackable *trackable;
-    
+
     if (!gARTK) return false;
 	if (!(trackable = gARTK->findTrackable(trackableUID))) {
         ARLOGe("arwQueryTrackableVisibilityAndTransformationStereo(): Couldn't locate trackable with UID %d.\n", trackableUID);
@@ -531,7 +532,7 @@ bool arwQueryTrackableVisibilityAndTransformationStereo(int trackableUID, float 
 int arwGetTrackablePatternCount(int trackableUID)
 {
     WebARKitTrackable *trackable;
-    
+
     if (!gARTK) return 0;
 	if (!(trackable = gARTK->findTrackable(trackableUID))) {
         ARLOGe("arwGetTrackablePatternCount(): Couldn't locate trackable with UID %d.\n", trackableUID);
@@ -544,7 +545,7 @@ bool arwGetTrackablePatternConfig(int trackableUID, int patternID, float matrix[
 {
     WebARKitTrackable *trackable;
     WebARKitPattern *p;
-    
+
     if (!gARTK) return false;
 	if (!(trackable = gARTK->findTrackable(trackableUID))) {
         ARLOGe("arwGetTrackablePatternConfig(): Couldn't locate trackable with UID %d.\n", trackableUID);
@@ -570,13 +571,13 @@ bool arwGetTrackablePatternImage(int trackableUID, int patternID, uint32_t *buff
 {
     WebARKitTrackable *trackable;
     WebARKitPattern *p;
-    
+
     if (!gARTK) return false;
 	if (!(trackable = gARTK->findTrackable(trackableUID))) {
         ARLOGe("arwGetTrackablePatternImage(): Couldn't locate trackable with UID %d.\n", trackableUID);
         return false;
     }
-    
+
     if (!(p = trackable->getPattern(patternID))) {
         ARLOGe("arwGetTrackablePatternImage(): Trackable with UID %d has no pattern with ID %d.\n", trackableUID, patternID);
         return false;
@@ -585,7 +586,7 @@ bool arwGetTrackablePatternImage(int trackableUID, int patternID, uint32_t *buff
     if (!p->m_image) {
         return false;
     }
-    
+
     memcpy(buffer, p->m_image, sizeof(uint32_t) * p->m_imageSizeX * p->m_imageSizeY);
     return true;
 
@@ -598,13 +599,13 @@ bool arwGetTrackablePatternImage(int trackableUID, int patternID, uint32_t *buff
 bool arwGetTrackableOptionBool(int trackableUID, int option)
 {
     WebARKitTrackable *trackable;
-    
+
     if (!gARTK) return false;
 	if (!(trackable = gARTK->findTrackable(trackableUID))) {
         ARLOGe("arwGetTrackableOptionBool(): Couldn't locate trackable with UID %d.\n", trackableUID);
         return false;
     }
-    
+
     switch (option) {
         case ARW_TRACKABLE_OPTION_FILTERED:
             return(trackable->isFiltered());
@@ -622,7 +623,7 @@ bool arwGetTrackableOptionBool(int trackableUID, int option)
 void arwSetTrackableOptionBool(int trackableUID, int option, bool value)
 {
     WebARKitTrackable *trackable;
-    
+
     if (!gARTK) return;
 	if (!(trackable = gARTK->findTrackable(trackableUID))) {
         ARLOGe("arwSetTrackableOptionBool(): Couldn't locate trackable with UID %d.\n", trackableUID);
@@ -645,13 +646,13 @@ void arwSetTrackableOptionBool(int trackableUID, int option, bool value)
 int arwGetTrackableOptionInt(int trackableUID, int option)
 {
     WebARKitTrackable *trackable;
-    
+
     if (!gARTK) return INT_MIN;
 	if (!(trackable = gARTK->findTrackable(trackableUID))) {
         ARLOGe("arwGetTrackableOptionBool(): Couldn't locate trackable with UID %d.\n", trackableUID);
         return (INT_MIN);
     }
-    
+
     switch (option) {
         case ARW_TRACKABLE_OPTION_MULTI_MIN_SUBMARKERS:
             if (trackable->type == WebARKitTrackable::MULTI) return ((WebARKitTrackableMultiSquare *)trackable)->config->min_submarker;
@@ -666,7 +667,7 @@ int arwGetTrackableOptionInt(int trackableUID, int option)
 void arwSetTrackableOptionInt(int trackableUID, int option, int value)
 {
     WebARKitTrackable *trackable;
-    
+
     if (!gARTK) return;
 	if (!(trackable = gARTK->findTrackable(trackableUID))) {
         ARLOGe("arwSetTrackableOptionInt(): Couldn't locate trackable with UID %d.\n", trackableUID);
@@ -686,13 +687,13 @@ void arwSetTrackableOptionInt(int trackableUID, int option, int value)
 float arwGetTrackableOptionFloat(int trackableUID, int option)
 {
     WebARKitTrackable *trackable;
-    
+
     if (!gARTK) return (NAN);
 	if (!(trackable = gARTK->findTrackable(trackableUID))) {
         ARLOGe("arwGetTrackableOptionBool(): Couldn't locate trackable with UID %d.\n", trackableUID);
         return (NAN);
     }
-    
+
     switch (option) {
         case ARW_TRACKABLE_OPTION_FILTER_SAMPLE_RATE:
             return ((float)trackable->filterSampleRate());
@@ -738,7 +739,7 @@ float arwGetTrackableOptionFloat(int trackableUID, int option)
 void arwSetTrackableOptionFloat(int trackableUID, int option, float value)
 {
     WebARKitTrackable *trackable;
-    
+
     if (!gARTK) return;
 	if (!(trackable = gARTK->findTrackable(trackableUID))) {
         ARLOGe("arwSetTrackableOptionFloat(): Couldn't locate trackable with UID %d.\n", trackableUID);
@@ -781,7 +782,7 @@ void arwSetTrackableOptionFloat(int trackableUID, int option, float value)
 bool arwLoadOpticalParams(const char *optical_param_name, const char *optical_param_buff, const int optical_param_buffLen, const float projectionNearPlane, const float projectionFarPlane, float *fovy_p, float *aspect_p, float m[16], float p[16])
 {
     if (!gARTK) return false;
-    
+
 #ifdef ARDOUBLE_IS_FLOAT
     return gARTK->loadOpticalParams(optical_param_name, optical_param_buff, optical_param_buffLen, projectionNearPlane, projectionFarPlane, fovy_p, aspect_p, m, p);
 #else

@@ -42,7 +42,7 @@
 
 #if HAVE_2D
 
-WebARKitTrackableOrb2d::WebARKitTrackableOrb2d() : WebARKitTrackable(TwoD),
+WebARKitTrackableOrb2d::WebARKitTrackableOrb2d() : WebARKitTrackable(OrbTwoD),
 m_loaded(false),
 m_twoDScale(1.0f),
 pageNo(-1),
@@ -78,21 +78,21 @@ bool WebARKitTrackableOrb2d::load(const char* dataSetPathname_in)
 bool WebARKitTrackableOrb2d::load2DData(const char* dataSetPathname_in, std::shared_ptr<unsigned char> refImage, int refImageX, int refImageY)
 {
     if (m_loaded) unload();
-    
+
     visible = visiblePrev = false;
-    
+
     m_refImage = refImage;
     m_refImageX = refImageX;
     m_refImageY = refImageY;
 
     datasetPathname = strdup(dataSetPathname_in);
-    
+
     allocatePatterns(1);
     patterns[0]->load2DTrackerImage(m_refImage, m_refImageX, m_refImageY, m_height*((float)m_refImageX)/((float)m_refImageY), m_height);
-    
+
     allocatePatterns(1);
     m_loaded = true;
-    
+
     return true;
 }
 
@@ -107,7 +107,7 @@ bool WebARKitTrackableOrb2d::unload()
             free(datasetPathname);
             datasetPathname = NULL;
         }
-        
+
         m_loaded = false;
     }
     return true;
@@ -116,9 +116,9 @@ bool WebARKitTrackableOrb2d::unload()
 bool WebARKitTrackableOrb2d::updateWithTwoDResults(int detectedPage, float trackingTrans[3][4], ARdouble transL2R[3][4])
 {
     if (!m_loaded) return false;
-    
+
     visiblePrev = visible;
-    
+
     // The marker will only have a pageNo if the data has actually been loaded by a call to ARController::loadNFTData().
     if (pageNo >= 0 && pageNo == detectedPage) {
         visible = true;
@@ -129,7 +129,7 @@ bool WebARKitTrackableOrb2d::updateWithTwoDResults(int detectedPage, float track
             trans[j][3] = (ARdouble)(trackingTrans[j][3]) * m_twoDScale;
         }
     } else visible = false;
-    
+
     return (WebARKitTrackable::update(transL2R)); // Parent class will finish update.
 }
 
@@ -144,4 +144,3 @@ float WebARKitTrackableOrb2d::TwoDScale()
 }
 
 #endif // HAVE_2D
-

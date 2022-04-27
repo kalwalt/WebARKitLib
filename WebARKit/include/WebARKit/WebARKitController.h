@@ -92,7 +92,7 @@ private:
 		WAITING_FOR_VIDEO,				///< Waiting for video source to become ready.
 		DETECTION_RUNNING				///< Video running, additional initialisation occurred, tracking running.
 	} WebARToolKitState;
-    
+
 	WebARToolKitState state;				///< Current state of operation, progress through initialisation
     bool stateWaitingMessageLogged;
 
@@ -105,7 +105,7 @@ private:
     AR2VideoTimestampT m_updateFrameStamp0;
     AR2VideoTimestampT m_updateFrameStamp1;
     WebARKitVideoView *m_arVideoViews[2];
-    
+
     std::vector<WebARKitTrackable *> m_trackables;    ///< List of trackables.
 
     bool doSquareMarkerDetection;
@@ -116,12 +116,13 @@ private:
 #endif
 #if HAVE_2D
     bool doTwoDMarkerDetection;
+		bool doOrbTwoDMarkerDetection;
     std::shared_ptr<WebARKitTracker2d> m_twoDTracker;
     std::shared_ptr<WebARKitTrackerOrb2d> m_OrbTwoDTracker;
 #endif
     int m_error;
     void setError(int error);
-    
+
 #pragma mark Private methods.
     // ------------------------------------------------------------------------------
     // Private methods.
@@ -130,7 +131,7 @@ private:
     //
     // Internal trackable management.
     //
-    
+
 	/**
 	 * Adds a trackable to the collection.
 	 * @param trackable	The trackable to add
@@ -144,33 +145,33 @@ private:
 	 * @return				true if the trackable was removed, false if an error occurred.
 	 */
 	bool removeTrackable(WebARKitTrackable* trackable);
-	
+
 
 public:
 #pragma mark Public API
     // ------------------------------------------------------------------------------
     // Public API
     // ------------------------------------------------------------------------------
-    
+
     /**
 	 * Constructor.
 	 */
 	WebARKitController();
-    
+
 	/**
 	 * Destructor.
 	 */
 	~WebARKitController();
-	
+
 	/**
 	 * Returns a string containing the artoolkitX version, such as "10.0.0".
 	 * @return		The artoolkitX version
 	 */
 	const char* getARToolKitVersion();
-    
+
     int getError();
-    
-	/** 
+
+	/**
 	 * Start trackable management so trackables can be added and removed.
      * @return       true if initialisation was OK, false if an error occured.
 	 */
@@ -182,6 +183,7 @@ public:
 #endif
 #if HAVE_2D
     std::shared_ptr<WebARKitTracker2d> get2dTracker() { return m_twoDTracker; };
+		std::shared_ptr<WebARKitTrackerOrb2d> getOrb2dTracker() { return m_OrbTwoDTracker; };
 #endif
 
 	/**
@@ -190,7 +192,7 @@ public:
 	 * @return  true if adding a trackable is currently possible
 	 */
 	bool isInited();
-    
+
 	/**
 	 * Start video capture and tracking. (AR/NFT initialisation will begin on a subsequent call to update().)
 	 * @param vconf			Video configuration string.
@@ -200,7 +202,7 @@ public:
 	 * @return				true if video capture and tracking was started, otherwise false.
 	 */
 	bool startRunning(const char* vconf, const char* cparaName, const char* cparaBuff, const long cparaBuffLen);
-	
+
 	/**
 	 * Start stereo video capture and tracking. (AR/NFT initialisation will begin on a subsequent call to update().)
 	 * @param vconfL		Video configuration string for the "left" video source.
@@ -219,7 +221,7 @@ public:
 	bool startRunningStereo(const char* vconfL, const char* cparaNameL, const char* cparaBuffL, const long cparaBuffLenL,
                             const char* vconfR, const char* cparaNameR, const char* cparaBuffR, const long cparaBuffLenR,
                             const char* transL2RName, const char* transL2RBuff, const long transL2RBuffLen);
-    
+
 	/**
 	 * Reports width, height and pixel format of a video source.
      * To retrieve the size (in bytes) of each pixel, use arUtilGetPixelSize(*pixelFormat);
@@ -231,13 +233,13 @@ public:
 	 * @return		true if the video source(s) is/are open and returning frames, otherwise false.
 	 */
     bool videoParameters(const int videoSourceIndex, int *width, int *height, AR_PIXEL_FORMAT *pixelFormat);
-    
+
 	/**
 	 * Returns true if video capture and tracking is running.
 	 * @return		true if the video source(s) is/are open and returning frames, otherwise false.
 	 */
 	bool isRunning();
-    
+
     /**
 	 * Video capture and tracking stops, but trackables are still valid and can be configured.
 	 * @return				true if video capture and tracking was stopped, otherwise false.
@@ -262,15 +264,15 @@ public:
      * @return            true if the projection matrix has been computed, otherwise false
      */
     bool projectionMatrix(const int videoSourceIndex, const ARdouble projectionNearPlane, const ARdouble projectionFarPlane, ARdouble proj[16]);
-    
+
     bool drawVideoInit(const int videoSourceIndex);
-    
+
     bool drawVideoSettings(const int videoSourceIndex, const int width, const int height, const bool rotate90, const bool flipH, const bool flipV, const WebARKitVideoView::HorizontalAlignment hAlign, const WebARKitVideoView::VerticalAlignment vAlign, const WebARKitVideoView::ScalingMode scalingMode, int32_t viewport[4]);
-    
+
     bool drawVideo(const int videoSourceIndex);
-    
+
     bool drawVideoFinal(const int videoSourceIndex);
-    
+
 	/**
 	 * Adds a trackable as specified in the given configuration string. The format of the string can be
 	 * one of:
@@ -293,7 +295,7 @@ public:
 	 * @return				true if the trackable was removed, false if an error occurred.
 	 */
 	bool removeTrackable(int UID);
-	
+
 	/**
 	 * Clears the collection of trackables.
 	 * @return				The number of trackables removed
@@ -311,28 +313,28 @@ public:
      * @return                The number of currently loaded trackables.
      */
     unsigned int countTrackables(WebARKitTrackable::TrackableType trackableType) const;
-    
+
     /**
      * Returns the trackable at the specified index.
      * @param index           0-based index into the array of trackables.
      * @return                The trackable, or NULL if no trackable exists at that index.
      */
     WebARKitTrackable* getTrackableAtIndex(unsigned int index);
-    
+
     /**
      * Searches the collection of trackables for the given ID.
      * @param UID             The UID of the trackables to find
      * @return                The found trackable, or NULL if no matching UID was found.
      */
     WebARKitTrackable* findTrackable(int UID);
-	
+
     /**
      * Requests the capture of a new frame from the video source(s).
      * In the case of stereo video sources, capture from both sources will be attempted.
      * @return                The capture succeeded, or false if no frame was captured.
      */
     bool capture();
-    
+
     /**
      * Asks the video source to push the most recent frame into the passed-in buffer.
      * @param videoSourceIndex Index into an array of video sources, specifying which source should
@@ -342,13 +344,13 @@ public:
      *      RGBA in little-endian systems, or ABGR in big-endian systems.
      */
     bool updateTextureRGBA32(const int videoSourceIndex, uint32_t *buffer);
-    
+
 	/**
-	 * Performs tracking and updates all trackables. The latest frame from the current 
+	 * Performs tracking and updates all trackables. The latest frame from the current
 	 * video source is retrieved and analysed. Each trackable in the collection is updated with
 	 * new tracking information. The trackable info array is
 	 * iterated over, and detected trackables are matched up with those in the trackable collection. Each matched
-	 * trackable is updated with visibility and transformation information. Any trackables not detected are considered 
+	 * trackable is updated with visibility and transformation information. Any trackables not detected are considered
 	 * not currently visible.
      *
 	 * @return				true if update completed successfully, false if an error occurred
@@ -372,7 +374,7 @@ public:
 	 * @return				true if successful, false if an error occurred
 	 */
 	bool getPatternImage(int patternID, uint32_t* buffer);
-    
+
 	/**
 	 * Loads an optical parameters structure from file or from buffer.
      *
@@ -397,8 +399,8 @@ public:
      *      projectionFarPlane.
      */
     bool loadOpticalParams(const char *optical_param_name, const char *optical_param_buff, const long optical_param_buffLen, const ARdouble projectionNearPlane, const ARdouble projectionFarPlane, ARdouble *fovy_p, ARdouble *aspect_p, ARdouble m[16], ARdouble p[16]);
-    
-    
+
+
 #if HAVE_2D
     /**
      * Loads a 2d image database.

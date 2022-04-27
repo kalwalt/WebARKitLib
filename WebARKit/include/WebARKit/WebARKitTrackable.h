@@ -78,17 +78,17 @@ public:
 	enum TrackableType {
 		SINGLE,								///< A standard single square marker.
 		MULTI,								///< A composite marker made up of multiple square markers.
-        NFT,                                ///< A rectangular textured marker backed by an NFT data set.
-        TwoD,                               ///< A 2D textured marker backed by an image.
-		    OrbTwoD,                            ///< A 2D textured marker backed by an image, based on Orb.
-        MULTI_AUTO                          ///< An automatically mapped composite marker made up of multiple square matrix (2D barcode) markers.
+    NFT,                  ///< A rectangular textured marker backed by an NFT data set.
+    TwoD,                               ///< A 2D textured marker backed by an image.
+		OrbTwoD,                            ///< A 2D textured marker backed by an image, based on Orb.
+    MULTI_AUTO                          ///< An automatically mapped composite marker made up of multiple square matrix (2D barcode) markers.
 	};
 
 	int UID;								///< Internal unique ID (note: not the same as artoolkitX pattern ID)
 	TrackableType type;						///< Type of trackable: single, multi, ...
 
-    // Inputs from subclasses.
-    bool visiblePrev;                       ///< Whether or not the trackable was visible prior to last update.
+  // Inputs from subclasses.
+  bool visiblePrev;                       ///< Whether or not the trackable was visible prior to last update.
 	bool visible;							///< Whether or not the trackable is visible at current time.
 
     // Output.
