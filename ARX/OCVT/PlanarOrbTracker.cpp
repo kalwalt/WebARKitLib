@@ -114,18 +114,28 @@ public:
                 _K.at<double>(i,j) = (double)(cParam[i][j]);
             }
         }
+
         /*corners[0] = cvPoint( 0, 0 );
         corners[1] = cvPoint( refCols, 0 );
         corners[2] = cvPoint( refCols, refRows );
         corners[3] = cvPoint( 0, refRows );*/
-        corners[0] = cvPoint( 0, 0 );
+        /*corners[0] = cvPoint( 0, 0 );
         corners[1] = cvPoint( xFrameSize, 0 );
         corners[2] = cvPoint( xFrameSize, yFrameSize );
-        corners[3] = cvPoint( 0, yFrameSize );
+        corners[3] = cvPoint( 0, yFrameSize );*/
 
         output = create_output();
 
         ARLOGi("output is: %d\n", output->data[0]);
+    }
+
+    void init_corners()
+    {
+      //ARLOGi("trackable width: %d\n", _trackables[0]._width);
+      corners[0] = cvPoint( 0, 0 );
+      corners[1] = cvPoint( _trackables[0]._width, 0 );
+      corners[2] = cvPoint( _trackables[0]._width, _trackables[0]._height );
+      corners[3] = cvPoint( 0, _trackables[0]._height );
     }
 
     void clear_output()
@@ -173,7 +183,7 @@ public:
            std::cout << "Reference image not found!" << std::endl;
            return NULL;
         }
-
+    init_corners();
     clear_output();
 
     //cv::Mat currIm = cv::Mat(rows, cols, CV_8UC1, imageData);
@@ -369,7 +379,8 @@ public:
           ARLOGi("_frameSizeX is: %d\n", _frameSizeX);
           ARLOGi("_frameSizeY is: %d\n", _frameSizeY);
           cv::Mat colorImage(height, width, CV_8UC4, buff);
-          cv::Mat grayImage(_frameSizeY, _frameSizeX, CV_8UC1);
+          //cv::Mat grayImage(_frameSizeY, _frameSizeX, CV_8UC1);
+          cv::Mat grayImage(height, width, CV_8UC1);
           cv::cvtColor(colorImage, grayImage, cv::COLOR_RGBA2GRAY);
           newTrackable._image = grayImage;
         #else
