@@ -52,7 +52,7 @@ class WebARKitController; // Forward declaration of owner.
  * Base class for supported trackable types.
  */
 class WebARKitTrackable {
-    
+
 private:
     ARFilterTransMatInfo *m_ftmi;
     ARdouble   m_filterCutoffFrequency;
@@ -74,27 +74,27 @@ protected:
     ARdouble m_positionScaleFactor;
 
 public:
-    
+
 	enum TrackableType {
 		SINGLE,								///< A standard single square marker.
 		MULTI,								///< A composite marker made up of multiple square markers.
         NFT,                                ///< A rectangular textured marker backed by an NFT data set.
         TwoD,                               ///< A 2D textured marker backed by an image.
-		OrbTwoD,                            ///< A 2D textured marker backed by an image, based on Orb.
+		    OrbTwoD,                            ///< A 2D textured marker backed by an image, based on Orb.
         MULTI_AUTO                          ///< An automatically mapped composite marker made up of multiple square matrix (2D barcode) markers.
 	};
 
 	int UID;								///< Internal unique ID (note: not the same as artoolkitX pattern ID)
 	TrackableType type;						///< Type of trackable: single, multi, ...
-	
+
     // Inputs from subclasses.
     bool visiblePrev;                       ///< Whether or not the trackable was visible prior to last update.
 	bool visible;							///< Whether or not the trackable is visible at current time.
-    
+
     // Output.
 	ARdouble transformationMatrix[16];		///< Transformation suitable for use in OpenGL
 	ARdouble transformationMatrixR[16];		///< Transformation suitable for use in OpenGL
-	
+
 	int patternCount;						///< If this trackable has a surface appearance, the number of patterns that it has (1 for single).
 	WebARKitPattern** patterns;					///< Array of pointers to patterns
 
@@ -102,15 +102,15 @@ public:
 	 * Constructor takes the type of this trackable.
 	 */
 	WebARKitTrackable(TrackableType type);
-    
+
     WebARKitTrackable(const WebARKitTrackable&) = delete; ///< Copy construction is undefined.
     WebARKitTrackable& operator=(const WebARKitTrackable&) = delete; ///< Copy assignment is undefined.
 
 	virtual ~WebARKitTrackable();
-	
+
     void setPositionScalefactor(ARdouble scale);
     ARdouble positionScalefactor();
-    
+
 	/**
 	 * Completes an update begun in the parent class, performing filtering, generating
      * OpenGL view matrix and notifying listeners (just a log message at the moment).
@@ -125,7 +125,7 @@ public:
 	 * @param n		The pattern to retrieve
 	 */
 	WebARKitPattern* getPattern(int n);
-    
+
     // Filter control.
     void setFiltered(bool flag);
     bool isFiltered();

@@ -123,7 +123,7 @@ bool WebARKitController::initialiseBase()
             return false;
         }
 	}
-    
+
     char *versionString = NULL;
     arGetVersion(&versionString);
 	ARLOGi("webarkit v%s initialised.\n", versionString);
@@ -151,12 +151,12 @@ bool WebARKitController::initialiseBase()
         goto bail2;
     }
     m_OrbTwoDTracker = std::shared_ptr<WebARKitTrackerOrb2d>(new WebARKitTrackerOrb2d);
-    if (!m_twoDTracker->initialize()) {
+    if (!m_OrbTwoDTracker->initialize()) {
         ARLOGe("Error initialising 2d Orb tracker.\n");
         goto bail2;
     }
 #endif
-    
+
 	state = BASE_INITIALISED;
 
     ARLOGd("WebARKit::WebARKitController::initialiseBase() done.\n");
@@ -318,7 +318,7 @@ bool WebARKitController::updateTextureRGBA32(const int videoSourceIndex, uint32_
 bool WebARKitController::update()
 {
     ARLOGd("WebARKit::WebARKitController::update().\n");
-    
+
 	if (state != DETECTION_RUNNING) {
         if (state != WAITING_FOR_VIDEO) {
             // State is NOTHING_INITIALISED or BASE_INITIALISED.
@@ -396,6 +396,7 @@ bool WebARKitController::update()
             if (!ret) goto done;
         }
         m_twoDTracker->update(image0, image1, m_trackables);
+
         if (!m_OrbTwoDTracker->isRunning()) {
             if (!m_videoSourceIsStereo) ret = m_OrbTwoDTracker->start(m_videoSource0->getCameraParameters(), m_videoSource0->getPixelFormat());
             else ret = m_OrbTwoDTracker->start(m_videoSource0->getCameraParameters(), m_videoSource0->getPixelFormat(), m_videoSource1->getCameraParameters(), m_videoSource1->getPixelFormat(), m_transL2R);
@@ -410,7 +411,7 @@ done:
     if (m_videoSourceIsStereo) m_videoSource1->checkinFrame();
 
     ARLOGd("WebARKit::WebARKitController::update(): done.\n");
-    
+
     return ret;
 }
 
@@ -418,7 +419,7 @@ bool WebARKitController::stopRunning()
 {
 	ARLOGd("WebARKit::WebARKitController::stopRunning()\n");
     //m_videoSource0->getAR2VideoParam();
-    //In case of Emscripten try to stop without checking if running, 
+    //In case of Emscripten try to stop without checking if running,
     //because in case of single image tracking the state won't be running but the memory is still allocated.
     #ifndef ARX_TARGET_PLATFORM_EMSCRIPTEN
         if (state != DETECTION_RUNNING && state != WAITING_FOR_VIDEO) {
@@ -426,7 +427,7 @@ bool WebARKitController::stopRunning()
             return false;
         }
     #endif
-    
+
     m_squareTracker->stop();
 #if HAVE_NFT
     m_nftTracker->stop();
@@ -505,34 +506,34 @@ bool WebARKitController::shutdown()
 bool WebARKitController::drawVideoInit(const int videoSourceIndex)
 {
     ARLOGd("WebARKitController::drawVideoInit(%d).\n", videoSourceIndex);
-    
+
     if (videoSourceIndex < 0 || videoSourceIndex > (m_videoSourceIsStereo ? 1 : 0)) return false;
-    
+
     if (m_arVideoViews[videoSourceIndex]) {
         delete m_arVideoViews[videoSourceIndex];
         m_arVideoViews[videoSourceIndex] = NULL;
     }
-    
+
     m_arVideoViews[videoSourceIndex] = new WebARKitVideoView;
     if (!m_arVideoViews[videoSourceIndex]) {
         ARLOGe("Error allocated WEbARKitVideoView.\n");
         return false;
     }
-    
+
     return true;
 }
 
 bool WebARKitController::drawVideoSettings(const int videoSourceIndex, const int width, const int height, const bool rotate90, const bool flipH, const bool flipV, const WebARKitVideoView::HorizontalAlignment hAlign, const WebARKitVideoView::VerticalAlignment vAlign, const WebARKitVideoView::ScalingMode scalingMode, int32_t viewport[4])
 {
     ARLOGd("WebARKitController::drawVideoSettings(%d, %d, %d, ...).\n", videoSourceIndex, width, height);
-    
+
     if (videoSourceIndex < 0 || videoSourceIndex > (m_videoSourceIsStereo ? 1 : 0)) return false;
 
     if (!m_arVideoViews[videoSourceIndex]) {
         ARLOGe("WebARKitVideoView %d not inited.\n", videoSourceIndex);
         return false;
     }
-    
+
     WebARKitVideoSource *vs = (videoSourceIndex == 0 ? m_videoSource0 : m_videoSource1);
     if (!m_arVideoViews[videoSourceIndex]->initWithVideoSource(*vs, width, height)) {
         ARLOGe("Unable to init ARVideoView.\n");
@@ -547,7 +548,7 @@ bool WebARKitController::drawVideoSettings(const int videoSourceIndex, const int
     if (viewport) {
         m_arVideoViews[videoSourceIndex]->getViewport(viewport);
     }
-    
+
     return true;
 }
 
@@ -559,27 +560,27 @@ bool WebARKitController::drawVideo(const int videoSourceIndex)
         ARLOGe("WebARKitVideoView %d not inited.\n", videoSourceIndex);
         return false;
     }
-    
+
     WebARKitVideoSource *vs = (videoSourceIndex == 0 ? m_videoSource0 : m_videoSource1);
     m_arVideoViews[videoSourceIndex]->draw(vs);
-    
+
     return true;
 }
 
 bool WebARKitController::drawVideoFinal(const int videoSourceIndex)
 {
     ARLOGd("WebARKitController::drawVideoFinal(%d).\n", videoSourceIndex);
-    
+
     if (videoSourceIndex < 0 || videoSourceIndex > (m_videoSourceIsStereo ? 1 : 0)) return false;
 
     if (!m_arVideoViews[videoSourceIndex]) {
         ARLOGe("WebARKitVideoView %d not inited.\n", videoSourceIndex);
         return false;
     }
-    
+
     delete m_arVideoViews[videoSourceIndex];
     m_arVideoViews[videoSourceIndex] = NULL;
-    
+
     return true;
 }
 
@@ -600,13 +601,13 @@ bool WebARKitController::projectionMatrix(const int videoSourceIndex, const ARdo
         ARLOGe("Error: projection matrix requested but no video source %d not yet running.\n", videoSourceIndex);
         return false;
     }
-    
+
     ARParamLT* paramLT = vs->getCameraParameters();
     if (!paramLT) {
         ARLOGe("Error: video source %d unable to supply camera parameters.\n", videoSourceIndex);
         return false;
     }
-    
+
     arglCameraFrustumRH(&(paramLT->param), projectionNearPlane, projectionFarPlane, proj);
     ARLOGd("Computed projection matrix using near=%f far=%f.\n", projectionNearPlane, projectionFarPlane);
     return true;
@@ -647,20 +648,20 @@ int WebARKitController::addTrackable(const std::string& cfgs)
 		ARLOGe("Error: Cannot add trackable. artoolkitX not initialised\n");
 		return -1;
 	}
-    
+
     std::istringstream iss(cfgs);
     std::string token;
     std::vector<std::string> config;
     while (std::getline(iss, token, ';')) {
         config.push_back(token);
     }
-    
+
     // First token is trackable type. Required.
     if (config.size() < 1) {
         ARLOGe("Error: invalid configuration string. Could not find trackable type.\n");
         return -1;
     }
-    
+
     // Until we have a registry, have to manually request from all trackers.
     WebARKitTrackable *trackable;
     if ((trackable = m_squareTracker->newTrackable(config)) != nullptr) {
@@ -669,7 +670,7 @@ int WebARKitController::addTrackable(const std::string& cfgs)
 #endif
 #if HAVE_2D
     } else if ((trackable = m_twoDTracker->newTrackable(config)) != nullptr) {
-    } else if ((trackable = m_OrbTwoDTracker->newTrackable(config)) != nullptr) {    
+    } else if ((trackable = m_OrbTwoDTracker->newTrackable(config)) != nullptr) {
 #endif
     }
     if (!trackable) {
@@ -761,7 +762,7 @@ bool WebARKitController::removeTrackable(WebARKitTrackable* trackable)
 #endif
 #if HAVE_2D
     m_twoDTracker->deleteTrackable(&trackable);
-    m_OrbTwoDTracker->deleteTrackable(&trackable);   
+    m_OrbTwoDTracker->deleteTrackable(&trackable);
 #endif
 
     // Remove from our trackable list.
@@ -786,6 +787,11 @@ bool WebARKitController::removeTrackable(WebARKitTrackable* trackable)
             ARLOGi("Last 2D marker removed; disabling 2D marker tracking.\n");
         doTwoDMarkerDetection = false;
     }
+    if (countTrackables(WebARKitTrackable::OrbTwoD) == 0) {
+        if (doTwoDMarkerDetection)
+            ARLOGi("Last 2D marker removed; disabling 2D marker tracking.\n");
+        doTwoDMarkerDetection = false;
+    }
 #endif
     ARLOGi("Removed trackable (UID=%d), now %d trackables loaded\n", UID, countTrackables());
 
@@ -795,7 +801,7 @@ bool WebARKitController::removeTrackable(WebARKitTrackable* trackable)
 int WebARKitController::removeAllTrackables()
 {
 	unsigned int count = countTrackables();
-    
+
     for (std::vector<WebARKitTrackable *>::iterator it = m_trackables.begin(); it != m_trackables.end(); ++it) {
         m_squareTracker->deleteTrackable(&(*it));
 #if HAVE_NFT
@@ -854,7 +860,7 @@ bool WebARKitController::save2DTrackerImageDatabase(const char* databaseFileName
     if (m_twoDTracker->saveImageDatabase(std::string(databaseFileName))) {
         return true;
     }
-    
+
     return false;
 }
 #endif // HAVE_2D
@@ -928,7 +934,7 @@ int WebARKitController::webVideoPushInitC(int videoSourceIndex, int width, int h
 {
     if (videoSourceIndex < 0 || videoSourceIndex > (m_videoSourceIsStereo ? 1 : 0)) return -1;
     int ret = -1;
-    
+
     WebARKitVideoSource *vs = (videoSourceIndex == 0 ? m_videoSource0 : m_videoSource1);;
     if (!vs) {
         ARLOGe("WebARKitController::webVideoPushInitC: no WebARKitVideoSource.\n");

@@ -65,7 +65,7 @@ WebARKitTrackable::WebARKitTrackable(TrackableType type) :
 #endif
     type(type),
     visiblePrev(false),
-	visible(false),
+    visible(false),
     patternCount(0),
     patterns(NULL)
 {
@@ -90,7 +90,7 @@ void WebARKitTrackable::allocatePatterns(int count)
         patterns = new WebARKitPattern*[patternCount];
         for (int i = 0; i < patternCount; i++) {
             patterns[i] = new WebARKitPattern();
-        }        
+        }
     }
 }
 
@@ -135,18 +135,18 @@ bool WebARKitTrackable::update(const ARdouble transL2R[3][4])
     // Subclasses will have already determined visibility and set/cleared 'visible' and 'visiblePrev',
     // as well as setting 'trans'.
     if (visible) {
-        
+
         // Filter the pose estimate.
         if (m_ftmi) {
             if (arFilterTransMat(m_ftmi, trans, !visiblePrev) < 0) {
                 ARLOGe("arFilterTransMat error with trackable %d.\n", UID);
             }
         }
-        
+
         if (!visiblePrev) {
             ARLOGi("trackable %d now visible.\n", UID);
         }
-        
+
         // Convert to GL matrix.
 #ifdef ARDOUBLE_IS_FLOAT
         arglCameraViewRHf(trans, transformationMatrix, m_positionScaleFactor);
@@ -157,23 +157,23 @@ bool WebARKitTrackable::update(const ARdouble transL2R[3][4])
         // Do stereo if required.
         if (transL2R) {
             ARdouble transR[3][4];
-            
+
             arUtilMatMul(transL2R, trans, transR);
 #ifdef ARDOUBLE_IS_FLOAT
             arglCameraViewRHf(transR, transformationMatrixR, m_positionScaleFactor);
 #else
             arglCameraViewRH(transR, transformationMatrixR, m_positionScaleFactor);
 #endif
-            
+
         }
     } else {
-        
+
         if (visiblePrev) {
             ARLOGi("Trackable %d no longer visible.\n", UID);
         }
-        
+
     }
-    
+
     return true;
 }
 
@@ -213,4 +213,3 @@ void WebARKitTrackable::setFilterCutoffFrequency(ARdouble freq)
     m_filterCutoffFrequency = freq;
     if (m_ftmi) arFilterTransMatSetParams(m_ftmi, m_filterSampleRate, m_filterCutoffFrequency);
 }
-
