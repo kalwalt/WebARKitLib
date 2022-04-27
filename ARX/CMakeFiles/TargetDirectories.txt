@@ -1,2 +1,0 @@
-/home/walter/kalwalt-github/webarkit-OCVT/emscripten/WebARKitLib/ARX/CMakeFiles/rebuild_cache.dir
-/home/walter/kalwalt-github/webarkit-OCVT/emscripten/WebARKitLib/ARX/CMakeFiles/edit_cache.dir

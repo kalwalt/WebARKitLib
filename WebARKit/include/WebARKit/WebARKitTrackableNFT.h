@@ -63,11 +63,11 @@ private:
     bool unload();
 
 public:
-    
+
 	WebARKitTrackableNFT();
 	~WebARKitTrackableNFT();
 
-	bool load(const char* dataSetPathname_in, KpmHandle* m_kpmHandle);
+	bool load(const char* dataSetPathname_in);
 
 	bool updateWithNFTResults(int detectedPage, float trackingTrans[3][4], ARdouble transL2R[3][4] = NULL);
 

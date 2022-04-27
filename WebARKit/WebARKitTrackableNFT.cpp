@@ -54,10 +54,10 @@ WebARKitTrackableNFT::~WebARKitTrackableNFT()
 	if (m_loaded) unload();
 }
 
-bool WebARKitTrackableNFT::load(const char* dataSetPathname_in, KpmHandle* m_kpmHandle)
+bool WebARKitTrackableNFT::load(const char* dataSetPathname_in)
 {
     if (m_loaded) unload();
-    
+
 	visible = visiblePrev = false;
 
     /*KpmRefDataSet *refDataSet = NULL;
@@ -85,13 +85,13 @@ bool WebARKitTrackableNFT::load(const char* dataSetPathname_in, KpmHandle* m_kpm
 
     // For convenience, create a weak reference to the AR2 data.
     //m_surfaceSet[pageCount] = surfaceSet;
-            
+
     pageCount++;
     if (pageCount == PAGES_MAX) {
         ARLOGe("Maximum number of NFT pages (%d) loaded.\n", PAGES_MAX);
         exit(-1);
     }
-	
+
     // Load AR2 data.
     ARLOGi("Loading '%s.fset'.\n", dataSetPathname_in);
     if ((surfaceSet = ar2ReadSurfaceSet(dataSetPathname_in, "fset", NULL)) == NULL) {
@@ -105,13 +105,13 @@ bool WebARKitTrackableNFT::load(const char* dataSetPathname_in, KpmHandle* m_kpm
     }
     kpmDeleteRefDataSet(&refDataSet);*/
  	datasetPathname = strdup(dataSetPathname_in);
-    
+
     allocatePatterns(1);
 
     patterns[0]->loadISet(surfaceSet->surface[0].imageSet, m_nftScale);
-   
+
     m_loaded = true;
-    
+
 	return true;
 }
 
@@ -128,7 +128,7 @@ bool WebARKitTrackableNFT::unload()
             free(datasetPathname);
             datasetPathname = NULL;
         }
-        
+
         m_loaded = false;
     }
 	return true;
@@ -137,9 +137,9 @@ bool WebARKitTrackableNFT::unload()
 bool WebARKitTrackableNFT::updateWithNFTResults(int detectedPage, float trackingTrans[3][4], ARdouble transL2R[3][4])
 {
     if (!m_loaded) return false;
-    
+
 	visiblePrev = visible;
-    
+
     // The marker will only have a pageNo if the data has actually been loaded by a call to ARController::loadNFTData().
 	if (pageNo >= 0 && pageNo == detectedPage) {
         visible = true;
