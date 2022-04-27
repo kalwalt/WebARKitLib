@@ -364,6 +364,10 @@ public:
         TrackableInfo newTrackable;
         #if ARX_TARGET_PLATFORM_EMSCRIPTEN
           std::cout << "Add Marker EM" << std::endl;
+          ARLOGi("width is: %d\n", width);
+          ARLOGi("height is: %d\n", height);
+          ARLOGi("_frameSizeX is: %d\n", _frameSizeX);
+          ARLOGi("_frameSizeY is: %d\n", _frameSizeY);
           cv::Mat colorImage(height, width, CV_8UC4, buff);
           cv::Mat grayImage(_frameSizeY, _frameSizeX, CV_8UC1);
           cv::cvtColor(colorImage, grayImage, cv::COLOR_RGBA2GRAY);
