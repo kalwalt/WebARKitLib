@@ -61,9 +61,9 @@ private:
     OrbFeatureDetector _featureDetector;
     HarrisDetector _harrisDetector;
     std::vector<cv::Mat> _pyramid, _prevPyramid;
-    
+
     std::vector<TrackableInfo> _trackables;
-    
+
     int _currentlyTrackedMarkers;
     int _resetCount;
     int _frameCount;
@@ -78,7 +78,7 @@ private:
     bool initialized;
     std::vector<cv::Point2f> framePts;
     std::vector<cv::KeyPoint> refKeyPts;
-    std::vector<cv::Point2f> corners;   
+    std::vector<cv::Point2f> corners;
     int _selectedFeatureDetectorType;
 public:
     PlanarOrbTrackerImpl()
@@ -103,7 +103,7 @@ public:
     output->data = new double[OUTPUT_SIZE];
     return output;
     }
-    
+
     void Initialise(int xFrameSize, int yFrameSize, ARdouble cParam[][4])
     {
         _frameSizeX = xFrameSize;
@@ -168,7 +168,7 @@ public:
     //bool resetTracking(uchar imageData[], size_t cols, size_t rows)
     bool resetTracking(cv::Mat frame, size_t cols, size_t rows)
     {
-        ARLOGi("initialized is: %s\n", initialized ? "true" : "false");
+        //ARLOGi("initialized is: %s\n", initialized ? "true" : "false");
         if (!IsImageInitialized()) {
            std::cout << "Reference image not found!" << std::endl;
            return NULL;
@@ -188,7 +188,9 @@ public:
 
     std::vector<std::vector<cv::DMatch>> knnMatches;
     //matcher->knnMatch(frameDescr, refDescr, knnMatches, 2);
-    knnMatches = _featureDetector.MatchFeatures(frameDescr, _trackables[0]._descriptors);
+    for (int i; i < _trackables.size(); i++){
+      knnMatches = _featureDetector.MatchFeatures(frameDescr, _trackables[i]._descriptors);
+    }
 
     framePts.clear();
     std::vector<cv::Point2f> refPts;
@@ -201,10 +203,12 @@ public:
     }
     bool valid;
     // need at least 4 pts to define homography
+    ARLOGi("framePts.size: %d\n", framePts.size());
     if (framePts.size() > 15) {
-        _H = cv::findHomography(refPts, framePts, cv::RANSAC);    
+        _H = cv::findHomography(refPts, framePts, cv::RANSAC);
         if ( (valid = homographyValid(_H)) ) {
             numMatches = framePts.size();
+            ARLOGi("num matches: %d\n", numMatches);
             fill_output(_H, valid);
             prevIm = frame.clone();
         }
@@ -212,7 +216,88 @@ public:
 
     return valid;
     };
-    
+
+    output_t* track(cv::Mat frame, size_t frameCols, size_t frameRows) {
+      if (!IsImageInitialized()) {
+        std::cout << "Reference image not found!" << std::endl;
+        return NULL;
+      }
+
+      if (prevIm.empty()) {
+        output_t *output = new output_t;
+        output->data = new double[OUTPUT_SIZE];
+        //output->valid = 0;
+        std::cout << "Tracking is uninitialized!" << std::endl;
+        return output;
+      }
+
+      clear_output();
+
+      /*std::cout << "preparing to convert frames" << std::endl;
+
+      cv::Mat colorFrame(cols, rows, CV_8UC4, imageData);
+
+      cv::Mat currIm = Mat(rows, cols, CV_8UC1, imageData);
+
+      cvtColor(colorFrame, currIm, COLOR_RGBA2GRAY);
+      cout << "frames converted" << endl;
+       // GaussianBlur(currIm, currIm, Size(3,3), 2);*/
+
+      // use optical flow to track keypoints
+      std::vector<float> err;
+      std::vector<uchar> status;
+      std::vector<cv::Point2f> currPts, goodPtsCurr, goodPtsPrev;
+      calcOpticalFlowPyrLK(prevIm, frame, framePts, currPts, status, err);
+
+      // calculate average variance
+      double mean, avg_variance = 0.0;
+      double sum = 0.0;
+      double diff;
+      std::vector<double> diffs;
+      for (size_t i = 0; i < framePts.size(); ++i) {
+        if (status[i]) {
+          goodPtsCurr.push_back(currPts[i]);
+          goodPtsPrev.push_back(framePts[i]);
+
+          diff = sqrt(pow(currPts[i].x - framePts[i].x, 2.0) +
+                pow(currPts[i].y - framePts[i].y, 2.0));
+          sum += diff;
+          diffs.push_back(diff);
+        }
+      }
+
+      mean = sum / diffs.size();
+      for (int i = 0; i < goodPtsCurr.size(); ++i) {
+        avg_variance += pow(diffs[i] - mean, 2);
+      }
+      avg_variance /= diffs.size();
+
+      if ((goodPtsCurr.size() > numMatches / 2) && (1.75 > avg_variance)) {
+        cv::Mat transform = estimateAffine2D(goodPtsPrev, goodPtsCurr);
+
+        // add row of {0,0,1} to transform to make it 3x3
+        cv::Mat row = cv::Mat::zeros(1, 3, CV_64F);
+        row.at<double>(0, 2) = 1.0;
+        transform.push_back(row);
+
+        // update homography matrix
+        _H = transform * _H;
+
+        // set old points to new points
+        framePts = goodPtsCurr;
+
+        bool valid;
+        if ((valid = homographyValid(_H))) {
+          fill_output(_H, valid);
+        }
+      }
+      std::cout << 'preparing to copy' << std::endl;
+      prevIm = frame.clone();
+
+      return output;
+    }
+
+
     cv::Mat CreateFeatureMask(cv::Mat frame)
     {
         cv::Mat featureMask;
@@ -231,9 +316,9 @@ public:
         }
         return featureMask;
     }
-    
-    
-    
+
+
+
     void ProcessFrameData(unsigned char * frame)
     {
         // When using emscripten the image comes in as RGB image from the browser
@@ -244,22 +329,26 @@ public:
           cv::cvtColor(colorFrame, grayFrame, cv::COLOR_RGBA2GRAY);
           ProcessFrame(grayFrame);
           grayFrame.release();
-        #else 
+        #else
           cv::Mat newFrame(_frameSizeY, _frameSizeX, CV_8UC1, frame);
           ProcessFrame(newFrame);
           newFrame.release();
         #endif
 
     }
-    
+
     void ProcessFrame(cv::Mat frame)
     {
         if(!_valid) {
             _valid = resetTracking(frame, _frameSizeX, _frameSizeY);
-            ARLOGi("valid tracking is: %s\n", _valid);  
+            //ARLOGi("valid tracking is: %s\n", _valid);
+        } else {
+            ARLOGi("valid tracking is: %s\n", _valid);
+            track(frame, _frameSizeX, _frameSizeY);
+            ARLOGi("tracked!");
         }
     }
-    
+
     void RemoveAllMarkers()
     {
         for(int i=0;i<_trackables.size(); i++) {
@@ -267,8 +356,8 @@ public:
         }
         _trackables.clear();
     }
-    
-    
+
+
     void AddMarker(unsigned char* buff, std::string fileName, int width, int height, int uid, float scale)
     {
         std::cout << "Add Marker" << std::endl;
@@ -279,7 +368,7 @@ public:
           cv::Mat grayImage(_frameSizeY, _frameSizeX, CV_8UC1);
           cv::cvtColor(colorImage, grayImage, cv::COLOR_RGBA2GRAY);
           newTrackable._image = grayImage;
-        #else 
+        #else
           newTrackable._image = cv::Mat(height, width, CV_8UC1, buff);
         #endif
         std::cout << "Add Marker _image" << std::endl;
@@ -303,7 +392,7 @@ public:
             newTrackable._isDetected = false;
             newTrackable._resetTracks = false;
             newTrackable._trackSelection = TrackingPointSelector(newTrackable._cornerPoints, newTrackable._width, newTrackable._height, markerTemplateWidth);
-            
+
             _trackables.push_back(newTrackable);
             //initialized = true;
             std::cout << "Marker Added" << std::endl;
@@ -330,7 +419,7 @@ public:
         }
         return NULL;
     }
-    
+
     bool IsTrackableVisible(int trackableId)
     {
         for(int i=0;i<_trackables.size(); i++) {
@@ -381,14 +470,14 @@ public:
         }
         return info;
     }
-    
+
 
     void SetFeatureDetector(int detectorType)
     {
         _selectedFeatureDetectorType = detectorType;
         _featureDetector.SetFeatureDetector(detectorType);
     }
-    
+
 };
 PlanarOrbTracker::PlanarOrbTracker() : _trackerImpl(new PlanarOrbTrackerImpl())
 {
@@ -461,4 +550,3 @@ void PlanarOrbTracker::SetFeatureDetector(int detectorType)
 {
     _trackerImpl->SetFeatureDetector(detectorType);
 }
-
