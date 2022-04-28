@@ -60,7 +60,10 @@ class PlanarOrbTracker::PlanarOrbTrackerImpl
 private:
     OrbFeatureDetector _featureDetector;
     HarrisDetector _harrisDetector;
+    cv::Ptr<cv::DescriptorMatcher> _matcher;
+    cv::Ptr<cv::ORB> _orb;
     std::vector<cv::Mat> _pyramid, _prevPyramid;
+    cv::Mat refDescr;
 
     std::vector<TrackableInfo> _trackables;
 
@@ -86,6 +89,7 @@ public:
         _featureDetector = OrbFeatureDetector();
         SetFeatureDetector(defaultDetectorType);
         _harrisDetector = HarrisDetector();
+        _orb = NULL;
         _currentlyTrackedMarkers = 0;
         _frameCount = 0;
         _resetCount = 30;
@@ -114,15 +118,6 @@ public:
                 _K.at<double>(i,j) = (double)(cParam[i][j]);
             }
         }
-
-        /*corners[0] = cvPoint( 0, 0 );
-        corners[1] = cvPoint( refCols, 0 );
-        corners[2] = cvPoint( refCols, refRows );
-        corners[3] = cvPoint( 0, refRows );*/
-        /*corners[0] = cvPoint( 0, 0 );
-        corners[1] = cvPoint( xFrameSize, 0 );
-        corners[2] = cvPoint( xFrameSize, yFrameSize );
-        corners[3] = cvPoint( 0, yFrameSize );*/
 
         output = create_output();
 
@@ -190,17 +185,18 @@ public:
 
     cv::Mat frameDescr;
     std::vector<cv::KeyPoint> frameKeyPts;
-    cv::Mat detectionFrame;
-    cv::pyrDown(frame, detectionFrame, cv::Size(frame.cols/featureDetectPyramidLevel, frame.rows/featureDetectPyramidLevel));
-    cv::Mat featureMask = CreateFeatureMask(detectionFrame);
+    //cv::Mat detectionFrame;
+    //cv::pyrDown(frame, detectionFrame, cv::Size(frame.cols/featureDetectPyramidLevel, frame.rows/featureDetectPyramidLevel));
+    //cv::Mat featureMask = CreateFeatureMask(detectionFrame);
     //orb->detectAndCompute(currIm, cv::noArray(), frameKeyPts, frameDescr); // from webarkit-testing
-    frameKeyPts = _featureDetector.DetectAndCompute(frame, featureMask, frameDescr);
+    _orb->detectAndCompute(frame, cv::noArray(), frameKeyPts, frameDescr); 
+    //frameKeyPts = _featureDetector.DetectAndCompute(frame, featureMask, frameDescr);
 
     std::vector<std::vector<cv::DMatch>> knnMatches;
-    //matcher->knnMatch(frameDescr, refDescr, knnMatches, 2);
-    for (int i; i < _trackables.size(); i++){
+    _matcher->knnMatch(frameDescr, refDescr, knnMatches, 2);
+    /*for (int i; i < _trackables.size(); i++){
       knnMatches = _featureDetector.MatchFeatures(frameDescr, _trackables[i]._descriptors);
-    }
+    }*/
 
     framePts.clear();
     std::vector<cv::Point2f> refPts;
@@ -399,6 +395,11 @@ public:
             // newTrackable._descriptors = _featureDetector.CalcDescriptors(newTrackable._image, newTrackable._featurePoints);
             std::cout << "Add Marker FindCorners" << std::endl;
             newTrackable._cornerPoints = _harrisDetector.FindCorners(newTrackable._image);
+            _orb = cv::ORB::create();
+            //orb->detectAndCompute(refGray, noArray(), refKeyPts, refDescr); from webarkit-testing repo
+            _orb->detectAndCompute(newTrackable._image, cv::noArray(), refKeyPts, refDescr);
+            _matcher = cv::BFMatcher::create();
+            std::cout << "BFMatcher created!" << std::endl;
             newTrackable._bBox.push_back(cv::Point2f(0,0));
             newTrackable._bBox.push_back(cv::Point2f(newTrackable._width, 0));
             newTrackable._bBox.push_back(cv::Point2f(newTrackable._width, newTrackable._height));
