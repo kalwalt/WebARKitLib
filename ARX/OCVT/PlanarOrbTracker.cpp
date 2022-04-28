@@ -53,6 +53,7 @@
 
 #define N   10
 #define GOOD_MATCH_RATIO    0.7f
+#define MAX_FEATURES 2000
 
 
 class PlanarOrbTracker::PlanarOrbTrackerImpl
@@ -395,7 +396,7 @@ public:
             // newTrackable._descriptors = _featureDetector.CalcDescriptors(newTrackable._image, newTrackable._featurePoints);
             std::cout << "Add Marker FindCorners" << std::endl;
             newTrackable._cornerPoints = _harrisDetector.FindCorners(newTrackable._image);
-            _orb = cv::ORB::create();
+            _orb = cv::ORB::create(MAX_FEATURES);
             //orb->detectAndCompute(refGray, noArray(), refKeyPts, refDescr); from webarkit-testing repo
             _orb->detectAndCompute(newTrackable._image, cv::noArray(), refKeyPts, refDescr);
             _matcher = cv::BFMatcher::create();
