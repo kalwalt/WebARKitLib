@@ -201,6 +201,7 @@ public:
 
     framePts.clear();
     std::vector<cv::Point2f> refPts;
+    ARLOGi("match ratio is %d\n", GOOD_MATCH_RATIO);
     // find the best matches
     for (size_t i = 0; i < knnMatches.size(); ++i) {
         if (knnMatches[i][0].distance < GOOD_MATCH_RATIO * knnMatches[i][1].distance) {
