@@ -221,6 +221,7 @@ public:
             prevIm = frame.clone();
         }
     }
+    _trackables[0]._isDetected = true;
 
     return valid;
     };
@@ -299,6 +300,8 @@ public:
           fill_output(_H, valid);
         }
       }
+      _trackables[0]._isTracking = true;
+
       std::cout << "preparing to copy" << std::endl;
       prevIm = frame.clone();
 
@@ -306,7 +309,6 @@ public:
 
       return valid;
     }
-
 
     cv::Mat CreateFeatureMask(cv::Mat frame)
     {
@@ -438,6 +440,11 @@ public:
         return NULL;
     }
 
+    float* GetTrackablePose2(int trackableId)
+    {
+      return (float*)output->data;
+    }
+
     bool IsTrackableVisible(int trackableId)
     {
         for(int i=0;i<_trackables.size(); i++) {
@@ -534,6 +541,11 @@ bool PlanarOrbTracker::IsImageInitialized()
 float* PlanarOrbTracker::GetTrackablePose(int trackableId)
 {
     return _trackerImpl->GetTrackablePose(trackableId);
+}
+
+float* PlanarOrbTracker::GetTrackablePose2(int trackableId)
+{
+    return _trackerImpl->GetTrackablePose2(trackableId);
 }
 
 bool PlanarOrbTracker::IsTrackableVisible(int trackableId)

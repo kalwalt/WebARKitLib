@@ -73,36 +73,37 @@ public:
     ~PlanarOrbTracker();
     PlanarOrbTracker(PlanarOrbTracker&&);
     PlanarOrbTracker& operator = (PlanarOrbTracker&&);
-    
+
     void Initialise(int xFrameSize, int yFrameSize, ARdouble cParam[][4]);
-    
+
     void ProcessFrameData(unsigned char * frame);
     bool homographyValid(cv::Mat H);
     void clear_output();
     void fill_output(cv::Mat H, bool valid);
     bool resetTracking(cv::Mat frame, size_t cols, size_t rows);
     output_t *track(uchar imageData[], size_t cols, size_t rows);
-    
+
     void RemoveAllMarkers();
     void AddMarker(unsigned char* buff, std::string fileName, int width, int height, int uid, float scale);
     //void AddMarker(std::string imageName, int uid, float scale);
-    
+
     float* GetTrackablePose(int trackableId);
-    
+    float* GetTrackablePose2(int trackableId);
+
     bool IsTrackableVisible(int trackableId);
     bool IsImageInitialized();
     //bool LoadTrackableDatabase(std::string fileName);
     //bool SaveTrackableDatabase(std::string fileName);
-    
+
     bool ChangeImageId(int prevId, int newId);
     std::vector<int> GetImageIds();
     TrackedOrbImageInfo GetTrackableImageInfo(int trackableId);
-    
+
     void SetFeatureDetector(int detectorType);
 
 private:
     class PlanarOrbTrackerImpl;
     std::shared_ptr<PlanarOrbTrackerImpl> _trackerImpl;
-    
+
 };
 #endif
