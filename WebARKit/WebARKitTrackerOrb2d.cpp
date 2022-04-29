@@ -160,8 +160,9 @@ bool WebARKitTrackerOrb2d::update(AR2VideoBufferT *buff, std::vector<WebARKitTra
             WebARKitTrackableOrb2d *trackable2D = static_cast<WebARKitTrackableOrb2d *>(*it);
             bool trackable2DFound = false;
             if (m_Orb2DTracker->IsTrackableVisible(trackable2D->UID)) {
-                float* transMat = m_Orb2DTracker->GetTrackablePose2(trackable2D->UID);
+                float* transMat = m_Orb2DTracker->GetTrackablePose(trackable2D->UID);
                 if (transMat) {
+                    ARLOGi("transMat ok\n");
                     ARdouble *transL2R = (m_videoSourceIsStereo ? (ARdouble *)m_transL2R : NULL);
                     bool success = ((WebARKitTrackableOrb2d *)(*it))->updateWithTwoDResults(trackable2D->pageNo, (float (*)[4])transMat, (ARdouble (*)[4])transL2R);
                     m_Orb2DTrackerDetectedImageCount++;

@@ -305,6 +305,16 @@ public:
       std::cout << "preparing to copy" << std::endl;
       prevIm = frame.clone();
 
+      for(int i=0;i<_trackables.size(); i++) {
+          if((_trackables[i]._isDetected)||(_trackables[i]._isTracking)) {
+
+              std::vector<cv::Point2f> imgPoints = _trackables[i]._trackSelection.GetSelectedFeaturesWarped();
+              std::vector<cv::Point3f> objPoints = _trackables[i]._trackSelection.GetSelectedFeatures3d();
+
+              CameraPoseFromPoints(_trackables[i]._pose, objPoints, imgPoints);
+          }
+      }
+
       ARLOGi("valid from track is: %s\n", valid ? "true" : "false" );
 
       return valid;
@@ -398,7 +408,8 @@ public:
             std::cout << "Add Marker CalcDescriptors" << std::endl;
             // newTrackable._descriptors = _featureDetector.CalcDescriptors(newTrackable._image, newTrackable._featurePoints);
             std::cout << "Add Marker FindCorners" << std::endl;
-            //newTrackable._cornerPoints = _harrisDetector.FindCorners(newTrackable._image);
+            newTrackable._cornerPoints = _harrisDetector.FindCorners(newTrackable._image);
+            std::cout << MAX_FEATURES << std::endl;
             _orb = cv::ORB::create(MAX_FEATURES);
             //orb->detectAndCompute(refGray, noArray(), refKeyPts, refDescr); from webarkit-testing repo
             _orb->detectAndCompute(newTrackable._image, cv::noArray(), refKeyPts, refDescr);
@@ -455,6 +466,26 @@ public:
             }
         }
         return false;
+    }
+
+    void CameraPoseFromPoints(cv::Mat& pose, std::vector<cv::Point3f> objPts, std::vector<cv::Point2f> imgPts)
+    {
+        cv::Mat rvec = cv::Mat::zeros(3, 1, CV_64FC1);          // output rotation vector
+        cv::Mat tvec = cv::Mat::zeros(3, 1, CV_64FC1);          // output translation vector
+
+        // --llvm-lto 1 compiler setting breaks the solvePnPRansac function on iOS but using the solvePnP function is faster anyways
+        #if ARX_TARGET_PLATFORM_EMSCRIPTEN
+          cv::solvePnP(objPts, imgPts, _K, cv::Mat(), rvec, tvec);
+        #else
+          cv::solvePnPRansac(objPts, imgPts, _K, cv::Mat(), rvec, tvec);
+        #endif
+
+        cv::Mat rMat;
+        Rodrigues(rvec,rMat);
+        cv::hconcat(rMat,tvec, pose);
+        //ARLOGi("pose size: %d\n", pose.size());
+        std::cout << "pose size\n" << std::endl;
+        std::cout << pose << std::endl;
     }
 
     bool ChangeImageId(int prevId, int newId)
