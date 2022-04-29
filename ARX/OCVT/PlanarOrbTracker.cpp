@@ -113,7 +113,7 @@ public:
     {
         _frameSizeX = xFrameSize;
         _frameSizeY = yFrameSize;
-        _K = cv::Mat(3,3, CV_64FC1);
+        _K = cv::Mat(3, 3, CV_64FC1);
         for(int i=0; i<3; i++) {
             for(int j=0; j<3; j++) {
                 _K.at<double>(i,j) = (double)(cParam[i][j]);
@@ -190,7 +190,7 @@ public:
     //cv::pyrDown(frame, detectionFrame, cv::Size(frame.cols/featureDetectPyramidLevel, frame.rows/featureDetectPyramidLevel));
     //cv::Mat featureMask = CreateFeatureMask(detectionFrame);
     //orb->detectAndCompute(currIm, cv::noArray(), frameKeyPts, frameDescr); // from webarkit-testing
-    _orb->detectAndCompute(frame, cv::noArray(), frameKeyPts, frameDescr); 
+    _orb->detectAndCompute(frame, cv::noArray(), frameKeyPts, frameDescr);
     //frameKeyPts = _featureDetector.DetectAndCompute(frame, featureMask, frameDescr);
 
     std::vector<std::vector<cv::DMatch>> knnMatches;
@@ -224,7 +224,7 @@ public:
     return valid;
     };
 
-    output_t* track(cv::Mat frame, size_t frameCols, size_t frameRows) {
+    bool track(cv::Mat frame, size_t frameCols, size_t frameRows) {
       if (!IsImageInitialized()) {
         std::cout << "Reference image not found!" << std::endl;
         return NULL;
@@ -235,7 +235,7 @@ public:
         output->data = new double[OUTPUT_SIZE];
         //output->valid = 0;
         std::cout << "Tracking is uninitialized!" << std::endl;
-        return output;
+        return false;
       }
 
       clear_output();
@@ -278,7 +278,7 @@ public:
         avg_variance += pow(diffs[i] - mean, 2);
       }
       avg_variance /= diffs.size();
-
+      bool valid;
       if ((goodPtsCurr.size() > numMatches / 2) && (1.75 > avg_variance)) {
         cv::Mat transform = estimateAffine2D(goodPtsPrev, goodPtsCurr);
 
@@ -293,15 +293,17 @@ public:
         // set old points to new points
         framePts = goodPtsCurr;
 
-        bool valid;
+        //bool valid;
         if ((valid = homographyValid(_H))) {
           fill_output(_H, valid);
         }
       }
-      std::cout << 'preparing to copy' << std::endl;
+      std::cout << "preparing to copy" << std::endl;
       prevIm = frame.clone();
 
-      return output;
+      ARLOGi("valid from track is: %s\n", valid ? "true" : "false" );
+
+      return valid;
     }
 
 
@@ -347,13 +349,11 @@ public:
     void ProcessFrame(cv::Mat frame)
     {
         if(!_valid) {
-            _valid = resetTracking(frame, _frameSizeX, _frameSizeY);
+            _valid = resetTracking(frame, _frameSizeY, _frameSizeX);
             //ARLOGi("valid tracking is: %s\n", _valid);
-        } else {
-            ARLOGi("valid tracking is: %s\n", _valid);
-            track(frame, _frameSizeX, _frameSizeY);
-            ARLOGi("tracked!");
         }
+        ARLOGi("_valid is: %s\n", _valid ? "true" : "false" );
+        _valid =  track(frame, _frameSizeY, _frameSizeX);
     }
 
     void RemoveAllMarkers()
@@ -391,11 +391,11 @@ public:
             newTrackable._width = newTrackable._image.cols;
             newTrackable._height = newTrackable._image.rows;
             std::cout << "Add Marker DetectFeatures" << std::endl;
-            newTrackable._featurePoints = _featureDetector.DetectAndCompute(newTrackable._image, cv::Mat(), newTrackable._descriptors);
+            //newTrackable._featurePoints = _featureDetector.DetectAndCompute(newTrackable._image, cv::Mat(), newTrackable._descriptors);
             std::cout << "Add Marker CalcDescriptors" << std::endl;
             // newTrackable._descriptors = _featureDetector.CalcDescriptors(newTrackable._image, newTrackable._featurePoints);
             std::cout << "Add Marker FindCorners" << std::endl;
-            newTrackable._cornerPoints = _harrisDetector.FindCorners(newTrackable._image);
+            //newTrackable._cornerPoints = _harrisDetector.FindCorners(newTrackable._image);
             _orb = cv::ORB::create(MAX_FEATURES);
             //orb->detectAndCompute(refGray, noArray(), refKeyPts, refDescr); from webarkit-testing repo
             _orb->detectAndCompute(newTrackable._image, cv::noArray(), refKeyPts, refDescr);
