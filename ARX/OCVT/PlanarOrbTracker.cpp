@@ -52,7 +52,6 @@
 #include <iostream>
 
 #define N   10
-#define GOOD_MATCH_RATIO    0.7f
 #define MAX_FEATURES 2000
 
 
@@ -194,17 +193,18 @@ public:
     //frameKeyPts = _featureDetector.DetectAndCompute(frame, featureMask, frameDescr);
 
     std::vector<std::vector<cv::DMatch>> knnMatches;
+    //std::cout << "refDescr: %d\n" << refDescr << std::endl; // avoid doing this...
     _matcher->knnMatch(frameDescr, refDescr, knnMatches, 2);
+    std::cout << "knnMatches:\n" << knnMatches.size() << std::endl;
     /*for (int i; i < _trackables.size(); i++){
       knnMatches = _featureDetector.MatchFeatures(frameDescr, _trackables[i]._descriptors);
     }*/
 
     framePts.clear();
     std::vector<cv::Point2f> refPts;
-    ARLOGi("match ratio is %d\n", GOOD_MATCH_RATIO);
     // find the best matches
     for (size_t i = 0; i < knnMatches.size(); ++i) {
-        if (knnMatches[i][0].distance < GOOD_MATCH_RATIO * knnMatches[i][1].distance) {
+        if (knnMatches[i][0].distance < nn_match_ratio * knnMatches[i][1].distance) {
             framePts.push_back( frameKeyPts[knnMatches[i][0].queryIdx].pt );
             refPts.push_back( refKeyPts[knnMatches[i][0].trainIdx].pt );
         }
