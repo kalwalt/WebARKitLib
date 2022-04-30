@@ -75,12 +75,13 @@ private:
     cv::Mat _K;
     cv::Mat _H;
     cv::Mat prevIm;
-    output_t *output;
     bool _valid;
     int numMatches;
     bool initialized;
     std::vector<cv::Point2f> framePts;
     std::vector<cv::KeyPoint> refKeyPts;
+    std::vector<cv::Point2f> imgPoints;
+    std::vector<cv::Point3f> objPoints;
     std::vector<cv::Point2f> corners;
     int _selectedFeatureDetectorType;
 public:
@@ -100,12 +101,8 @@ public:
         initialized = false;
         _valid = false;
         corners = std::vector<cv::Point2f>(4);
-    }
-
-    output_t *create_output() {
-    output_t *output = new output_t;
-    output->data = new double[OUTPUT_SIZE];
-    return output;
+        imgPoints = std::vector<cv::Point2f>(4);
+        objPoints = std::vector<cv::Point3f>(3);
     }
 
     void Initialise(int xFrameSize, int yFrameSize, ARdouble cParam[][4])
@@ -118,10 +115,6 @@ public:
                 _K.at<double>(i,j) = (double)(cParam[i][j]);
             }
         }
-
-        output = create_output();
-
-        ARLOGi("output is: %d\n", output->data[0]);
     }
 
     void init_corners()
@@ -133,36 +126,22 @@ public:
       corners[3] = cvPoint( 0, _trackables[0]._height );
     }
 
-    void clear_output()
-    {
-        memset(output, 0, sizeof(output_t));
-    }
-
-    void fill_output(cv::Mat H, bool valid)
+    void fill_output(cv::Mat H)
     {
         std::vector<cv::Point2f> warped(4);
         cv::perspectiveTransform(corners, warped, H);
 
-        //output->valid = valid;
-
-        output->data[0] = H.at<double>(0,0);
-        output->data[1] = H.at<double>(0,1);
-        output->data[2] = H.at<double>(0,2);
-        output->data[3] = H.at<double>(1,0);
-        output->data[4] = H.at<double>(1,1);
-        output->data[5] = H.at<double>(1,2);
-        output->data[6] = H.at<double>(2,0);
-        output->data[7] = H.at<double>(2,1);
-        output->data[8] = H.at<double>(2,2);
-
-        output->data[9]  = warped[0].x;
-        output->data[10] = warped[0].y;
-        output->data[11] = warped[1].x;
-        output->data[12] = warped[1].y;
-        output->data[13] = warped[2].x;
-        output->data[14] = warped[2].y;
-        output->data[15] = warped[3].x;
-        output->data[16] = warped[3].y;
+        for(int i = 0; i < 3; i=i+3){
+          objPoints[i].x = H.at<double>(i,0);
+          objPoints[i].y = H.at<double>(i,1);
+          objPoints[i].z = H.at<double>(i,2);
+        }
+        for(int i = 0; i<4; i++){
+          imgPoints[i].x = warped[i].x;
+          imgPoints[i].y = warped[i].y;
+        }
+        std::cout << "warped size" << '\n';
+        std::cout << warped.size() << '\n';
     }
 
     bool homographyValid(cv::Mat H) {
@@ -179,7 +158,6 @@ public:
            return NULL;
         }
     init_corners();
-    clear_output();
 
     //cv::Mat currIm = cv::Mat(rows, cols, CV_8UC1, imageData);
 
@@ -217,7 +195,7 @@ public:
         if ( (valid = homographyValid(_H)) ) {
             numMatches = framePts.size();
             ARLOGi("num matches: %d\n", numMatches);
-            fill_output(_H, valid);
+            fill_output(_H);
             prevIm = frame.clone();
         }
     }
@@ -233,14 +211,9 @@ public:
       }
 
       if (prevIm.empty()) {
-        output_t *output = new output_t;
-        output->data = new double[OUTPUT_SIZE];
-        //output->valid = 0;
         std::cout << "Tracking is uninitialized!" << std::endl;
         return false;
       }
-
-      clear_output();
 
       /*std::cout << "preparing to convert frames" << std::endl;
 
@@ -297,20 +270,22 @@ public:
 
         //bool valid;
         if ((valid = homographyValid(_H))) {
-          fill_output(_H, valid);
+          fill_output(_H);
         }
       }
+
       _trackables[0]._isTracking = true;
 
+      drawBoundingBox(frame, imgPoints);
       std::cout << "preparing to copy" << std::endl;
       prevIm = frame.clone();
 
       for(int i=0;i<_trackables.size(); i++) {
           if((_trackables[i]._isDetected)||(_trackables[i]._isTracking)) {
 
-              std::vector<cv::Point2f> imgPoints = _trackables[i]._trackSelection.GetSelectedFeaturesWarped();
-              std::vector<cv::Point3f> objPoints = _trackables[i]._trackSelection.GetSelectedFeatures3d();
-
+              //std::vector<cv::Point2f> imgPoints = _trackables[i]._trackSelection.GetSelectedFeaturesWarped();
+              //std::vector<cv::Point3f> objPoints = _trackables[i]._trackSelection.GetSelectedFeatures3d();
+              ARLOGi("start pose matrix\n");
               CameraPoseFromPoints(_trackables[i]._pose, objPoints, imgPoints);
           }
       }
@@ -339,7 +314,15 @@ public:
         return featureMask;
     }
 
-
+    void drawBoundingBox(cv::Mat image, std::vector<cv::Point2f> bb)
+    {
+      std::cout << "bb.size" << '\n';
+      std::cout << bb.size() << '\n';
+      for(unsigned i = 0; i < bb.size() - 1; i++) {
+         line(image, bb[i], bb[i + 1], cv::Scalar(0, 0, 255), 2);
+      }
+      line(image, bb[bb.size() - 1], bb[0], cv::Scalar(0, 0, 255), 2);
+    }
 
     void ProcessFrameData(unsigned char * frame)
     {
@@ -453,7 +436,8 @@ public:
 
     float* GetTrackablePose2(int trackableId)
     {
-      return (float*)output->data;
+      //return (float*)output->data;
+      return NULL;
     }
 
     bool IsTrackableVisible(int trackableId)
@@ -476,6 +460,7 @@ public:
         // --llvm-lto 1 compiler setting breaks the solvePnPRansac function on iOS but using the solvePnP function is faster anyways
         #if ARX_TARGET_PLATFORM_EMSCRIPTEN
           cv::solvePnP(objPts, imgPts, _K, cv::Mat(), rvec, tvec);
+          std::cout << "solvePnP\n" << std::endl;
         #else
           cv::solvePnPRansac(objPts, imgPts, _K, cv::Mat(), rvec, tvec);
         #endif

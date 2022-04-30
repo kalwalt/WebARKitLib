@@ -61,11 +61,6 @@ public:
     std::string fileName;
 };
 
-typedef struct {
-    double *data;   // 9 elems in homography matrix + 8 elems in warped corners
-} output_t;
-
-
 class PlanarOrbTracker
 {
 public:
