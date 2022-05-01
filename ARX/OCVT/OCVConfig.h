@@ -51,6 +51,8 @@ extern int maxLevel;
 extern const cv::Size subPixWinSize, winSize;
 extern cv::TermCriteria termcrit;
 extern const int MAX_COUNT;
+extern const int MAX_FEATURES;
+extern const int N;
 extern int maxNumberOfToTrack;
 extern int searchRadius;
 extern int match_method;

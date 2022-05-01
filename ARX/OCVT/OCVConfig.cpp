@@ -42,6 +42,8 @@ int maxLevel = 3;
 const cv::Size subPixWinSize(10,10), winSize(31,31);
 cv::TermCriteria termcrit(cv::TermCriteria::COUNT|cv::TermCriteria::EPS,20,0.03);
 const int MAX_COUNT = 300;
+const int MAX_FEATURES = 2000;
+const int N = 10;
 int maxNumberOfToTrack = 1;
 int searchRadius = 15;
 int match_method = cv::TM_SQDIFF_NORMED;

@@ -51,10 +51,6 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include <iostream>
 
-#define N   10
-#define MAX_FEATURES 2000
-
-
 class PlanarOrbTracker::PlanarOrbTrackerImpl
 {
 private:
@@ -150,8 +146,8 @@ public:
     }
 
     bool homographyValid(cv::Mat H) {
-    const double det = H.at<double>(0,0)*H.at<double>(1,1)-H.at<double>(1,0)*H.at<double>(0,1);
-    return 1/N < fabs(det) && fabs(det) < N;
+      const double det = H.at<double>(0,0)*H.at<double>(1,1)-H.at<double>(1,0)*H.at<double>(0,1);
+      return 1/N < fabs(det) && fabs(det) < N;
     }
 
     //bool resetTracking(uchar imageData[], size_t cols, size_t rows)
@@ -283,7 +279,6 @@ public:
 
       std::cout << "preparing to copy" << std::endl;
       prevIm = frame.clone();
-      //drawBoundingBox(prevIm, imgPoints);
 
       for(int i=0;i<_trackables.size(); i++) {
           if((_trackables[i]._isDetected)||(_trackables[i]._isTracking)) {
@@ -317,16 +312,6 @@ public:
             }
         }
         return featureMask;
-    }
-
-    void drawBoundingBox(cv::Mat image, std::vector<cv::Point2f> bb)
-    {
-      std::cout << "bb.size" << '\n';
-      std::cout << bb.size() << '\n';
-      for(unsigned i = 0; i < bb.size() - 1; i++) {
-         line(image, bb[i], bb[i + 1], cv::Scalar(0, 0, 255), 2);
-      }
-      line(image, bb[bb.size() - 1], bb[0], cv::Scalar(0, 0, 255), 2);
     }
 
     void ProcessFrameData(unsigned char * frame)
@@ -457,25 +442,29 @@ public:
         return false;
     }
 
-    void CameraPoseFromPoints(cv::Mat& pose, std::vector<cv::Point3f> objPts, std::vector<cv::Point2f> imgPts)
+    void CameraPoseFromPoints(cv::Mat& pose, std::vector<cv::Point3f> oPts, std::vector<cv::Point2f> iPts)
     {
-        cv::Mat rvec = cv::Mat::zeros(3, 1, CV_64FC1);          // output rotation vector
-        cv::Mat tvec = cv::Mat::zeros(3, 1, CV_64FC1);          // output translation vector
-
+        //cv::Mat rvec = cv::Mat::zeros(3, 1, CV_64FC1);          // output rotation vector
+        //cv::Mat tvec = cv::Mat::zeros(3, 1, CV_64FC1);          // output translation vector
+        cv::Mat rvec;          // output rotation vector
+        cv::Mat tvec;          // output translation vector
+        std::cout << "Inside cameraPose\n" << std::endl;
         // --llvm-lto 1 compiler setting breaks the solvePnPRansac function on iOS but using the solvePnP function is faster anyways
         #if ARX_TARGET_PLATFORM_EMSCRIPTEN
-          cv::solvePnP(objPts, imgPts, _K, cv::Mat(), rvec, tvec);
+          bool solvePnP = cv::solvePnP(oPts, iPts, _K, NULL, rvec, tvec);
           std::cout << "solvePnP\n" << std::endl;
         #else
-          cv::solvePnPRansac(objPts, imgPts, _K, cv::Mat(), rvec, tvec);
+          cv::solvePnPRansac(oPts, iPts, _K, NULL, rvec, tvec);
+          std::cout << "solvePnPRansac\n" << std::endl;
         #endif
-
-        cv::Mat rMat;
-        Rodrigues(rvec,rMat);
-        cv::hconcat(rMat,tvec, pose);
-        //ARLOGi("pose size: %d\n", pose.size());
-        std::cout << "pose size\n" << std::endl;
-        std::cout << pose << std::endl;
+        if(solvePnP) {
+          cv::Mat rMat;
+          Rodrigues(rvec,rMat);
+          cv::hconcat(rMat,tvec, pose);
+          //ARLOGi("pose size: %d\n", pose.size());
+          std::cout << "pose size\n" << std::endl;
+          std::cout << pose << std::endl;
+        }
     }
 
     bool ChangeImageId(int prevId, int newId)
