@@ -76,7 +76,7 @@ public:
     void clear_output();
     void fill_output(cv::Mat H, bool valid);
     bool resetTracking(cv::Mat frame, size_t cols, size_t rows);
-    output_t *track(uchar imageData[], size_t cols, size_t rows);
+    bool track(cv::Mat frame, size_t frameCols, size_t frameRows);
 
     void RemoveAllMarkers();
     void AddMarker(unsigned char* buff, std::string fileName, int width, int height, int uid, float scale);

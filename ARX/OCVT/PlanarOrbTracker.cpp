@@ -139,6 +139,8 @@ public:
         for(int i = 0; i<4; i++){
           imgPoints[i].x = warped[i].x;
           imgPoints[i].y = warped[i].y;
+          std::cout << imgPoints[i].x << std::endl;
+          std::cout << imgPoints[i].y << std::endl;
         }
         std::cout << "warped size" << '\n';
         std::cout << warped.size() << '\n';
@@ -276,9 +278,9 @@ public:
 
       _trackables[0]._isTracking = true;
 
-      drawBoundingBox(frame, imgPoints);
       std::cout << "preparing to copy" << std::endl;
       prevIm = frame.clone();
+      drawBoundingBox(prevIm, imgPoints);
 
       for(int i=0;i<_trackables.size(); i++) {
           if((_trackables[i]._isDetected)||(_trackables[i]._isTracking)) {
