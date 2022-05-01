@@ -135,15 +135,18 @@ public:
           objPoints[i].x = H.at<double>(i,0);
           objPoints[i].y = H.at<double>(i,1);
           objPoints[i].z = H.at<double>(i,2);
+          std::cout << objPoints[i].x << std::endl;
+          std::cout << objPoints[i].y << std::endl;
+          std::cout << objPoints[i].z << std::endl;
         }
         for(int i = 0; i<4; i++){
           imgPoints[i].x = warped[i].x;
           imgPoints[i].y = warped[i].y;
-          std::cout << imgPoints[i].x << std::endl;
-          std::cout << imgPoints[i].y << std::endl;
+          //std::cout << imgPoints[i].x << std::endl;
+          //std::cout << imgPoints[i].y << std::endl;
         }
-        std::cout << "warped size" << '\n';
-        std::cout << warped.size() << '\n';
+        //std::cout << "warped size" << '\n';
+        //std::cout << warped.size() << '\n';
     }
 
     bool homographyValid(cv::Mat H) {
@@ -280,7 +283,7 @@ public:
 
       std::cout << "preparing to copy" << std::endl;
       prevIm = frame.clone();
-      drawBoundingBox(prevIm, imgPoints);
+      //drawBoundingBox(prevIm, imgPoints);
 
       for(int i=0;i<_trackables.size(); i++) {
           if((_trackables[i]._isDetected)||(_trackables[i]._isTracking)) {
