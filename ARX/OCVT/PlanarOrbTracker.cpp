@@ -134,12 +134,14 @@ public:
           std::cout << objPoints[i].x << std::endl;
           std::cout << objPoints[i].y << std::endl;
           std::cout << objPoints[i].z << std::endl;
+          std::cout << objPoints.size() << std::endl;
         }
         for(int i = 0; i<4; i++){
           imgPoints[i].x = warped[i].x;
           imgPoints[i].y = warped[i].y;
           //std::cout << imgPoints[i].x << std::endl;
           //std::cout << imgPoints[i].y << std::endl;
+          std::cout << imgPoints.size() << std::endl;
         }
         //std::cout << "warped size" << '\n';
         //std::cout << warped.size() << '\n';
@@ -200,7 +202,7 @@ public:
             prevIm = frame.clone();
         }
     }
-    _trackables[0]._isDetected = true;
+    //_trackables[0]._isDetected = true;
 
     return valid;
     };
@@ -275,19 +277,19 @@ public:
         }
       }
 
-      _trackables[0]._isTracking = true;
+      //_trackables[0]._isTracking = true;
 
       std::cout << "preparing to copy" << std::endl;
       prevIm = frame.clone();
 
       for(int i=0;i<_trackables.size(); i++) {
-          if((_trackables[i]._isDetected)||(_trackables[i]._isTracking)) {
+          //if((_trackables[i]._isDetected)||(_trackables[i]._isTracking)) {
 
               //std::vector<cv::Point2f> imgPoints = _trackables[i]._trackSelection.GetSelectedFeaturesWarped();
               //std::vector<cv::Point3f> objPoints = _trackables[i]._trackSelection.GetSelectedFeatures3d();
               ARLOGi("start pose matrix\n");
               CameraPoseFromPoints(_trackables[i]._pose, objPoints, imgPoints);
-          }
+         // }
       }
 
       ARLOGi("valid from track is: %s\n", valid ? "true" : "false" );
@@ -442,7 +444,7 @@ public:
         return false;
     }
 
-    void CameraPoseFromPoints(cv::Mat& pose, std::vector<cv::Point3f> oPts, std::vector<cv::Point2f> iPts)
+    void CameraPoseFromPoints(cv::Mat pose, std::vector<cv::Point3f> oPts, std::vector<cv::Point2f> iPts)
     {
         //cv::Mat rvec = cv::Mat::zeros(3, 1, CV_64FC1);          // output rotation vector
         //cv::Mat tvec = cv::Mat::zeros(3, 1, CV_64FC1);          // output translation vector
@@ -451,17 +453,17 @@ public:
         std::cout << "Inside cameraPose\n" << std::endl;
         // --llvm-lto 1 compiler setting breaks the solvePnPRansac function on iOS but using the solvePnP function is faster anyways
         #if ARX_TARGET_PLATFORM_EMSCRIPTEN
+          std::cout << "before solvePnP\n" << std::endl;
           bool solvePnP = cv::solvePnP(oPts, iPts, _K, NULL, rvec, tvec);
           std::cout << "solvePnP\n" << std::endl;
         #else
-          cv::solvePnPRansac(oPts, iPts, _K, NULL, rvec, tvec);
+          bool solvePnP = cv::solvePnPRansac(oPts, iPts, _K, NULL, rvec, tvec);
           std::cout << "solvePnPRansac\n" << std::endl;
         #endif
         if(solvePnP) {
           cv::Mat rMat;
           Rodrigues(rvec,rMat);
           cv::hconcat(rMat,tvec, pose);
-          //ARLOGi("pose size: %d\n", pose.size());
           std::cout << "pose size\n" << std::endl;
           std::cout << pose << std::endl;
         }
