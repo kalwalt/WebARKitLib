@@ -157,21 +157,21 @@ bool WebARKitTrackerOrb2d::update(AR2VideoBufferT *buff, std::vector<WebARKitTra
     m_Orb2DTrackerDetectedImageCount = 0;
     for (std::vector<WebARKitTrackable *>::iterator it = trackables.begin(); it != trackables.end(); ++it) {
         if ((*it)->type == WebARKitTrackable::OrbTwoD) {
-            WebARKitTrackableOrb2d *trackable2D = static_cast<WebARKitTrackableOrb2d *>(*it);
+            WebARKitTrackableOrb2d *trackableOrb2D = static_cast<WebARKitTrackableOrb2d *>(*it);
             bool trackable2DFound = false;
-            if (m_Orb2DTracker->IsTrackableVisible(trackable2D->UID)) {
-                float* transMat = m_Orb2DTracker->GetTrackablePose(trackable2D->UID);
+            if (m_Orb2DTracker->IsTrackableVisible(trackableOrb2D->UID)) {
+                float* transMat = m_Orb2DTracker->GetTrackablePose(trackableOrb2D->UID);
                 if (transMat) {
                     ARLOGi("transMat ok\n");
                     ARdouble *transL2R = (m_videoSourceIsStereo ? (ARdouble *)m_transL2R : NULL);
-                    bool success = ((WebARKitTrackableOrb2d *)(*it))->updateWithTwoDResults(trackable2D->pageNo, (float (*)[4])transMat, (ARdouble (*)[4])transL2R);
+                    bool success = ((WebARKitTrackableOrb2d *)(*it))->updateWithTwoDResults(trackableOrb2D->pageNo, (float (*)[4])transMat, (ARdouble (*)[4])transL2R);
                     m_Orb2DTrackerDetectedImageCount++;
                     trackable2DFound = true;
                 } else {
-                    trackable2D->updateWithTwoDResults(-1, NULL, NULL);
+                    trackableOrb2D->updateWithTwoDResults(-1, NULL, NULL);
                 }
             } else {
-                trackable2D->updateWithTwoDResults(-1, NULL, NULL);
+                trackableOrb2D->updateWithTwoDResults(-1, NULL, NULL);
             }
         }
     }
