@@ -44,6 +44,7 @@
 #endif
 #if HAVE_2D
 #  include <WebARKit/WebARKitTrackable2d.h>
+#  include <WebARKit/WebARKitTrackableOrb2d.h>
 #endif
 #include <WebARKit/WebARKitController.h>
 #include <ARX/AR/paramGL.h>

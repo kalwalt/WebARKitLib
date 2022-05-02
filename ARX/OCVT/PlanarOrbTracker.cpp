@@ -76,9 +76,9 @@ private:
     bool initialized;
     std::vector<cv::Point2f> framePts;
     std::vector<cv::KeyPoint> refKeyPts;
-    std::vector<cv::Point2f> imgPoints;
-    std::vector<cv::Point3f> objPoints;
-    std::vector<cv::Point2f> corners;
+    //std::vector<cv::Point2f> imgPoints;
+    //std::vector<cv::Point3f> objPoints;
+    //std::vector<cv::Point2f> corners;
     int _selectedFeatureDetectorType;
 public:
     PlanarOrbTrackerImpl()
@@ -96,9 +96,9 @@ public:
         numMatches = 0;
         initialized = false;
         _valid = false;
-        corners = std::vector<cv::Point2f>(4);
-        imgPoints = std::vector<cv::Point2f>(4);
-        objPoints = std::vector<cv::Point3f>(3);
+        //corners = std::vector<cv::Point2f>(4);
+        //imgPoints = std::vector<cv::Point2f>(4);
+        //objPoints = std::vector<cv::Point3f>(3);
     }
 
     void Initialise(int xFrameSize, int yFrameSize, ARdouble cParam[][4])
@@ -111,23 +111,26 @@ public:
                 _K.at<double>(i,j) = (double)(cParam[i][j]);
             }
         }
+        std::cout << "_K is: \n" << std::endl;
+        std::cout << _K << std::endl;
     }
 
-    void init_corners()
+    /*void init_corners()
     {
       //ARLOGi("trackable width: %d\n", _trackables[0]._width);
+      // we should use _trackables._bBox instead, should be the same...
       corners[0] = cvPoint( 0, 0 );
       corners[1] = cvPoint( _trackables[0]._width, 0 );
       corners[2] = cvPoint( _trackables[0]._width, _trackables[0]._height );
       corners[3] = cvPoint( 0, _trackables[0]._height );
-    }
+    }*/
 
-    void fill_output(cv::Mat H)
+   /* void fill_output(cv::Mat H)
     {
         std::vector<cv::Point2f> warped(4);
-        cv::perspectiveTransform(corners, warped, H);
+        cv::perspectiveTransform(corners, warped, H);*/
 
-        for(int i = 0; i < 3; i=i+3){
+        /*for(int i = 0; i < 3; i=i+3){
           objPoints[i].x = H.at<double>(i,0);
           objPoints[i].y = H.at<double>(i,1);
           objPoints[i].z = H.at<double>(i,2);
@@ -142,10 +145,10 @@ public:
           //std::cout << imgPoints[i].x << std::endl;
           //std::cout << imgPoints[i].y << std::endl;
           std::cout << imgPoints.size() << std::endl;
-        }
+        }*/
         //std::cout << "warped size" << '\n';
         //std::cout << warped.size() << '\n';
-    }
+    //}
 
     bool homographyValid(cv::Mat H) {
       const double det = H.at<double>(0,0)*H.at<double>(1,1)-H.at<double>(1,0)*H.at<double>(0,1);
@@ -160,26 +163,17 @@ public:
            std::cout << "Reference image not found!" << std::endl;
            return NULL;
         }
-    init_corners();
-
-    //cv::Mat currIm = cv::Mat(rows, cols, CV_8UC1, imageData);
+    //init_corners();
 
     cv::Mat frameDescr;
     std::vector<cv::KeyPoint> frameKeyPts;
-    //cv::Mat detectionFrame;
-    //cv::pyrDown(frame, detectionFrame, cv::Size(frame.cols/featureDetectPyramidLevel, frame.rows/featureDetectPyramidLevel));
-    //cv::Mat featureMask = CreateFeatureMask(detectionFrame);
-    //orb->detectAndCompute(currIm, cv::noArray(), frameKeyPts, frameDescr); // from webarkit-testing
+
     _orb->detectAndCompute(frame, cv::noArray(), frameKeyPts, frameDescr);
-    //frameKeyPts = _featureDetector.DetectAndCompute(frame, featureMask, frameDescr);
 
     std::vector<std::vector<cv::DMatch>> knnMatches;
     //std::cout << "refDescr: %d\n" << refDescr << std::endl; // avoid doing this...
     _matcher->knnMatch(frameDescr, refDescr, knnMatches, 2);
     std::cout << "knnMatches:\n" << knnMatches.size() << std::endl;
-    /*for (int i; i < _trackables.size(); i++){
-      knnMatches = _featureDetector.MatchFeatures(frameDescr, _trackables[i]._descriptors);
-    }*/
 
     framePts.clear();
     std::vector<cv::Point2f> refPts;
@@ -198,11 +192,15 @@ public:
         if ( (valid = homographyValid(_H)) ) {
             numMatches = framePts.size();
             ARLOGi("num matches: %d\n", numMatches);
-            fill_output(_H);
+            //fill_output(_H);
+            for(int i=0;i<_trackables.size(); i++) {
+               _trackables[i]._trackSelection.SelectPoints();
+               _trackables[i]._trackSelection.SetHomography(_H); 
+            }
             prevIm = frame.clone();
         }
     }
-    //_trackables[0]._isDetected = true;
+    _trackables[0]._isDetected = true;
 
     return valid;
     };
@@ -217,16 +215,6 @@ public:
         std::cout << "Tracking is uninitialized!" << std::endl;
         return false;
       }
-
-      /*std::cout << "preparing to convert frames" << std::endl;
-
-      cv::Mat colorFrame(cols, rows, CV_8UC4, imageData);
-
-      cv::Mat currIm = Mat(rows, cols, CV_8UC1, imageData);
-
-      cvtColor(colorFrame, currIm, COLOR_RGBA2GRAY);
-      cout << "frames converted" << endl;
-       // GaussianBlur(currIm, currIm, Size(3,3), 2);*/
 
       // use optical flow to track keypoints
       std::vector<float> err;
@@ -271,25 +259,28 @@ public:
         // set old points to new points
         framePts = goodPtsCurr;
 
-        //bool valid;
         if ((valid = homographyValid(_H))) {
-          fill_output(_H);
+          //fill_output(_H);
+          for(int i=0;i<_trackables.size(); i++) {
+               _trackables[i]._trackSelection.SelectPoints();
+               _trackables[i]._trackSelection.SetHomography(_H); 
+            }
         }
       }
 
-      //_trackables[0]._isTracking = true;
+      _trackables[0]._isTracking = true;
 
       std::cout << "preparing to copy" << std::endl;
       prevIm = frame.clone();
 
       for(int i=0;i<_trackables.size(); i++) {
-          //if((_trackables[i]._isDetected)||(_trackables[i]._isTracking)) {
+          if((_trackables[i]._isDetected)||(_trackables[i]._isTracking)) {
 
-              //std::vector<cv::Point2f> imgPoints = _trackables[i]._trackSelection.GetSelectedFeaturesWarped();
-              //std::vector<cv::Point3f> objPoints = _trackables[i]._trackSelection.GetSelectedFeatures3d();
+              std::vector<cv::Point2f> imgPoints = _trackables[i]._trackSelection.GetSelectedFeaturesWarped();
+              std::vector<cv::Point3f> objPoints = _trackables[i]._trackSelection.GetSelectedFeatures3d();
               ARLOGi("start pose matrix\n");
               CameraPoseFromPoints(_trackables[i]._pose, objPoints, imgPoints);
-         // }
+          }
       }
 
       ARLOGi("valid from track is: %s\n", valid ? "true" : "false" );
@@ -426,12 +417,6 @@ public:
         return NULL;
     }
 
-    float* GetTrackablePose2(int trackableId)
-    {
-      //return (float*)output->data;
-      return NULL;
-    }
-
     bool IsTrackableVisible(int trackableId)
     {
         for(int i=0;i<_trackables.size(); i++) {
@@ -446,24 +431,24 @@ public:
 
     void CameraPoseFromPoints(cv::Mat pose, std::vector<cv::Point3f> oPts, std::vector<cv::Point2f> iPts)
     {
-        //cv::Mat rvec = cv::Mat::zeros(3, 1, CV_64FC1);          // output rotation vector
-        //cv::Mat tvec = cv::Mat::zeros(3, 1, CV_64FC1);          // output translation vector
-        cv::Mat rvec;          // output rotation vector
-        cv::Mat tvec;          // output translation vector
+        cv::Mat rvec = cv::Mat::zeros(3, 1, CV_64FC1);          // output rotation vector
+        cv::Mat tvec = cv::Mat::zeros(3, 1, CV_64FC1);          // output translation vector
+        //cv::Mat rvec;          // output rotation vector
+        //cv::Mat tvec;          // output translation vector
         std::cout << "Inside cameraPose\n" << std::endl;
         // --llvm-lto 1 compiler setting breaks the solvePnPRansac function on iOS but using the solvePnP function is faster anyways
         #if ARX_TARGET_PLATFORM_EMSCRIPTEN
           std::cout << "before solvePnP\n" << std::endl;
-          bool solvePnP = cv::solvePnP(oPts, iPts, _K, NULL, rvec, tvec);
+          bool solvePnP = cv::solvePnP(oPts, iPts, _K, cv::noArray(), rvec, tvec);
           std::cout << "solvePnP\n" << std::endl;
         #else
-          bool solvePnP = cv::solvePnPRansac(oPts, iPts, _K, NULL, rvec, tvec);
+          bool solvePnP = cv::solvePnPRansac(oPts, iPts, _K, cv::noArray(), rvec, tvec);
           std::cout << "solvePnPRansac\n" << std::endl;
         #endif
         if(solvePnP) {
           cv::Mat rMat;
-          Rodrigues(rvec,rMat);
-          cv::hconcat(rMat,tvec, pose);
+          Rodrigues(rvec, rMat);
+          cv::hconcat(rMat, tvec, pose);
           std::cout << "pose size\n" << std::endl;
           std::cout << pose << std::endl;
         }
@@ -553,11 +538,6 @@ bool PlanarOrbTracker::IsImageInitialized()
 float* PlanarOrbTracker::GetTrackablePose(int trackableId)
 {
     return _trackerImpl->GetTrackablePose(trackableId);
-}
-
-float* PlanarOrbTracker::GetTrackablePose2(int trackableId)
-{
-    return _trackerImpl->GetTrackablePose2(trackableId);
 }
 
 bool PlanarOrbTracker::IsTrackableVisible(int trackableId)
