@@ -102,8 +102,6 @@ public:
                 _K.at<double>(i,j) = (double)(cParam[i][j]);
             }
         }
-        std::cout << "_K is: \n" << std::endl;
-        std::cout << _K << std::endl;
     }
 
     bool homographyValid(cv::Mat H) {
@@ -127,7 +125,7 @@ public:
     _trackables[i]._orb->detectAndCompute(frame, cv::noArray(), frameKeyPts, frameDescr);    
     _trackables[i]._matcher->knnMatch(frameDescr, refDescr, knnMatches, 2);
     }
-    std::cout << "knnMatches:\n" << knnMatches.size() << std::endl;
+    //std::cout << "knnMatches:\n" << knnMatches.size() << std::endl;
 
     framePts.clear();
     std::vector<cv::Point2f> refPts;
@@ -140,12 +138,12 @@ public:
     }
     bool valid;
     // need at least 4 pts to define homography
-    ARLOGi("framePts.size: %d\n", framePts.size());
+    //ARLOGi("framePts.size: %d\n", framePts.size());
     if (framePts.size() > 15) {
         _H = cv::findHomography(refPts, framePts, cv::RANSAC);
         if ( (valid = homographyValid(_H)) ) {
             numMatches = framePts.size();
-            ARLOGi("num matches: %d\n", numMatches);
+            //ARLOGi("num matches: %d\n", numMatches);
             for(int i=0;i<_trackables.size(); i++) {
                _trackables[i]._trackSelection.SelectPoints();
                _trackables[i]._trackSelection.SetHomography(_H);
@@ -229,12 +227,12 @@ public:
 
               std::vector<cv::Point2f> imgPoints = _trackables[i]._trackSelection.GetSelectedFeaturesWarped();
               std::vector<cv::Point3f> objPoints = _trackables[i]._trackSelection.GetSelectedFeatures3d();
-              ARLOGi("start pose matrix\n");
+              //ARLOGi("start pose matrix\n");
               CameraPoseFromPoints(_trackables[i]._pose, objPoints, imgPoints);
           }
       }
 
-      ARLOGi("valid from track is: %s\n", valid ? "true" : "false" );
+      //ARLOGi("valid from track is: %s\n", valid ? "true" : "false" );
 
       return valid;
     }
@@ -263,7 +261,7 @@ public:
             _valid = resetTracking(frame, _frameSizeY, _frameSizeX);
             //ARLOGi("valid tracking is: %s\n", _valid);
         }
-        ARLOGi("_valid is: %s\n", _valid ? "true" : "false" );
+        //ARLOGi("_valid is: %s\n", _valid ? "true" : "false" );
         _valid =  track(frame, _frameSizeY, _frameSizeX);
     }
 
