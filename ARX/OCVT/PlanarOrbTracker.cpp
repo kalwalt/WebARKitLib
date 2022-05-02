@@ -221,7 +221,7 @@ public:
         }
       } 
 
-      std::cout << "preparing to copy" << std::endl;
+      //std::cout << "preparing to copy" << std::endl;
       prevIm = frame.clone();
 
       for(int i=0;i<_trackables.size(); i++) {
@@ -356,27 +356,25 @@ public:
         return false;
     }
 
-    void CameraPoseFromPoints(cv::Mat pose, std::vector<cv::Point3f> oPts, std::vector<cv::Point2f> iPts)
+    void CameraPoseFromPoints(cv::Mat& pose, std::vector<cv::Point3f> oPts, std::vector<cv::Point2f> iPts)
     {
         cv::Mat rvec = cv::Mat::zeros(3, 1, CV_64FC1);          // output rotation vector
         cv::Mat tvec = cv::Mat::zeros(3, 1, CV_64FC1);          // output translation vector
-        //cv::Mat rvec;          // output rotation vector
-        //cv::Mat tvec;          // output translation vector
-        std::cout << "Inside cameraPose\n" << std::endl;
+        //std::cout << "Inside cameraPose" << std::endl;
         // --llvm-lto 1 compiler setting breaks the solvePnPRansac function on iOS but using the solvePnP function is faster anyways
         #if ARX_TARGET_PLATFORM_EMSCRIPTEN
-          std::cout << "before solvePnP\n" << std::endl;
+          //std::cout << "before solvePnP" << std::endl;
           bool solvePnP = cv::solvePnP(oPts, iPts, _K, cv::noArray(), rvec, tvec);
-          std::cout << "solvePnP\n" << std::endl;
+          //std::cout << "solvePnP" << std::endl;
         #else
           bool solvePnP = cv::solvePnPRansac(oPts, iPts, _K, cv::noArray(), rvec, tvec);
-          std::cout << "solvePnPRansac\n" << std::endl;
+          //std::cout << "solvePnPRansac" << std::endl;
         #endif
         if(solvePnP) {
           cv::Mat rMat;
           Rodrigues(rvec, rMat);
           cv::hconcat(rMat, tvec, pose);
-          std::cout << "pose size\n" << std::endl;
+          std::cout << "pose tracking is:" << std::endl;
           std::cout << pose << std::endl;
         }
     }
