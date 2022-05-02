@@ -72,7 +72,7 @@
 extern "C" {
 #endif
 
-enum ARLogLevel{
+enum {
     AR_LOG_LEVEL_DEBUG = 0,
     AR_LOG_LEVEL_INFO,
     AR_LOG_LEVEL_WARN,

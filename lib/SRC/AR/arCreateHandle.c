@@ -272,13 +272,6 @@ int arGetImageProcMode( ARHandle *handle, int *mode )
     return 0;
 }
 
-int arGetImageProcMode2(ARHandle *handle)
-{
-    if (!handle) return (AR_DEFAULT_IMAGE_PROC_MODE);
-
-    return (handle->arImageProcMode);
-}
-
 int arSetPatternDetectionMode( ARHandle *handle, int mode )
 {
     if( handle == NULL ) return -1;

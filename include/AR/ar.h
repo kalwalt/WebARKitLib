@@ -141,7 +141,7 @@ typedef struct {
 /*!
     @brief Values controlling the labeling thresholding mode.
  */
-typedef enum LabelingThresholdMode{
+typedef enum {
     AR_LABELING_THRESH_MODE_MANUAL = 0,     ///< Manual threshold selection via arSetLabelingThresh.
     AR_LABELING_THRESH_MODE_AUTO_MEDIAN,    ///< Automatic threshold selection via full-image histogram median.
     AR_LABELING_THRESH_MODE_AUTO_OTSU,      ///< Automatic threshold selection via Otsu's method for foreground/background selection.
@@ -300,7 +300,7 @@ extern "C" {
 /*!
     @brief Values specifying the type of matrix code in use.
  */
-typedef enum ARMatrixCodeType{
+typedef enum {
     AR_MATRIX_CODE_3x3 = 0x03,                                                  ///< Matrix code in range 0-63.
     AR_MATRIX_CODE_3x3_PARITY65 = 0x03 | AR_MATRIX_CODE_TYPE_ECC_PARITY,        ///< Matrix code in range 0-31.
     AR_MATRIX_CODE_3x3_HAMMING63 = 0x03 | AR_MATRIX_CODE_TYPE_ECC_HAMMING,      ///< Matrix code in range 0-7.
@@ -313,7 +313,6 @@ typedef enum ARMatrixCodeType{
     AR_MATRIX_CODE_6x6 = 0x06,                                                  ///< Matrix code in range 0-8589934591.
     AR_MATRIX_CODE_GLOBAL_ID = 0x0e | AR_MATRIX_CODE_TYPE_ECC_BCH___19
 } AR_MATRIX_CODE_TYPE;
-
 
 /*!
     @brief   Structure holding state of an instance of the square marker tracker.
@@ -636,8 +635,6 @@ int arSetImageProcMode( ARHandle *handle, int mode );
     @result     0 if no error occured.
 */
 int arGetImageProcMode( ARHandle *handle, int *mode );
-
-int arGetImageProcMode2(ARHandle *handle);
 
 /*!
     @brief   Set the pattern detection mode
@@ -1701,9 +1698,6 @@ int arUtilChangeToResourcesDirectory(AR_UTIL_RESOURCES_DIRECTORY_BEHAVIOR behavi
 int arUtilChangeToResourcesDirectory(AR_UTIL_RESOURCES_DIRECTORY_BEHAVIOR behavior, const char *path);
 #endif
 #endif // !_WINRT
-
-#  define ARPRINT(...)  printf(__VA_ARGS__)
-#  define ARPRINTE(...) fprintf(stderr, __VA_ARGS__)
 
 /*!
     @brief   Prints a transformation matrix via ARLOG(...).
