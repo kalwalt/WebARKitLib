@@ -42,7 +42,7 @@
 
 #if HAVE_2D
 #include <WebARKit/WebARKitTrackableOrb2d.h>
-#include <ARX/OCVT/PlanarOrbTracker.h>
+#include <WebARKitTrackers/PlanarOrbTracker.h>
 
 WebARKitTrackerOrb2d::WebARKitTrackerOrb2d() :
 m_videoSourceIsStereo(false),

@@ -1,6 +1,8 @@
 /*
- *  OCVConfig.cpp
+ *  OrbTrackableInfo.h
  *  artoolkitX
+ *
+ *  A C++ class implementing the artoolkitX square fiducial marker tracker.
  *
  *  This file is part of artoolkitX.
  *
@@ -29,25 +31,48 @@
  *  statement from your version.
  *
  *  Copyright 2018 Realmax, Inc.
+ *  Copyright 2015 Daqri, LLC.
+ *  Copyright 2010-2015 ARToolworks, Inc.
  *
- *  Author(s): Daniel Bell.
+ *  Author(s): Philip Lamb, Daniel Bell.
  *
  */
 
-#include "OCVConfig.h"
+#ifndef ORB_TRACKABLE_INFO_H
+#define ORB_TRACKABLE_INFO_H
+#include <ARX/OCVT/TrackingPointSelector.h>
+class OrbTrackableInfo
+{
+public:
+    int _id;
+    float _scale;
+    cv::Mat _image;
+    std::vector<cv::Point2f> _points;
+    int _width;
+    int _height;
+    std::string _fileName;
+    
+    cv::Mat _pose;
+    std::vector<cv::KeyPoint> _featurePoints;
+    cv::Mat _descriptors;
+    std::vector<cv::Point2f> _cornerPoints;
+    cv::Ptr<cv::DescriptorMatcher> _matcher;
+    cv::Ptr<cv::ORB> _orb;
+    
+    std::vector<cv::Point2f> _bBox;
+    std::vector<cv::Point2f> _bBoxTransformed;
+    bool _isTracking, _isDetected, _resetTracks;
+    
+    TrackingPointSelector _trackSelection;
+    
+    void CleanUp()
+    {
+        _image.release();
+        _descriptors.release();
+        _pose.release();
+        _featurePoints.clear();
+        _trackSelection.CleanUp();
+    }
+};
 
-int minRequiredDetectedFeatures = 50;
-int markerTemplateWidth = 15;
-int maxLevel = 3;
-const cv::Size subPixWinSize(10,10), winSize(31,31);
-cv::TermCriteria termcrit(cv::TermCriteria::COUNT|cv::TermCriteria::EPS,20,0.03);
-const int MAX_COUNT = 300;
-int maxNumberOfToTrack = 1;
-int searchRadius = 15;
-int match_method = cv::TM_SQDIFF_NORMED;
-int featureDetectPyramidLevel = 2;
-int defaultDetectorType = 0;  // detector type only works if compiled with -s DISABLE_EXCEPTION_CATCHING=0 ->I guess OpenCL instantiation throws an exception.
-const double nn_match_ratio = 0.8f; // Nearest-neighbour matching ratio
-const double ransac_thresh = 2.5f; // RANSAC inlier threshold
-cv::RNG rng( 0xFFFFFFFF );
-int harrisBorder = 10;
+#endif //ORB_TRACKABLE_INFO

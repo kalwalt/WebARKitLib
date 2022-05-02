@@ -48,7 +48,7 @@
 #include <WebARKit/WebARKitTrackableOrb2d.h>
 #include <WebARKit/WebARKitTrackerVideo.h>
 #include <ARX/AR2/tracking.h>
-#include <ARX/OCVT/PlanarOrbTracker.h>
+#include <WebARKitTrackers/PlanarOrbTracker.h>
 
 class WebARKitTrackerOrb2d : public WebARKitTrackerVideo {
 public:
