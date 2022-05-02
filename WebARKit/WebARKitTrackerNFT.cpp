@@ -87,7 +87,6 @@ bool WebARKitTrackerNFT::start(ARParamLT *paramLT, AR_PIXEL_FORMAT pixelFormat)
         ARLOGe("kpmCreateHandle\n");
         return (false);
     }
-    //kpmSetProcMode( m_kpmHandle, KpmProcHalfSize );
 
     // AR2 init.
     if (!(m_ar2Handle = ar2CreateHandleMod(paramLT, AR_PIXEL_FORMAT_MONO))) { // Since we're guaranteed to have luma available, we'll use it as it is the optimal case.
@@ -95,25 +94,6 @@ bool WebARKitTrackerNFT::start(ARParamLT *paramLT, AR_PIXEL_FORMAT pixelFormat)
         kpmDeleteHandle(&m_kpmHandle);
         return (false);
     }
-    /*if (threadGetCPU() <= 1) {
-        ARLOGi("Using NFT tracking settings for a single CPU.\n");
-        // Settings for devices with single-core CPUs.
-        ar2SetTrackingThresh( m_ar2Handle, 5.0 );
-        ar2SetSimThresh( m_ar2Handle, 0.50 );
-        ar2SetSearchFeatureNum(m_ar2Handle, 16);
-        ar2SetSearchSize(m_ar2Handle, 6);
-        ar2SetTemplateSize1(m_ar2Handle, 6);
-        ar2SetTemplateSize2(m_ar2Handle, 6);
-    } else {
-        ARLOGi("Using NFT tracking settings for more than one CPU.\n");
-        // Settings for devices with dual/multi-core CPUs.
-        ar2SetTrackingThresh( m_ar2Handle, 5.0 );
-        ar2SetSimThresh( m_ar2Handle, 0.50 );
-        ar2SetSearchFeatureNum(m_ar2Handle, 16);
-        ar2SetSearchSize(m_ar2Handle, 12);
-        ar2SetTemplateSize1(m_ar2Handle, 6);
-        ar2SetTemplateSize2(m_ar2Handle, 6);
-    }*/
 
     ARLOGi("Using NFT tracking settings for a single CPU.\n");
     // Settings for devices with single-core CPUs.
@@ -253,42 +233,11 @@ bool WebARKitTrackerNFT::update(AR2VideoBufferT *buff, std::vector<WebARKitTrack
 
         if (m_kpmRequired) {
             if (!m_kpmBusy) {
-                //trackingInitStart(trackingThreadHandle, buff->buffLuma);
                 trackingInitStart(buff->buffLuma);
                 m_kpmBusy = true;
             } else {
                 int ret;
                 int pageNo;
-                KpmResult *kpmResult = NULL;
-		        int kpmResultNum = -1;
-        //if (arc->detectedPage == -2) {
-		/*if (m_detectedPage == -2) { // from jsartoolkitNFT
-            //kpmMatching( arc->kpmHandle, arc->videoLuma );
-            kpmMatching( m_kpmHandle, buff->buffLuma );
-            //kpmGetResult( arc->kpmHandle, &kpmResult, &kpmResultNum );
-            kpmGetResult( m_kpmHandle, &kpmResult, &kpmResultNum );
-
-
-
-			for(int i = 0; i < kpmResultNum; i++ ) {
-                ARLOGi("kpmResult: %d\n", kpmResult[i].pageNo);
-				if (kpmResult[i].camPoseF == 0 ) {
-                    ARLOGd("kpmGetPose OK.\n");
-                    //float trackingTrans[3][4];
-                    //arc->detectedPage = kpmResult[i].pageNo;
-                    m_detectedPage = kpmResult[i].pageNo;
-                    for (int j = 0; j < 3; j++) {
-                        for (int k = 0; k < 4; k++) {
-                            trackingTrans[j][k] = kpmResult[i].camPose[j][k];
-                        }
-                    }
-                    ARLOGi("Detected page %d.\n", pageNo);
-                    //ar2SetInitTrans(arc->surfaceSet[arc->detectedPage], trans);
-                    ar2SetInitTrans(m_surfaceSet[pageNo], trackingTrans);
-                }
-            }
-        } ///from jsartoolkitnft*/
-                //ret = trackingInitGetResult(trackingThreadHandle, trackingTrans, &pageNo);
                 ret = trackingInitGetResult(trackingTrans, &pageNo);
                 if (ret != 0) {
                     m_kpmBusy = false;

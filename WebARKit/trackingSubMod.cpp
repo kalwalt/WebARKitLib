@@ -54,36 +54,23 @@ typedef struct {
     int                     flag;           // Tracked successfully.
 } TrackingInitHandle;
 
-//static void *trackingInitMain( THREAD_HANDLE_T *threadHandle );
 static void *trackingInitMain();
 
+TrackingInitHandle     *trackingInitHandle;
 
-//int trackingInitQuit( THREAD_HANDLE_T **threadHandle_p )
 int trackingInitQuit()
 {
-    TrackingInitHandle  *trackingInitHandle;
 
-    /*if (!threadHandle_p)  {
-        ARLOGe("trackingInitQuit(): Error: NULL threadHandle_p.\n");
-        return (-1);
-    }
-    if (!*threadHandle_p) return 0;
-    
-    threadWaitQuit( *threadHandle_p );
-    trackingInitHandle = (TrackingInitHandle *)threadGetArg(*threadHandle_p);*/
     if (trackingInitHandle) {
         free( trackingInitHandle->imageLumaPtr );
         free( trackingInitHandle );
     }
-    //threadFree( threadHandle_p );
+
     return 0;
 }
 
-//THREAD_HANDLE_T *trackingInitInit( KpmHandle *kpmHandle )
 bool trackingInitInit( KpmHandle *kpmHandle )
 {
-    TrackingInitHandle  *trackingInitHandle;
-    //THREAD_HANDLE_T     *threadHandle;
 
     if (!kpmHandle) {
         ARLOGe("trackingInitInit(): Error: NULL KpmHandle.\n");
@@ -97,48 +84,37 @@ bool trackingInitInit( KpmHandle *kpmHandle )
     trackingInitHandle->imageLumaPtr  = (ARUint8 *)malloc(trackingInitHandle->imageSize);
     trackingInitHandle->flag      = 0;
 
-    /*threadHandle = threadInit(0, trackingInitHandle, trackingInitMain);
-    return threadHandle;*/
     return true;
 }
 
-//int trackingInitStart( THREAD_HANDLE_T *threadHandle, ARUint8 *imageLumaPtr )
 int trackingInitStart( ARUint8 *imageLumaPtr )
 {
-    TrackingInitHandle     *trackingInitHandle;
 
-    //if (!threadHandle || !imageLumaPtr) {
     if (!imageLumaPtr) {
-        ARLOGe("trackingInitStart(): Error: NULL imagePtr.\n");
+        ARLOGe("trackingInitStart(): Error: NULL imageLumaPtr.\n");
         return (-1);
     }
     
-    //trackingInitHandle = (TrackingInitHandle *)threadGetArg(threadHandle);
-    /*if (!trackingInitHandle) {
+    if (!trackingInitHandle) {
         ARLOGe("trackingInitStart(): Error: NULL trackingInitHandle.\n");
         return (-1);
-    }*/
+    }
+
     memcpy( trackingInitHandle->imageLumaPtr, imageLumaPtr, trackingInitHandle->imageSize );
-    //threadStartSignal( threadHandle );
 
     return 0;
 }
 
-//int trackingInitGetResult( THREAD_HANDLE_T *threadHandle, float trans[3][4], int *page )
 int trackingInitGetResult( float trans[3][4], int *page )
 {
-    TrackingInitHandle     *trackingInitHandle;
     int  i, j;
 
-    //if (!threadHandle || !trans || !page)  {
     if (!trans || !page)  {
         ARLOGe("trackingInitGetResult(): Error: NULL trans or page.\n");
         return (-1);
     }
-    
-    /*if( threadGetStatus( threadHandle ) == 0 ) return 0;
-    threadEndWait( threadHandle );
-    trackingInitHandle = (TrackingInitHandle *)threadGetArg(threadHandle);*/
+
+    trackingInitMain();
     if (!trackingInitHandle) return (-1);
     if( trackingInitHandle->flag ) {
         for (j = 0; j < 3; j++) for (i = 0; i < 4; i++) trans[j][i] = trackingInitHandle->trans[j][i];
@@ -149,10 +125,9 @@ int trackingInitGetResult( float trans[3][4], int *page )
     return -1;
 }
 
-//static void *trackingInitMain( THREAD_HANDLE_T *threadHandle )
 static void *trackingInitMain()
 {
-    TrackingInitHandle     *trackingInitHandle;
+
     KpmHandle              *kpmHandle;
     KpmResult              *kpmResult = NULL;
     int                     kpmResultNum;
@@ -160,15 +135,11 @@ static void *trackingInitMain()
     float                  err;
     int                    i, j, k;
 
-    /*if (!threadHandle) {
-        ARLOGe("Error starting tracking thread: empty THREAD_HANDLE_T.\n");
-        return (NULL);
-    }
-    trackingInitHandle = (TrackingInitHandle *)threadGetArg(threadHandle);
-    if (!threadHandle) {
+    if (!trackingInitHandle) {
         ARLOGe("Error starting tracking thread: empty trackingInitHandle.\n");
         return (NULL);
-    }*/
+    }
+
     kpmHandle          = trackingInitHandle->kpmHandle;
     imageLumaPtr       = trackingInitHandle->imageLumaPtr;
     if (!kpmHandle || !imageLumaPtr) {
@@ -180,7 +151,6 @@ static void *trackingInitMain()
     kpmGetResult( kpmHandle, &kpmResult, &kpmResultNum );
 
     for(;;) {
-        //if( threadStartWait(threadHandle) < 0 ) break;
 
         kpmMatching(kpmHandle, imageLumaPtr);
         trackingInitHandle->flag = 0;
@@ -194,8 +164,6 @@ static void *trackingInitMain()
                 err = kpmResult[i].error;
             }
         }
-
-        //threadEndSignal(threadHandle);
     }
 
     ARLOGi("End tracking thread.\n");
