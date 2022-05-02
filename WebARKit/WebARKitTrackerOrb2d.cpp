@@ -152,7 +152,7 @@ bool WebARKitTrackerOrb2d::update(AR2VideoBufferT *buff, std::vector<WebARKitTra
         }
     }
 
-    m_Orb2DTracker->ProcessFrameData(buff->buff);
+    m_Orb2DTracker->ProcessFrameData(buff->buffLuma);
     // Loop through all loaded 2D targets and match against tracking results.
     m_Orb2DTrackerDetectedImageCount = 0;
     for (std::vector<WebARKitTrackable *>::iterator it = trackables.begin(); it != trackables.end(); ++it) {

@@ -241,9 +241,10 @@ public:
         // When using emscripten the image comes in as RGB image from the browser
         // Convert it to Gray
         #if ARX_TARGET_PLATFORM_EMSCRIPTEN
-          cv::Mat colorFrame(_frameSizeY, _frameSizeX, CV_8UC4, frame);
-          cv::Mat grayFrame(_frameSizeY, _frameSizeX, CV_8UC1);
-          cv::cvtColor(colorFrame, grayFrame, cv::COLOR_RGBA2GRAY);
+          //cv::Mat colorFrame(_frameSizeY, _frameSizeX, CV_8UC4, frame);
+          //cv::Mat grayFrame(_frameSizeY, _frameSizeX, CV_8UC1);
+          cv::Mat grayFrame(_frameSizeY, _frameSizeX, CV_8UC1, frame);
+          //cv::cvtColor(colorFrame, grayFrame, cv::COLOR_RGBA2GRAY);
           ProcessFrame(grayFrame);
           grayFrame.release();
         #else
