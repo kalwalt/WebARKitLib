@@ -56,6 +56,8 @@ public:
     std::vector<cv::KeyPoint> _featurePoints;
     cv::Mat _descriptors;
     std::vector<cv::Point2f> _cornerPoints;
+    cv::Ptr<cv::DescriptorMatcher> _matcher;
+    cv::Ptr<cv::ORB> _orb;
     
     std::vector<cv::Point2f> _bBox;
     std::vector<cv::Point2f> _bBoxTransformed;

@@ -56,8 +56,6 @@ class PlanarOrbTracker::PlanarOrbTrackerImpl
 private:
     OrbFeatureDetector _featureDetector;
     HarrisDetector _harrisDetector;
-    cv::Ptr<cv::DescriptorMatcher> _matcher;
-    cv::Ptr<cv::ORB> _orb;
     std::vector<cv::Mat> _pyramid, _prevPyramid;
     cv::Mat refDescr;
 
@@ -76,9 +74,6 @@ private:
     bool initialized;
     std::vector<cv::Point2f> framePts;
     std::vector<cv::KeyPoint> refKeyPts;
-    //std::vector<cv::Point2f> imgPoints;
-    //std::vector<cv::Point3f> objPoints;
-    //std::vector<cv::Point2f> corners;
     int _selectedFeatureDetectorType;
 public:
     PlanarOrbTrackerImpl()
@@ -86,7 +81,6 @@ public:
         _featureDetector = OrbFeatureDetector();
         SetFeatureDetector(defaultDetectorType);
         _harrisDetector = HarrisDetector();
-        _orb = NULL;
         _currentlyTrackedMarkers = 0;
         _frameCount = 0;
         _resetCount = 30;
@@ -96,9 +90,6 @@ public:
         numMatches = 0;
         initialized = false;
         _valid = false;
-        //corners = std::vector<cv::Point2f>(4);
-        //imgPoints = std::vector<cv::Point2f>(4);
-        //objPoints = std::vector<cv::Point3f>(3);
     }
 
     void Initialise(int xFrameSize, int yFrameSize, ARdouble cParam[][4])
@@ -115,47 +106,11 @@ public:
         std::cout << _K << std::endl;
     }
 
-    /*void init_corners()
-    {
-      //ARLOGi("trackable width: %d\n", _trackables[0]._width);
-      // we should use _trackables._bBox instead, should be the same...
-      corners[0] = cvPoint( 0, 0 );
-      corners[1] = cvPoint( _trackables[0]._width, 0 );
-      corners[2] = cvPoint( _trackables[0]._width, _trackables[0]._height );
-      corners[3] = cvPoint( 0, _trackables[0]._height );
-    }*/
-
-   /* void fill_output(cv::Mat H)
-    {
-        std::vector<cv::Point2f> warped(4);
-        cv::perspectiveTransform(corners, warped, H);*/
-
-        /*for(int i = 0; i < 3; i=i+3){
-          objPoints[i].x = H.at<double>(i,0);
-          objPoints[i].y = H.at<double>(i,1);
-          objPoints[i].z = H.at<double>(i,2);
-          std::cout << objPoints[i].x << std::endl;
-          std::cout << objPoints[i].y << std::endl;
-          std::cout << objPoints[i].z << std::endl;
-          std::cout << objPoints.size() << std::endl;
-        }
-        for(int i = 0; i<4; i++){
-          imgPoints[i].x = warped[i].x;
-          imgPoints[i].y = warped[i].y;
-          //std::cout << imgPoints[i].x << std::endl;
-          //std::cout << imgPoints[i].y << std::endl;
-          std::cout << imgPoints.size() << std::endl;
-        }*/
-        //std::cout << "warped size" << '\n';
-        //std::cout << warped.size() << '\n';
-    //}
-
     bool homographyValid(cv::Mat H) {
       const double det = H.at<double>(0,0)*H.at<double>(1,1)-H.at<double>(1,0)*H.at<double>(0,1);
       return 1/N < fabs(det) && fabs(det) < N;
     }
 
-    //bool resetTracking(uchar imageData[], size_t cols, size_t rows)
     bool resetTracking(cv::Mat frame, size_t cols, size_t rows)
     {
         //ARLOGi("initialized is: %s\n", initialized ? "true" : "false");
@@ -163,16 +118,15 @@ public:
            std::cout << "Reference image not found!" << std::endl;
            return NULL;
         }
-    //init_corners();
 
     cv::Mat frameDescr;
     std::vector<cv::KeyPoint> frameKeyPts;
-
-    _orb->detectAndCompute(frame, cv::noArray(), frameKeyPts, frameDescr);
-
     std::vector<std::vector<cv::DMatch>> knnMatches;
-    //std::cout << "refDescr: %d\n" << refDescr << std::endl; // avoid doing this...
-    _matcher->knnMatch(frameDescr, refDescr, knnMatches, 2);
+
+    for(int i=0;i<_trackables.size(); i++) {
+    _trackables[i]._orb->detectAndCompute(frame, cv::noArray(), frameKeyPts, frameDescr);    
+    _trackables[i]._matcher->knnMatch(frameDescr, refDescr, knnMatches, 2);
+    }
     std::cout << "knnMatches:\n" << knnMatches.size() << std::endl;
 
     framePts.clear();
@@ -192,15 +146,14 @@ public:
         if ( (valid = homographyValid(_H)) ) {
             numMatches = framePts.size();
             ARLOGi("num matches: %d\n", numMatches);
-            //fill_output(_H);
             for(int i=0;i<_trackables.size(); i++) {
                _trackables[i]._trackSelection.SelectPoints();
-               _trackables[i]._trackSelection.SetHomography(_H); 
+               _trackables[i]._trackSelection.SetHomography(_H);
+               _trackables[i]._isDetected = true;
             }
             prevIm = frame.clone();
         }
     }
-    _trackables[0]._isDetected = true;
 
     return valid;
     };
@@ -260,15 +213,13 @@ public:
         framePts = goodPtsCurr;
 
         if ((valid = homographyValid(_H))) {
-          //fill_output(_H);
           for(int i=0;i<_trackables.size(); i++) {
                _trackables[i]._trackSelection.SelectPoints();
-               _trackables[i]._trackSelection.SetHomography(_H); 
+               _trackables[i]._trackSelection.SetHomography(_H);
+               _trackables[i]._isTracking = true;
             }
         }
-      }
-
-      _trackables[0]._isTracking = true;
+      } 
 
       std::cout << "preparing to copy" << std::endl;
       prevIm = frame.clone();
@@ -286,25 +237,6 @@ public:
       ARLOGi("valid from track is: %s\n", valid ? "true" : "false" );
 
       return valid;
-    }
-
-    cv::Mat CreateFeatureMask(cv::Mat frame)
-    {
-        cv::Mat featureMask;
-        for(int i=0;i<_trackables.size(); i++) {
-            if(_trackables[i]._isDetected) {
-                if(featureMask.empty()) {
-                    //Only create mask if we have something to draw in it.
-                    featureMask = cv::Mat::ones(frame.size(), CV_8UC1);
-                }
-                std::vector<std::vector<cv::Point> > contours(1);
-                for(int j=0; j<4; j++) {
-                    contours[0].push_back(cv::Point(_trackables[i]._bBoxTransformed[j].x/featureDetectPyramidLevel,_trackables[i]._bBoxTransformed[j].y/featureDetectPyramidLevel));
-                }
-                drawContours(featureMask, contours, 0, cv::Scalar(0), -1, 8);
-            }
-        }
-        return featureMask;
     }
 
     void ProcessFrameData(unsigned char * frame)
@@ -350,12 +282,9 @@ public:
         TrackableInfo newTrackable;
         #if ARX_TARGET_PLATFORM_EMSCRIPTEN
           std::cout << "Add Marker EM" << std::endl;
-          ARLOGi("width is: %d\n", width);
-          ARLOGi("height is: %d\n", height);
-          ARLOGi("_frameSizeX is: %d\n", _frameSizeX);
-          ARLOGi("_frameSizeY is: %d\n", _frameSizeY);
+          ARLOGi("Image width is: %d\n", width);
+          ARLOGi("Image height is: %d\n", height);
           cv::Mat colorImage(height, width, CV_8UC4, buff);
-          //cv::Mat grayImage(_frameSizeY, _frameSizeX, CV_8UC1);
           cv::Mat grayImage(height, width, CV_8UC1);
           cv::cvtColor(colorImage, grayImage, cv::COLOR_RGBA2GRAY);
           newTrackable._image = grayImage;
@@ -375,11 +304,9 @@ public:
             // newTrackable._descriptors = _featureDetector.CalcDescriptors(newTrackable._image, newTrackable._featurePoints);
             std::cout << "Add Marker FindCorners" << std::endl;
             newTrackable._cornerPoints = _harrisDetector.FindCorners(newTrackable._image);
-            std::cout << MAX_FEATURES << std::endl;
-            _orb = cv::ORB::create(MAX_FEATURES);
-            //orb->detectAndCompute(refGray, noArray(), refKeyPts, refDescr); from webarkit-testing repo
-            _orb->detectAndCompute(newTrackable._image, cv::noArray(), refKeyPts, refDescr);
-            _matcher = cv::BFMatcher::create();
+            newTrackable._orb = cv::ORB::create(MAX_FEATURES);
+            newTrackable._orb->detectAndCompute(newTrackable._image, cv::noArray(), refKeyPts, refDescr);
+            newTrackable._matcher = cv::BFMatcher::create();
             std::cout << "BFMatcher created!" << std::endl;
             newTrackable._bBox.push_back(cv::Point2f(0,0));
             newTrackable._bBox.push_back(cv::Point2f(newTrackable._width, 0));
