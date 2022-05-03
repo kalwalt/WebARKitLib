@@ -71,7 +71,7 @@ public:
     
     void setNFTMultiMode(bool on);
     bool NFTMultiMode() const;
-    int detectNFTMarker(ARUint8 *imageLumaPtr);
+    int detectNFTMarker(float trans[3][4], ARUint8 *imageLumaPtr);
     int getNFTMarker(int markerIndex, ARUint8 *imageLumaPtr);
     
     bool start(ARParamLT *paramLT, AR_PIXEL_FORMAT pixelFormat) override;

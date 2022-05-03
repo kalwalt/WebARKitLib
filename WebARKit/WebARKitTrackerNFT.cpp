@@ -120,7 +120,7 @@ bool WebARKitTrackerNFT::start(ARParamLT *paramLT0, AR_PIXEL_FORMAT pixelFormat0
     return start(paramLT0, pixelFormat0);
 }
 
-int WebARKitTrackerNFT::detectNFTMarker(ARUint8 *imageLumaPtr)
+int WebARKitTrackerNFT::detectNFTMarker(float trans[3][4], ARUint8 *imageLumaPtr)
 {
     KpmResult *kpmResult = NULL;
 	int kpmResultNum = -1;
@@ -136,7 +136,7 @@ int WebARKitTrackerNFT::detectNFTMarker(ARUint8 *imageLumaPtr)
 			//if (kpmResult[i].camPoseF == 0 ) {
             if (kpmResult[i].camPoseF < 1 ) {
 
-                float trans[3][4];
+                //float trans[3][4];
                 m_detectedPage = kpmResult[i].pageNo;
                 ARLOGi("Detected page %d.\n", m_detectedPage);
                 for (int j = 0; j < 3; j++) {
@@ -294,7 +294,7 @@ bool WebARKitTrackerNFT::update(AR2VideoBufferT *buff, std::vector<WebARKitTrack
             if (!m_kpmBusy) {
                 //trackingInitStart(buff->buffLuma);
                 //ARLOGi("Start to detect\n");
-                detectNFTMarker(buff->buffLuma);
+                detectNFTMarker(trackingTrans, buff->buffLuma);
                // m_kpmBusy = true;
             } /*else {
                 int ret;
