@@ -44,8 +44,6 @@
 #include <ARX/AR2/tracking.h>
 #include <ARX/KPM/kpm.h>
 
-#define PAGES_MAX 64
-
 /**
  * NFT marker type of WebARKitTrackable.
  */
@@ -61,6 +59,7 @@ private:
     char *datasetPathname;
     AR2SurfaceSetT *surfaceSet;
     bool unload();
+    const int PAGES_MAX = 64;
 
 public:
 

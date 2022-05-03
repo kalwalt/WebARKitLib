@@ -71,6 +71,8 @@ public:
     
     void setNFTMultiMode(bool on);
     bool NFTMultiMode() const;
+    int detectNFTMarker(ARUint8 *imageLumaPtr);
+    int getNFTMarker(int markerIndex, ARUint8 *imageLumaPtr);
     
     bool start(ARParamLT *paramLT, AR_PIXEL_FORMAT pixelFormat) override;
     bool start(ARParamLT *paramLT0, AR_PIXEL_FORMAT pixelFormat0, ARParamLT *paramLT1, AR_PIXEL_FORMAT pixelFormat1, const ARdouble transL2R[3][4]) override;
@@ -90,6 +92,7 @@ private:
     bool m_kpmBusy;
     bool m_nft_loaded;
     int m_detectedPage;
+    int m_surfaceSetCount;
     // NFT data.
     //THREAD_HANDLE_T     *trackingThreadHandle;
     bool     trackingThreadHandle;

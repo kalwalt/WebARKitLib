@@ -114,8 +114,9 @@ int trackingInitGetResult( float trans[3][4], int *page )
         return (-1);
     }
 
-    trackingInitMain();
+    
     if (!trackingInitHandle) return (-1);
+    //trackingInitMain();
     if( trackingInitHandle->flag ) {
         for (j = 0; j < 3; j++) for (i = 0; i < 4; i++) trans[j][i] = trackingInitHandle->trans[j][i];
         *page = trackingInitHandle->page;
@@ -156,7 +157,7 @@ static void *trackingInitMain()
         trackingInitHandle->flag = 0;
         for( i = 0; i < kpmResultNum; i++ ) {
             if( kpmResult[i].camPoseF != 0 ) continue;
-            ARLOGd("kpmGetPose OK.\n");
+            ARLOGi("kpmGetPose OK.\n");
             if( trackingInitHandle->flag == 0 || err > kpmResult[i].error ) { // Take the first or best result.
                 trackingInitHandle->flag = 1;
                 trackingInitHandle->page = kpmResult[i].pageNo;
