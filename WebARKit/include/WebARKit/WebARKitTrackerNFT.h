@@ -50,7 +50,6 @@
 #include <ARX/AR2/tracking.h>
 #include <ARX/KPM/kpm.h>
 
-#define PAGES_MAX 64
 
 class WebARKitTrackerNFT : public WebARKitTrackerVideo {
 public:
@@ -71,7 +70,7 @@ public:
     
     void setNFTMultiMode(bool on);
     bool NFTMultiMode() const;
-    int detectNFTMarker(float trans[3][4], ARUint8 *imageLumaPtr);
+    int detectNFTMarker(ARUint8 *imageLumaPtr);
     int getNFTMarker(int markerIndex, ARUint8 *imageLumaPtr);
     
     bool start(ARParamLT *paramLT, AR_PIXEL_FORMAT pixelFormat) override;
@@ -86,6 +85,7 @@ public:
     void deleteTrackable(WebARKitTrackable **trackable_p) override;
     
 private:
+    static const int PAGES_MAX = 64;
     bool m_videoSourceIsStereo;
     bool m_nftMultiMode;
     bool m_kpmRequired;
