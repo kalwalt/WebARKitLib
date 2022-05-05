@@ -65,7 +65,7 @@ bool WebARKitTrackableNFT::load(const char* dataSetPathname_in)
     allocatePatterns(1);
     
     // that seems causing the out of memory issue.
-    //patterns[0]->loadISet(surfaceSet->surface[0].imageSet, m_nftScale);
+    patterns[0]->loadISet(surfaceSet->surface[0].imageSet, m_nftScale);
 
     m_loaded = true;
 
