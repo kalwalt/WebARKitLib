@@ -302,12 +302,12 @@ bool WebARKitTrackerNFT::update(AR2VideoBufferT *buff, std::vector<WebARKitTrack
     if (trackingThreadHandle) {
 
         // Do KPM tracking.
-        float err;
+        float err = -1;
         //float trackingTrans[3][4];
         float trans[3][4];
         int flag = 0;           // Tracked successfully.
         KpmResult *kpmResult = NULL;
-	    int kpmResultNum;
+	    int kpmResultNum = -1;
         int pageNo;
 
         if (!m_arHandle0) return false;
@@ -326,68 +326,62 @@ bool WebARKitTrackerNFT::update(AR2VideoBufferT *buff, std::vector<WebARKitTrack
         if (m_kpmRequired) {
             if (!m_kpmBusy) {
                 if (m_detectedPage == -2) {
-                    kpmMatching( m_kpmHandle, buff->buffLuma );
-                    kpmGetResult( m_kpmHandle, &kpmResult, &kpmResultNum );
-                    int flag = -1;
+			        kpmMatching( m_kpmHandle, buff->buffLuma );
+			        kpmGetResult( m_kpmHandle, &kpmResult, &kpmResultNum );
+			        int i, j, k;
+			        int flag = -1;
+			        for( i = 0; i < kpmResultNum; i++ ) {
+				       if (kpmResult[i].pageNo == kpmResult[i].camPoseF == 0 ) {
+					        if( flag == -1 || err > kpmResult[i].error ) { // Take the first or best result.
+						        flag = i;
+						        err = kpmResult[i].error;
+					        }
+				        }
+			        }
 
-			        for(int i = 0; i < kpmResultNum; i++ ) {
-                        std::cout << kpmResult[i].camPoseF << std::endl;
-				        if (kpmResult[i].camPoseF != 0 ) {
-                        //if (kpmResult[i].camPoseF < 1 ) {
+			        if (flag > -1) {
+				        m_detectedPage = kpmResult[0].pageNo;
 
-                       
-                            if( err > kpmResult[i].error ) {
-                                pageNo = kpmResult[i].pageNo;
-                                for (int j = 0; j < 3; j++) {
-                                    for (int k = 0; k < 4; k++) {
-                                        trans[j][k] = kpmResult[i].camPose[j][k];
-                                    }
-                                }
-                                err = kpmResult[i].error;
-                            }
-
-                            if (pageNo >= 0 && pageNo < PAGES_MAX) {
-                                if (m_surfaceSet[pageNo]->contNum < 1) {
-                                    ARLOGi("Detected page %d.\n", pageNo);
-                                    ar2SetInitTrans(m_surfaceSet[pageNo], trans); // Sets surfaceSet[page]->contNum = 1.
-                                }
-                            } else {
-                                ARLOGe("Detected page with bad page number %d.\n", pageNo);
-                            }
-                        }
-                   }
-                }//m_detectedPage == -2
+				        for (j = 0; j < 3; j++) {
+					        for (k = 0; k < 4; k++) {
+						        trans[j][k] = kpmResult[flag].camPose[j][k];
+					        }
+				        }
+                        ARLOGi("Detected page %d.\n", m_detectedPage);
+				        ar2SetInitTrans(m_surfaceSet[m_detectedPage], trans);
+			        } else {
+				        m_detectedPage = -2;
+			        }
+		        }//m_detectedPage == -2
                 
-                }//m_kpmBusy
+            }//m_kpmBusy
+                if (m_detectedPage >= 0) {
+                    // Do AR2 tracking and update NFT markers.
+                    int page = 0;
+                    int pagesTracked = 0;
+                    bool success = true;
+                    ARdouble *transL2R = (m_videoSourceIsStereo ? (ARdouble *)m_transL2R : NULL);
 
-                // Do AR2 tracking and update NFT markers.
-                float error;
-                int page = 0;
-                int pagesTracked = 0;
-                bool success = true;
-                ARdouble *transL2R = (m_videoSourceIsStereo ? (ARdouble *)m_transL2R : NULL);
+                    for (std::vector<WebARKitTrackable *>::iterator it = trackables.begin(); it != trackables.end(); ++it) {
+                        if ((*it)->type == WebARKitTrackable::NFT) {
 
-                for (std::vector<WebARKitTrackable *>::iterator it = trackables.begin(); it != trackables.end(); ++it) {
-                    if ((*it)->type == WebARKitTrackable::NFT) {
+                            if (m_surfaceSet[m_detectedPage]->contNum > 0) {
+                                if (ar2TrackingMod(m_ar2Handle, m_surfaceSet[m_detectedPage], buff->buff, trans, &err) < 0) {
+                                    ARLOGi("Tracking lost on page %d.\n", page);
 
-                        if (m_surfaceSet[page]->contNum > 0) {
-                        if (ar2TrackingMod(m_ar2Handle, m_surfaceSet[page], buff->buffLuma, trans, &error) < 0) {
-                            ARLOGi("Tracking lost on page %d.\n", page);
-
-                            success &= ((WebARKitTrackableNFT *)(*it))->updateWithNFTResults(-1, NULL, NULL);
-                            //m_detectedPage = -2;
-                        } else {
-                            ARLOGi("Tracked page %d (pos = {% 4f, % 4f, % 4f}).\n", page, trans[0][3], trans[1][3], trans[2][3]);
-                            success &= ((WebARKitTrackableNFT *)(*it))->updateWithNFTResults(page, trans, (ARdouble (*)[4])transL2R);
-                            pagesTracked++;
+                                    success &= ((WebARKitTrackableNFT *)(*it))->updateWithNFTResults(-1, NULL, NULL);
+                                    m_detectedPage = -2;
+                                } else {
+                                    ARLOGi("Tracked page %d (pos = {% 4f, % 4f, % 4f}).\n", page, trans[0][3], trans[1][3], trans[2][3]);
+                                    success &= ((WebARKitTrackableNFT *)(*it))->updateWithNFTResults(page, trans, (ARdouble (*)[4])transL2R);
+                                    pagesTracked++;
+                                }
+                            }
+                        page++;
                         }
                     }
-
-                    page++;
+                m_kpmRequired = (pagesTracked < (m_nftMultiMode ? page : 1));
                 }
-            }
-            m_kpmRequired = (pagesTracked < (m_nftMultiMode ? page : 1));
-            
         }
     }//trackingThreadHandle
 }
