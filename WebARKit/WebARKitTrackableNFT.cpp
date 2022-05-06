@@ -60,6 +60,21 @@ bool WebARKitTrackableNFT::load(const char* dataSetPathname_in)
 
 	visible = visiblePrev = false;
 
+     // Load AR2 data.
+    ARLOGi("Loading '%s.fset'.\n", dataSetPathname_in);
+    if ((surfaceSet = ar2ReadSurfaceSet(dataSetPathname_in, "fset", NULL)) == NULL) {
+        ARLOGe("Error reading data from '%s.fset'.\n", dataSetPathname_in);
+        return (false);
+    }
+
+    int numIset = surfaceSet[0].surface[0].imageSet->num;
+    ARLOGi("NFT num. of ImageSet: %i\n", numIset);
+    ARLOGi("NFT marker width:  %i\n", surfaceSet[0].surface[0].imageSet->scale[0]->xsize);
+    ARLOGi("NFT marker height:  %i\n", surfaceSet[0].surface[0].imageSet->scale[0]->ysize);
+    ARLOGi("NFT dpi:  %i\n", (int)surfaceSet[0].surface[0].imageSet->scale[0]->dpi);
+
+    ARLOGi("Fset reading done.\n");
+
  	datasetPathname = strdup(dataSetPathname_in);
 
     allocatePatterns(1);

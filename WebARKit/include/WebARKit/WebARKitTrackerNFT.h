@@ -99,6 +99,7 @@ private:
     bool     trackingThreadHandle;
     AR2HandleT          *m_ar2Handle;
     KpmHandle           *m_kpmHandle;
+    ARHandle *m_arHandle0; 
     AR2SurfaceSetT      *m_surfaceSet[PAGES_MAX]; // Weak-reference. Strong reference is now in WebARKitTrackableNFT class.
     ARdouble m_transL2R[3][4];          ///< For stereo tracking, transformation matrix from left camera to right camera.
 

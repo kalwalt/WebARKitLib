@@ -92,6 +92,13 @@ bool WebARKitTrackerNFT::start(ARParamLT *paramLT, AR_PIXEL_FORMAT pixelFormat)
         return (false);
     }
 
+     if (paramLT) {
+        // Create AR handle
+        if ((m_arHandle0 = arCreateHandle(paramLT)) == NULL) {
+            ARLOGe("arCreateHandle\n");
+        }
+    }
+
     // AR2 init.
     if (!(m_ar2Handle = ar2CreateHandleMod(paramLT, AR_PIXEL_FORMAT_MONO))) { // Since we're guaranteed to have luma available, we'll use it as it is the optimal case.
         ARLOGe("ar2CreateHandle\n");
@@ -238,7 +245,8 @@ bool WebARKitTrackerNFT::loadNFTData(std::vector<WebARKitTrackable *>& trackable
                 break;
             }
             // Load AR2 data.
-            ARLOGi("Reading %s.fset\n", ((WebARKitTrackableNFT *)(*it))->datasetPathname);
+            // we move this back to the WebARKitTrackableNFT
+            /*ARLOGi("Reading %s.fset\n", ((WebARKitTrackableNFT *)(*it))->datasetPathname);
 
             if ((m_surfaceSet[pageCount] = ar2ReadSurfaceSet(((WebARKitTrackableNFT *)(*it))->datasetPathname, "fset", NULL)) == NULL ) {
                 ARLOGe("Error reading data from %s.fset", ((WebARKitTrackableNFT *)(*it))->datasetPathname);
@@ -251,7 +259,7 @@ bool WebARKitTrackerNFT::loadNFTData(std::vector<WebARKitTrackable *>& trackable
             ARLOGi("NFT marker height:  %i\n", m_surfaceSet[pageCount]->surface[0].imageSet->scale[0]->ysize);
             ARLOGi("NFT dpi:  %i\n", (int)m_surfaceSet[pageCount]->surface[0].imageSet->scale[0]->dpi);
 
-            ARLOGi("Fset reading done.\n");
+            ARLOGi("Fset reading done.\n");*/
         }
     }
     if (kpmSetRefDataSet(m_kpmHandle, refDataSet) < 0) {
@@ -302,14 +310,29 @@ bool WebARKitTrackerNFT::update(AR2VideoBufferT *buff, std::vector<WebARKitTrack
 	    int kpmResultNum;
         //int pageNo;
 
+        if (!m_arHandle0) return false;
+        AR2VideoBufferT buff2 = {0};
+    	buff2.buff = buff->buff;
+    	buff2.fillFlag = 1;
+
+    	buff2.buffLuma = buff->buffLuma;
+
+
+        if (arDetectMarker(m_arHandle0, &buff2) < 0) {
+            ARLOGe("arDetectMarker().\n");
+            return false;
+        }
+
         if (m_kpmRequired) {
             if (!m_kpmBusy) {
                 if (m_detectedPage == -2) {
-                    kpmMatching( m_kpmHandle, buff->buffLuma );
+                    kpmMatching( m_kpmHandle, buff2.buffLuma );
                     kpmGetResult( m_kpmHandle, &kpmResult, &kpmResultNum );
 
 			        for(int i = 0; i < kpmResultNum; i++ ) {
+                        std::cout << kpmResult[i].camPoseF << std::endl;
 				        if (kpmResult[i].camPoseF == 0 ) {
+                        //if (kpmResult[i].camPoseF < 1 ) {
 
                         m_detectedPage = kpmResult[i].pageNo;
                         for (int j = 0; j < 3; j++) {
@@ -324,7 +347,7 @@ bool WebARKitTrackerNFT::update(AR2VideoBufferT *buff, std::vector<WebARKitTrack
                 }//m_detectedPage == -2
                 
                 }//m_kpmBusy
-                int trackResult = ar2TrackingMod(m_ar2Handle, m_surfaceSet[m_detectedPage], buff->buff, trans, &err);
+                int trackResult = ar2TrackingMod(m_ar2Handle, m_surfaceSet[m_detectedPage], buff2.buff, trans, &err);
 
 			    if( trackResult < 0 ) {
 				    ARLOGi("Tracking lost. %d\n", trackResult);
