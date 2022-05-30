@@ -38,7 +38,7 @@ void WebARKitOrbTracker::initialize(unsigned char * refData, size_t refCols, siz
     std::cout << "Ready!" << std::endl;
 }
 
-double* WebARKitOrbTracker::resetTracking(uchar *frameData, size_t frameCols, size_t frameRows) {
+bool WebARKitOrbTracker::resetTracking(uchar *frameData, size_t frameCols, size_t frameRows) {
     if (!initialized) {
         std::cout << "Reference image not found. AR is unintialized!" << std::endl;
         return NULL;
@@ -74,6 +74,7 @@ double* WebARKitOrbTracker::resetTracking(uchar *frameData, size_t frameCols, si
     if (framePts.size() > 10) {
         H = cv::findHomography(refPts, framePts, cv::RANSAC);
         if (homographyValid(H)) {
+            valid = true;
             numMatches = framePts.size();
             fill_output(H, output);
             framePrev = frameCurr.clone();
@@ -88,10 +89,10 @@ double* WebARKitOrbTracker::resetTracking(uchar *frameData, size_t frameCols, si
 
     //framePrev = frameCurr.clone();
 
-    std::cout << "cloned frame" << std::endl;
-    std::cout << output << std::endl;
+    //std::cout << "cloned frame" << std::endl;
+    //std::cout << output << std::endl;
 
-    return output;
+    return valid;
 }
 
 double* WebARKitOrbTracker::track(uchar frameData[], size_t frameCols, size_t frameRows) {
