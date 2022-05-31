@@ -12,7 +12,7 @@
 
 class WebARKitOrbTracker {
     bool initialized = false;
-    bool valid = false;
+    bool _valid = false;
 
     cv::Ptr<cv::ORB> orb = NULL;
     cv::Ptr<cv::BFMatcher> matcher = NULL;
@@ -30,8 +30,10 @@ class WebARKitOrbTracker {
 public:
     WebARKitOrbTracker();
     void initialize(unsigned char * refData, size_t refCols, size_t refRows);
-    bool resetTracking(uchar frameData[], size_t frameCols, size_t frameRows);
-    double *track(uchar frameData[], size_t frameCols, size_t frameRows);
+    void processFrameData(unsigned char * frameData, size_t frameCols, size_t frameRows);
+    void processFrame(cv::Mat frame);
+    bool resetTracking(cv::Mat frameCurr);
+    bool track(cv::Mat frameCurr);
 private:
    
     bool homographyValid(cv::Mat H);

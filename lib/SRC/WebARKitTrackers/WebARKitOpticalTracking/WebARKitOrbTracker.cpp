@@ -38,27 +38,41 @@ void WebARKitOrbTracker::initialize(unsigned char * refData, size_t refCols, siz
     std::cout << "Ready!" << std::endl;
 }
 
-bool WebARKitOrbTracker::resetTracking(uchar *frameData, size_t frameCols, size_t frameRows) {
+void WebARKitOrbTracker::processFrameData(unsigned char * frameData, size_t frameCols, size_t frameRows) {
+    cv::Mat colorFrame(frameRows, frameCols, CV_8UC4, frameData);
+    cv::Mat grayFrame(frameRows, frameCols, CV_8UC1);
+    cv::cvtColor(colorFrame, grayFrame, cv::COLOR_RGBA2GRAY);
+    processFrame(grayFrame);
+    grayFrame.release();
+}
+
+void WebARKitOrbTracker::processFrame(cv::Mat frame)
+    {
+        if(!_valid) {
+            _valid = resetTracking(frame);
+            //ARLOGi("valid tracking is: %s\n", _valid);
+        }
+        //ARLOGi("_valid is: %s\n", _valid ? "true" : "false" );
+        _valid =  track(frame);
+    }
+
+bool WebARKitOrbTracker::resetTracking(cv::Mat frameCurr) {
     if (!initialized) {
         std::cout << "Reference image not found. AR is unintialized!" << std::endl;
         return NULL;
     }
-    std::cout << initialized << std::endl;
+    //std::cout << initialized << std::endl;
 
     clear_output();
-
-    cv::Mat frameCurr = im_gray(frameData, frameCols, frameRows);
-    std::cout << "im_gray..." << std::endl;
-    std::cout << frameCurr.size << std::endl;
 
     cv::Mat frameDescr;
     std::vector<cv::KeyPoint> frameKeyPts;
     //std::cout << refDescr << std::endl;
     orb->detectAndCompute(frameCurr, cv::noArray(), frameKeyPts, frameDescr);
-    std::cout << "detectAndCompute is ok..." << std::endl;
+    //std::cout << "detectAndCompute is ok..." << std::endl;
     std::vector<std::vector<cv::DMatch>> knnMatches;
     matcher->knnMatch(frameDescr, refDescr, knnMatches, 2);
-    std::cout << "knnmatch !" << std::endl;
+    //std::cout << "knnmatch !" << std::endl;
     framePts.clear();
     std::vector<cv::Point2f> refPts;
     // find the best matches
@@ -68,34 +82,29 @@ bool WebARKitOrbTracker::resetTracking(uchar *frameData, size_t frameCols, size_
             refPts.push_back( refKeyPts[knnMatches[i][0].trainIdx].pt );
         }
     }
-    std::cout << "best matches !" << std::endl;
+    //std::cout << "best matches !" << std::endl;
 
     // need at least 4 pts to define homography
+    std::cout << "Frame points size: " << std::endl;
+    std::cout << framePts.size() << std::endl;
+    bool valid;
     if (framePts.size() > 10) {
         H = cv::findHomography(refPts, framePts, cv::RANSAC);
-        if (homographyValid(H)) {
-            valid = true;
+        if (valid = homographyValid(H)) {
             numMatches = framePts.size();
             fill_output(H, output);
+            if (frameCurr.empty()) {
+                std::cout << "frameCurr is empty!" << std::endl;
+                return NULL;
+            }
             framePrev = frameCurr.clone();
         }
     }
-    std::cout << "Homography !" << std::endl;
-
-    if (frameCurr.empty()) {
-        std::cout << "frameCurr is empty!" << std::endl;
-        return NULL;
-    }
-
-    //framePrev = frameCurr.clone();
-
-    //std::cout << "cloned frame" << std::endl;
-    //std::cout << output << std::endl;
 
     return valid;
 }
 
-double* WebARKitOrbTracker::track(uchar frameData[], size_t frameCols, size_t frameRows) {
+bool WebARKitOrbTracker::track(cv::Mat frameCurr) {
     if (!initialized) {
         std::cout << "Reference image not found. AR is unintialized!" << std::endl;
         return NULL;
@@ -106,14 +115,13 @@ double* WebARKitOrbTracker::track(uchar frameData[], size_t frameCols, size_t fr
         return NULL;
     }
 
+    std::cout << "Start tracking!" << std::endl;
     clear_output();
-
-    cv::Mat frameCurr = im_gray(frameData, frameCols, frameRows);
-    // GaussianBlur(frameCurr, frameCurr, Size(5,5), 2);
 
     std::vector<float> err;
     std::vector<uchar> status;
     std::vector<cv::Point2f> newPts, goodPtsNew, goodPtsOld;
+    bool valid;
     cv::calcOpticalFlowPyrLK(framePrev, frameCurr, framePts, newPts, status, err);
     for (size_t i = 0; i < framePts.size(); ++i) {
         if (status[i]) {
@@ -136,14 +144,14 @@ double* WebARKitOrbTracker::track(uchar frameData[], size_t frameCols, size_t fr
         // set old points to new points
         framePts = goodPtsNew;
 
-        if (homographyValid(H)) {
+        if (valid = homographyValid(H)) {
             fill_output(H, output);
         }
     }
 
     framePrev = frameCurr.clone();
 
-    return output;
+    return valid;
 }
 // private static methods
 
