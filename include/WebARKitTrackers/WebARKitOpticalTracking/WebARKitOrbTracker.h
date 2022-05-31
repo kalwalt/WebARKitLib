@@ -30,12 +30,11 @@ class WebARKitOrbTracker {
 public:
     WebARKitOrbTracker();
     void initialize(unsigned char * refData, size_t refCols, size_t refRows);
-    void processFrameData(unsigned char * frameData, size_t frameCols, size_t frameRows);
-    void processFrame(cv::Mat frame);
+    void processFrameData(unsigned char * frameData, size_t frameCols, size_t frameRows); 
+private:
     bool resetTracking(cv::Mat frameCurr);
     bool track(cv::Mat frameCurr);
-private:
-   
+    void processFrame(cv::Mat frame);
     bool homographyValid(cv::Mat H);
     void fill_output(cv::Mat H, double *output);
     void clear_output();
