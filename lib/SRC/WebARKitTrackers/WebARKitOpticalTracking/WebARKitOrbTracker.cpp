@@ -88,7 +88,8 @@ bool WebARKitOrbTracker::resetTracking(cv::Mat frameCurr) {
     std::cout << "Frame points size: " << std::endl;
     std::cout << framePts.size() << std::endl;
     bool valid;
-    if (framePts.size() > 10) {
+    // need to lowering the number of framePts to 4 (from 10). Now it track.
+    if (framePts.size() > 6) {
         H = cv::findHomography(refPts, framePts, cv::RANSAC);
         if (valid = homographyValid(H)) {
             numMatches = framePts.size();
