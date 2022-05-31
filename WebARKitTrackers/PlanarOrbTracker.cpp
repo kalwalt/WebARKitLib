@@ -224,10 +224,12 @@ public:
       for(int i=0;i<_trackables.size(); i++) {
           if((_trackables[i]._isDetected)||(_trackables[i]._isTracking)) {
 
-              std::vector<cv::Point2f> imgPoints = _trackables[i]._trackSelection.GetSelectedFeaturesWarped();
-              std::vector<cv::Point3f> objPoints = _trackables[i]._trackSelection.GetSelectedFeatures3d();
+              //std::vector<cv::Point2f> imgPoints = _trackables[i]._trackSelection.GetSelectedFeaturesWarped();
+              //std::vector<cv::Point3f> objPoints = _trackables[i]._trackSelection.GetSelectedFeatures3d();
               //ARLOGi("start pose matrix\n");
-              CameraPoseFromPoints(_trackables[i]._pose, objPoints, imgPoints);
+              //CameraPoseFromPoints(_trackables[i]._pose, objPoints, imgPoints);
+              cv::Mat H = _trackables[i]._trackSelection.GetHomography();
+              CameraPoseD(_trackables[i]._pose, H);
           }
       }
 
@@ -375,6 +377,21 @@ public:
           std::cout << "pose tracking is:" << std::endl;
           std::cout << pose << std::endl;
         }
+    }
+
+    void CameraPoseD(cv::Mat& pose, cv::Mat Homography) {
+        cv::Mat rvec = cv::Mat::zeros(3, 1, CV_64FC1);          // output rotation vector
+        cv::Mat tvec = cv::Mat::zeros(3, 1, CV_64FC1);          // output translation vector
+        std::vector<cv::Mat> Rs_decomp, ts_decomp, normals_decomp;
+        int solutions = decomposeHomographyMat(Homography, _K, Rs_decomp, ts_decomp, normals_decomp);
+        for (int i = 0; i < solutions; i++)
+            {
+                cv::Mat rMat;
+                Rodrigues(Rs_decomp[i], rMat);
+                cv::hconcat(rMat, ts_decomp[i], pose);
+                std::cout << "pose tracking is:" << std::endl;
+                std::cout << pose << std::endl;
+            }
     }
 
     bool ChangeImageId(int prevId, int newId)
