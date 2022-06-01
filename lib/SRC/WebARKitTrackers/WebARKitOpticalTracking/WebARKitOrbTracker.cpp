@@ -1,6 +1,7 @@
 #include <WebARKitTrackers/WebARKitOpticalTracking/WebARKitOrbTracker.h>
 #include <WebARKitTrackers/WebARKitOpticalTracking/WebARKitConfig.h>
 #include <WebARKitTrackers/WebARKitOpticalTracking/WebARKitUtils.h>
+#include <emscripten.h>
 
 
 WebARKitOrbTracker::WebARKitOrbTracker():corners(4)
@@ -147,6 +148,39 @@ bool WebARKitOrbTracker::track(cv::Mat frameCurr) {
 
         if (valid = homographyValid(H)) {
             fill_output(H, output);
+            EM_ASM_({
+                var $a = arguments;
+                var i = 0;
+                var canvas = document.getElementById("overlay");
+                var ctx = canvas.getContext('2d');
+                ctx.beginPath();
+                ctx.strokeStyle = "blue";
+                ctx.lineWidth = 3;
+
+                // [x1,y1,x2,y2,x3,y3,x4,y4]
+                ctx.moveTo($a[i++], $a[i++]);
+                ctx.lineTo($a[i++], $a[i++]);
+                ctx.lineTo($a[i++], $a[i++]);
+                ctx.lineTo($a[i++], $a[i++]);
+                ctx.lineTo($a[i++], $a[i++]);
+                console.log($a[i++], $a[i++]);
+
+                ctx.stroke();
+
+            }, 
+            output[9],
+            output[10],
+            output[11],
+            output[12],
+            output[13],
+            output[14],
+            output[15],
+            output[16],
+            output[9],
+            output[10],
+            output[9],
+            output[10]
+            );
         }
     }
 
