@@ -89,7 +89,7 @@ bool WebARKitOrbTracker::resetTracking(cv::Mat frameCurr) {
   std::cout << framePts.size() << std::endl;
   bool valid;
   // need to lowering the number of framePts to 4 (from 10). Now it track.
-  if (framePts.size() > 6) {
+  if (framePts.size() > 15) {
     H = cv::findHomography(refPts, framePts, cv::RANSAC);
     if ((valid = homographyValid(H))) {
       numMatches = framePts.size();
@@ -124,14 +124,31 @@ bool WebARKitOrbTracker::track(cv::Mat frameCurr) {
   std::vector<cv::Point2f> newPts, goodPtsNew, goodPtsOld;
   bool valid;
   cv::calcOpticalFlowPyrLK(framePrev, frameCurr, framePts, newPts, status, err);
+
+  // calculate average variance
+  double mean, avg_variance = 0.0;
+  double sum = 0.0;
+  double diff;
+  std::vector<double> diffs;
+
   for (size_t i = 0; i < framePts.size(); ++i) {
     if (status[i]) {
       goodPtsNew.push_back(newPts[i]);
       goodPtsOld.push_back(framePts[i]);
+      diff = sqrt(pow(newPts[i].x - framePts[i].x, 2.0) +
+                  pow(newPts[i].y - framePts[i].y, 2.0));
+      sum += diff;
+      diffs.push_back(diff);
     }
   }
 
-  if (!goodPtsNew.empty() && goodPtsNew.size() > 2 * numMatches / 3) {
+  mean = sum / diffs.size();
+  for (int i = 0; i < goodPtsNew.size(); ++i) {
+    avg_variance += pow(diffs[i] - mean, 2);
+  }
+  avg_variance /= diffs.size();
+  // if ((goodPtsCurr.size() > numMatches/2) && (1.75 > avg_variance)) {
+  if ((goodPtsNew.size() > numMatches / 2) && (1.75 > avg_variance)) {
     cv::Mat transform = cv::estimateAffine2D(goodPtsOld, goodPtsNew);
 
     // add row of [0,0,1] to transform to make it 3x3
@@ -155,13 +172,10 @@ bool WebARKitOrbTracker::track(cv::Mat frameCurr) {
   return valid;
 }
 
-emscripten::val WebARKitOrbTracker::getHomography() {
-  emscripten::val out = emscripten::val::array();
-  for (auto i = 0; i < 17; i++) {
-    out.call<void>("push", output[i]);
-  }
-  return out;
+double* WebARKitOrbTracker::getOutputData() {
+  return output;
 }
+
 // private static methods
 
 bool WebARKitOrbTracker::homographyValid(cv::Mat H) {
@@ -195,6 +209,5 @@ void WebARKitOrbTracker::fill_output(cv::Mat H, double *output) {
 };
 
 void WebARKitOrbTracker::clear_output() {
-  for (int i = 0; i < 17; i++)
-    output[i] = 0;
+  memset(output, 0, sizeof(output));
 };

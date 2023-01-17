@@ -35,7 +35,7 @@ public:
     WebARKitOrbTracker();
     void initialize(unsigned char * refData, size_t refCols, size_t refRows);
     void processFrameData(unsigned char * frameData, size_t frameCols, size_t frameRows);
-    emscripten::val getHomography();
+    double * getOutputData();
 private:
     bool resetTracking(cv::Mat frameCurr);
     bool track(cv::Mat frameCurr);
