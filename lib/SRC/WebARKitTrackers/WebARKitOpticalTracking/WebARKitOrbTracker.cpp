@@ -158,12 +158,12 @@ bool WebARKitOrbTracker::track(cv::Mat frameCurr) {
                 ctx.lineWidth = 3;
 
                 // [x1,y1,x2,y2,x3,y3,x4,y4]
-                ctx.moveTo($a[i++], $a[i++]);
-                ctx.lineTo($a[i++], $a[i++]);
-                ctx.lineTo($a[i++], $a[i++]);
-                ctx.lineTo($a[i++], $a[i++]);
-                ctx.lineTo($a[i++], $a[i++]);
-                console.log($a[i++], $a[i++]);
+                ctx.moveTo($a[0], $a[1]);
+                ctx.lineTo($a[2], $a[3]);
+                ctx.lineTo($a[4], $a[5]);
+                ctx.lineTo($a[6], $a[7]);
+                ctx.lineTo($a[8], $a[9]);
+                console.log($a[0], $a[1]);
 
                 ctx.stroke();
 
@@ -175,11 +175,7 @@ bool WebARKitOrbTracker::track(cv::Mat frameCurr) {
             output[13],
             output[14],
             output[15],
-            output[16],
-            output[9],
-            output[10],
-            output[9],
-            output[10]
+            output[16]
             );
         }
     }
