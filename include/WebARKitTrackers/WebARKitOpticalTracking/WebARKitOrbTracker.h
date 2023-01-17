@@ -9,6 +9,10 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/calib3d/calib3d.hpp>
 #include <opencv2/features2d.hpp>
+#include <emscripten.h>
+#include <emscripten/val.h>
+
+using namespace emscripten;
 
 class WebARKitOrbTracker {
     bool initialized = false;
@@ -30,7 +34,8 @@ class WebARKitOrbTracker {
 public:
     WebARKitOrbTracker();
     void initialize(unsigned char * refData, size_t refCols, size_t refRows);
-    void processFrameData(unsigned char * frameData, size_t frameCols, size_t frameRows); 
+    void processFrameData(unsigned char * frameData, size_t frameCols, size_t frameRows);
+    emscripten::val getHomography();
 private:
     bool resetTracking(cv::Mat frameCurr);
     bool track(cv::Mat frameCurr);
