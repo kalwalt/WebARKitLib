@@ -4,7 +4,6 @@
 
 WebARKitOrbTracker::WebARKitOrbTracker() : corners(4) {
   output = new double[17];
-  // out = emscripten::val::array();
 }
 
 void WebARKitOrbTracker::initialize(unsigned char *refData, size_t refCols,
@@ -148,28 +147,6 @@ bool WebARKitOrbTracker::track(cv::Mat frameCurr) {
 
     if ((valid = homographyValid(H))) {
       fill_output(H, output);
-      EM_ASM_(
-          {
-            var $a = arguments;
-            var i = 0;
-            var canvas = document.getElementById("overlay");
-            var ctx = canvas.getContext('2d');
-            ctx.beginPath();
-            ctx.strokeStyle = "blue";
-            ctx.lineWidth = 3;
-
-            // [x1,y1,x2,y2,x3,y3,x4,y4]
-            ctx.moveTo($a[0], $a[1]);
-            ctx.lineTo($a[2], $a[3]);
-            ctx.lineTo($a[4], $a[5]);
-            ctx.lineTo($a[6], $a[7]);
-            ctx.lineTo($a[8], $a[9]);
-            console.log($a[0], $a[1]);
-
-            ctx.stroke();
-          },
-          output[9], output[10], output[11], output[12], output[13], output[14],
-          output[15], output[16]);
     }
   }
 
