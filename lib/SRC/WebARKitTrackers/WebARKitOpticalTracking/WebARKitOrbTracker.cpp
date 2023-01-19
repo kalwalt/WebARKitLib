@@ -47,12 +47,13 @@ void WebARKitOrbTracker::processFrameData(unsigned char *frameData,
 }
 
 void WebARKitOrbTracker::processFrame(cv::Mat frame) {
-  if (!_valid) {
-    _valid = resetTracking(frame);
+  if (this->_valid == true) {
+    this->_valid = track(frame);
     // ARLOGi("valid tracking is: %s\n", _valid);
+  } else {
+    // ARLOGi("_valid is: %s\n", _valid ? "true" : "false" );
+    this->_valid = resetTracking(frame);
   }
-  // ARLOGi("_valid is: %s\n", _valid ? "true" : "false" );
-  _valid = track(frame);
 }
 
 bool WebARKitOrbTracker::resetTracking(cv::Mat frameCurr) {
@@ -61,6 +62,7 @@ bool WebARKitOrbTracker::resetTracking(cv::Mat frameCurr) {
     return NULL;
   }
   // std::cout << initialized << std::endl;
+  std::cout << "Reset Tracking!" << std::endl;
 
   clear_output();
 
@@ -89,7 +91,7 @@ bool WebARKitOrbTracker::resetTracking(cv::Mat frameCurr) {
   std::cout << framePts.size() << std::endl;
   bool valid;
   // need to lowering the number of framePts to 4 (from 10). Now it track.
-  if (framePts.size() > 15) {
+  if (framePts.size() >= 4) {
     H = cv::findHomography(refPts, framePts, cv::RANSAC);
     if ((valid = homographyValid(H))) {
       numMatches = framePts.size();
@@ -172,9 +174,7 @@ bool WebARKitOrbTracker::track(cv::Mat frameCurr) {
   return valid;
 }
 
-double* WebARKitOrbTracker::getOutputData() {
-  return output;
-}
+double *WebARKitOrbTracker::getOutputData() { return output; }
 
 // private static methods
 
@@ -208,6 +208,4 @@ void WebARKitOrbTracker::fill_output(cv::Mat H, double *output) {
   output[16] = warped[3].y;
 };
 
-void WebARKitOrbTracker::clear_output() {
-  memset(output, 0, sizeof(output));
-};
+void WebARKitOrbTracker::clear_output() { memset(output, 0, sizeof(output)); };
