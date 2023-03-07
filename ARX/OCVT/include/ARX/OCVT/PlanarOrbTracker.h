@@ -50,6 +50,7 @@
 #include <ARX/AR/ar.h> // ARdouble
 
 #define OUTPUT_SIZE     17
+#define N 10
 class TrackedOrbImageInfo
 {
 public:

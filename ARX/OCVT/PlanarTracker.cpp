@@ -131,9 +131,9 @@ public:
         for(int i=0;i<_trackables.size(); i++) {
             if(!_trackables[i]._isDetected) {
                 std::vector< std::vector<cv::DMatch> >  matches = _featureDetector.MatchFeatures(newFrameDescriptors, _trackables[i]._descriptors);
-                // ARLOGi("Matches: %d\n", matches.size());
-                if(matches.size()>minRequiredDetectedFeatures) {
-                    // ARLOGi("Matches ok!!\n");
+                ARLOGi("Matches: %d\n", matches.size());
+                if(matches.size()>=minRequiredDetectedFeatures) {
+                    ARLOGi("Matches ok!!\n");
                     std::vector<cv::KeyPoint> matched1, matched2;
                     std::vector<uchar> status;
                     int totalGoodMatches = 0;
@@ -160,11 +160,13 @@ public:
         }
 
         if(maxMatches>0) {
+            ARLOGi("Max matches: %d\n", maxMatches);
             for(int i =0; i<finalMatched1.size();i++) {
                 finalMatched1[i].pt.x *=featureDetectPyramidLevel;
                 finalMatched1[i].pt.y *=featureDetectPyramidLevel;
             }
 
+            // shouild be Points(finalMatched1), Points(finalMatched2) instead?
             HomographyInfo homoInfo = GetHomographyInliers(Points(finalMatched2), Points(finalMatched1));
             if(homoInfo.validHomography) {
                 std::cout << "New marker detected" << std::endl;

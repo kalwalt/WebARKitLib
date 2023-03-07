@@ -16,6 +16,7 @@ HomographyInfo GetHomographyInliers(std::vector<cv::Point2f> pts1, std::vector<c
 {
     cv::Mat inlier_mask, homography;
     std::vector<cv::DMatch> inlier_matches;
+    ARLOGi("pts1.size() = %d\n", pts1.size());
     if(pts1.size() >= 4) {
         homography = findHomography(pts1, pts2,
                                     cv::RANSAC, ransac_thresh, inlier_mask);

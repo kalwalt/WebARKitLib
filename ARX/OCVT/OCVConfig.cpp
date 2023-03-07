@@ -36,7 +36,7 @@
 
 #include "OCVConfig.h"
 
-int minRequiredDetectedFeatures = 50;
+int minRequiredDetectedFeatures = 40;
 int markerTemplateWidth = 15;
 int maxLevel = 3;
 const cv::Size subPixWinSize(10,10), winSize(31,31);
@@ -47,7 +47,7 @@ int searchRadius = 15;
 int match_method = cv::TM_SQDIFF_NORMED;
 int featureDetectPyramidLevel = 2;
 int defaultDetectorType = 0;  // detector type only works if compiled with -s DISABLE_EXCEPTION_CATCHING=0 ->I guess OpenCL instantiation throws an exception.
-const double nn_match_ratio = 0.8f; // Nearest-neighbour matching ratio
+const double nn_match_ratio = 0.85f; // Nearest-neighbour matching ratio
 const double ransac_thresh = 2.5f; // RANSAC inlier threshold
 cv::RNG rng( 0xFFFFFFFF );
 int harrisBorder = 10;

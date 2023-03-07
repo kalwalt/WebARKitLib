@@ -139,7 +139,7 @@ public:
     bool valid;
     // need at least 4 pts to define homography
     //ARLOGi("framePts.size: %d\n", framePts.size());
-    if (framePts.size() > 15) {
+    if (framePts.size() > 4) {
         _H = cv::findHomography(refPts, framePts, cv::RANSAC);
         if ( (valid = homographyValid(_H)) ) {
             numMatches = framePts.size();
