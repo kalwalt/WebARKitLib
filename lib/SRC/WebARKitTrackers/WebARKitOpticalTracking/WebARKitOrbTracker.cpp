@@ -2,7 +2,9 @@
 #include <WebARKitTrackers/WebARKitOpticalTracking/WebARKitOrbTracker.h>
 #include <WebARKitTrackers/WebARKitOpticalTracking/WebARKitUtils.h>
 
-WebARKitOrbTracker::WebARKitOrbTracker() : corners(4) {
+WebARKitOrbTracker::WebARKitOrbTracker() 
+:corners(4), _valid(false), initialized(false)
+, orb(nullptr), matcher(nullptr), numMatches(0) {
   output = new double[17];
 }
 
