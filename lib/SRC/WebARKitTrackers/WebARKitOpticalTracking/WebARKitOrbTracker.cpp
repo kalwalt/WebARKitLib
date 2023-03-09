@@ -12,18 +12,21 @@ void WebARKitOrbTracker::initialize(unsigned char *refData, size_t refCols,
                                     size_t refRows) {
   std::cout << "Start!" << std::endl;
   std::cout << MAX_FEATURES << std::endl;
-  orb = cv::ORB::create(MAX_FEATURES);
+  orb = cv::AKAZE::create();
   std::cout << "Orb created!" << std::endl;
   matcher = cv::BFMatcher::create();
   std::cout << "BFMatcher created!" << std::endl;
+  std::cout << "refCols: " << refCols << std::endl;
+  std::cout << "refRows: " << refRows << std::endl;
   // cv::Mat refGray = im_gray(refData, refCols, refRows);
   cv::Mat colorFrame(refCols, refRows, CV_8UC4, refData);
   free(refData);
   cv::Mat refGray(refCols, refRows, CV_8UC1);
   cv::cvtColor(colorFrame, refGray, cv::COLOR_RGBA2GRAY);
   std::cout << "Gray Image!" << std::endl;
-  // std::cout << refGray << std::endl;
   orb->detectAndCompute(refGray, cv::noArray(), refKeyPts, refDescr);
+  std::cout << "Reference image keypoints: " << refKeyPts.size() << std::endl;
+  std::cout << "Reference image descriptors: " << refDescr.size() << std::endl;
   std::cout << "Orb Detect and Compute passed!" << std::endl;
   // std::cout << refDescr << std::endl;
 
@@ -79,6 +82,7 @@ bool WebARKitOrbTracker::resetTracking(cv::Mat frameCurr) {
   framePts.clear();
   std::vector<cv::Point2f> refPts;
   // find the best matches
+  std::cout << "Good match ratio is: " << GOOD_MATCH_RATIO << std::endl;
   for (size_t i = 0; i < knnMatches.size(); ++i) {
     if (knnMatches[i][0].distance <
         GOOD_MATCH_RATIO * knnMatches[i][1].distance) {
@@ -93,7 +97,7 @@ bool WebARKitOrbTracker::resetTracking(cv::Mat frameCurr) {
   std::cout << framePts.size() << std::endl;
   bool valid;
   // need to lowering the number of framePts to 4 (from 10). Now it track.
-  if (framePts.size() >= 4) {
+  if (framePts.size() >= 15) {
     H = cv::findHomography(refPts, framePts, cv::RANSAC);
     if ((valid = homographyValid(H))) {
       numMatches = framePts.size();

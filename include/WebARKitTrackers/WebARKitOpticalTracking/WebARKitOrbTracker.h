@@ -16,7 +16,7 @@
 using namespace emscripten;
 
 class WebARKitOrbTracker {
-  cv::Ptr<cv::ORB> orb;
+  cv::Ptr<cv::AKAZE> orb;
   cv::Ptr<cv::BFMatcher> matcher;
 
   cv::Mat refGray, refDescr;
