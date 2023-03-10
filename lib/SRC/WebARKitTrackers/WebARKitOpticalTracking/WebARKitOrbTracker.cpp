@@ -45,6 +45,39 @@ void WebARKitOrbTracker::initialize(unsigned char *refData, size_t refCols,
   std::cout << "Ready!" << std::endl;
 }
 
+void WebARKitOrbTracker::initialize_raw(unsigned char *refData, size_t refCols,
+                                    size_t refRows) {
+  std::cout << "Start!" << std::endl;
+  std::cout << MAX_FEATURES << std::endl;
+  orb = cv::ORB::create(MAX_FEATURES);
+  std::cout << "Orb created!" << std::endl;
+  matcher = cv::BFMatcher::create();
+  std::cout << "BFMatcher created!" << std::endl;
+  std::cout << "refCols: " << refCols << std::endl;
+  std::cout << "refRows: " << refRows << std::endl;
+  cv::Mat refGray = im_gray(refData, refCols, refRows);
+  //cv::Mat refGray(refCols, refRows, CV_8UC1, refData);
+  free(refData);
+  std::cout << "Gray Image!" << std::endl;
+  orb->detectAndCompute(refGray, cv::noArray(), refKeyPts, refDescr);
+  std::cout << "Reference image keypoints: " << refKeyPts.size() << std::endl;
+  std::cout << "Reference image descriptors: " << refDescr.size() << std::endl;
+  std::cout << "Orb Detect and Compute passed!" << std::endl;
+  // std::cout << refDescr << std::endl;
+
+  corners[0] = cvPoint(0, 0);
+  corners[1] = cvPoint(refCols, 0);
+  corners[2] = cvPoint(refCols, refRows);
+  corners[3] = cvPoint(0, refRows);
+
+  std::cout << "corners filled!" << std::endl;
+
+  initialized = true;
+  std::cout << initialized << std::endl;
+  std::cout << "Ready!" << std::endl;
+}
+
+
 void WebARKitOrbTracker::processFrameData(unsigned char *frameData,
                                           size_t frameCols, size_t frameRows) {
   cv::Mat colorFrame(frameRows, frameCols, CV_8UC4, frameData);
