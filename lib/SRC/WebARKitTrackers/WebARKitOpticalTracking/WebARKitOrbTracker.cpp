@@ -19,12 +19,15 @@ void WebARKitOrbTracker::initialize(unsigned char *refData, size_t refCols,
   std::cout << "refCols: " << refCols << std::endl;
   std::cout << "refRows: " << refRows << std::endl;
   // cv::Mat refGray = im_gray(refData, refCols, refRows);
-  cv::Mat colorFrame(refCols, refRows, CV_8UC4, refData);
+  cv::Mat colorFrame(refCols, refRows, CV_8UC3, refData);
   free(refData);
   cv::Mat refGray(refCols, refRows, CV_8UC1);
-  cv::cvtColor(colorFrame, refGray, cv::COLOR_RGBA2GRAY);
+  cv::cvtColor(colorFrame, refGray, cv::COLOR_RGB2GRAY); 
   std::cout << "Gray Image!" << std::endl;
-  orb->detectAndCompute(refGray, cv::noArray(), refKeyPts, refDescr);
+  cv::Mat flippedImg;
+  cv::flip(refGray, flippedImg, 2);
+  std::cout << "Flipped Gray Image!" << std::endl;
+  orb->detectAndCompute(flippedImg, cv::noArray(), refKeyPts, refDescr);
   std::cout << "Reference image keypoints: " << refKeyPts.size() << std::endl;
   std::cout << "Reference image descriptors: " << refDescr.size() << std::endl;
   std::cout << "Orb Detect and Compute passed!" << std::endl;
