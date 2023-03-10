@@ -1,5 +1,5 @@
-#ifndef WEBARKIT_ORB_TRACKER_H
-#define WEBARKIT_ORB_TRACKER_H
+#ifndef WEBARKIT_AKAZE_TRACKER_H
+#define WEBARKIT_AKAZE_TRACKER_H
 
 #include <emscripten.h>
 #include <emscripten/val.h>
@@ -15,8 +15,8 @@
 
 using namespace emscripten;
 
-class WebARKitOrbTracker {
-  cv::Ptr<cv::ORB> orb;
+class WebARKitAkazeTracker {
+  cv::Ptr<cv::AKAZE> akaze;
   cv::Ptr<cv::BFMatcher> matcher;
 
   cv::Mat refGray, refDescr;
@@ -30,7 +30,7 @@ class WebARKitOrbTracker {
   std::vector<cv::Point2f> framePts;
   double *output; // 9 from homography matrix, 8 from warped corners*/
 public:
-  WebARKitOrbTracker();
+  WebARKitAkazeTracker();
   void initialize(unsigned char *refData, size_t refCols, size_t refRows);
   void processFrameData(unsigned char *frameData, size_t frameCols,
                         size_t frameRows);

@@ -1,19 +1,19 @@
 #include <WebARKitTrackers/WebARKitOpticalTracking/WebARKitConfig.h>
-#include <WebARKitTrackers/WebARKitOpticalTracking/WebARKitOrbTracker.h>
+#include <WebARKitTrackers/WebARKitOpticalTracking/WebARKitAkazeTracker.h>
 #include <WebARKitTrackers/WebARKitOpticalTracking/WebARKitUtils.h>
 
-WebARKitOrbTracker::WebARKitOrbTracker() 
+WebARKitAkazeTracker::WebARKitAkazeTracker() 
 :corners(4), _valid(false), initialized(false)
-, orb(nullptr), matcher(nullptr), numMatches(0) {
+, akaze(nullptr), matcher(nullptr), numMatches(0) {
   output = new double[17];
 }
 
-void WebARKitOrbTracker::initialize(unsigned char *refData, size_t refCols,
+void WebARKitAkazeTracker::initialize(unsigned char *refData, size_t refCols,
                                     size_t refRows) {
   std::cout << "Start!" << std::endl;
   std::cout << MAX_FEATURES << std::endl;
-  orb = cv::ORB::create(MAX_FEATURES);
-  std::cout << "Orb created!" << std::endl;
+  akaze = cv::AKAZE::create();
+  std::cout << "Akaze created!" << std::endl;
   matcher = cv::BFMatcher::create();
   std::cout << "BFMatcher created!" << std::endl;
   std::cout << "refCols: " << refCols << std::endl;
@@ -27,10 +27,10 @@ void WebARKitOrbTracker::initialize(unsigned char *refData, size_t refCols,
   cv::Mat flippedImg;
   cv::flip(refGray, flippedImg, 1);
   std::cout << "Flipped Gray Image!" << std::endl;
-  orb->detectAndCompute(flippedImg, cv::noArray(), refKeyPts, refDescr);
+  akaze->detectAndCompute(flippedImg, cv::noArray(), refKeyPts, refDescr);
   std::cout << "Reference image keypoints: " << refKeyPts.size() << std::endl;
   std::cout << "Reference image descriptors: " << refDescr.size() << std::endl;
-  std::cout << "Orb Detect and Compute passed!" << std::endl;
+  std::cout << "akaze Detect and Compute passed!" << std::endl;
   // std::cout << refDescr << std::endl;
 
   corners[0] = cvPoint(0, 0);
@@ -45,7 +45,7 @@ void WebARKitOrbTracker::initialize(unsigned char *refData, size_t refCols,
   std::cout << "Ready!" << std::endl;
 }
 
-void WebARKitOrbTracker::processFrameData(unsigned char *frameData,
+void WebARKitAkazeTracker::processFrameData(unsigned char *frameData,
                                           size_t frameCols, size_t frameRows) {
   cv::Mat colorFrame(frameRows, frameCols, CV_8UC4, frameData);
   cv::Mat grayFrame(frameRows, frameCols, CV_8UC1);
@@ -54,7 +54,7 @@ void WebARKitOrbTracker::processFrameData(unsigned char *frameData,
   grayFrame.release();
 }
 
-void WebARKitOrbTracker::processFrame(cv::Mat frame) {
+void WebARKitAkazeTracker::processFrame(cv::Mat frame) {
   if (this->_valid == true) {
     this->_valid = track(frame);
     // ARLOGi("valid tracking is: %s\n", _valid);
@@ -64,7 +64,7 @@ void WebARKitOrbTracker::processFrame(cv::Mat frame) {
   }
 }
 
-bool WebARKitOrbTracker::resetTracking(cv::Mat frameCurr) {
+bool WebARKitAkazeTracker::resetTracking(cv::Mat frameCurr) {
   if (!initialized) {
     std::cout << "Reference image not found. AR is unintialized!" << std::endl;
     return NULL;
@@ -77,7 +77,7 @@ bool WebARKitOrbTracker::resetTracking(cv::Mat frameCurr) {
   cv::Mat frameDescr;
   std::vector<cv::KeyPoint> frameKeyPts;
   // std::cout << refDescr << std::endl;
-  orb->detectAndCompute(frameCurr, cv::noArray(), frameKeyPts, frameDescr);
+  akaze->detectAndCompute(frameCurr, cv::noArray(), frameKeyPts, frameDescr);
   // std::cout << "detectAndCompute is ok..." << std::endl;
   std::vector<std::vector<cv::DMatch>> knnMatches;
   matcher->knnMatch(frameDescr, refDescr, knnMatches, 2);
@@ -116,7 +116,7 @@ bool WebARKitOrbTracker::resetTracking(cv::Mat frameCurr) {
   return valid;
 }
 
-bool WebARKitOrbTracker::track(cv::Mat frameCurr) {
+bool WebARKitAkazeTracker::track(cv::Mat frameCurr) {
   if (!initialized) {
     std::cout << "Reference image not found. AR is unintialized!" << std::endl;
     return NULL;
@@ -183,17 +183,17 @@ bool WebARKitOrbTracker::track(cv::Mat frameCurr) {
   return valid;
 }
 
-double *WebARKitOrbTracker::getOutputData() { return output; }
+double *WebARKitAkazeTracker::getOutputData() { return output; }
 
 // private static methods
 
-bool WebARKitOrbTracker::homographyValid(cv::Mat H) {
+bool WebARKitAkazeTracker::homographyValid(cv::Mat H) {
   const double det = H.at<double>(0, 0) * H.at<double>(1, 1) -
                      H.at<double>(1, 0) * H.at<double>(0, 1);
   return 1 / N < fabs(det) && fabs(det) < N;
 }
 
-void WebARKitOrbTracker::fill_output(cv::Mat H, double *output) {
+void WebARKitAkazeTracker::fill_output(cv::Mat H, double *output) {
   std::vector<cv::Point2f> warped(4);
   cv::perspectiveTransform(corners, warped, H);
 
@@ -217,4 +217,4 @@ void WebARKitOrbTracker::fill_output(cv::Mat H, double *output) {
   output[16] = warped[3].y;
 };
 
-void WebARKitOrbTracker::clear_output() { memset(output, 0, sizeof(output)); };
+void WebARKitAkazeTracker::clear_output() { memset(output, 0, sizeof(output)); };
