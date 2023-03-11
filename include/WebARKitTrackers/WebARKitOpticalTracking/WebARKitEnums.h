@@ -1,0 +1,9 @@
+#ifndef WEBARKIT_TRACKER_H
+#define WEBARKIT_TRACKER_H
+
+enum TRACKER_TYPE {
+    AKAZE_TRACKER = 0,
+    ORB_TRACKER = 1 
+};
+
+#endif
