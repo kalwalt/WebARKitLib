@@ -55,7 +55,8 @@ void WebARKitOrbTracker::initialize_raw(unsigned char *refData, size_t refCols,
   std::cout << "BFMatcher created!" << std::endl;
   std::cout << "refCols: " << refCols << std::endl;
   std::cout << "refRows: " << refRows << std::endl;
-  cv::Mat refGray = im_gray(refData, refCols, refRows);
+  //cv::Mat refGray = im_gray(refData, refCols, refRows);
+  cv::Mat refGray = grayscale(refData, refCols, refRows, ColorSpace::RGBA);
   //cv::Mat refGray(refCols, refRows, CV_8UC1, refData);
   free(refData);
   std::cout << "Gray Image!" << std::endl;

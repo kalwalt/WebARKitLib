@@ -6,4 +6,10 @@ enum TRACKER_TYPE {
     ORB_TRACKER = 1 
 };
 
+enum ColorSpace {
+    RGB = 0,
+    RGBA = 1,
+    GRAY = 2
+};
+
 #endif
