@@ -1,15 +1,14 @@
-#include <WebARKitTrackers/WebARKitOpticalTracking/WebARKitConfig.h>
 #include <WebARKitTrackers/WebARKitOpticalTracking/WebARKitAkazeTracker.h>
+#include <WebARKitTrackers/WebARKitOpticalTracking/WebARKitConfig.h>
 #include <WebARKitTrackers/WebARKitOpticalTracking/WebARKitUtils.h>
 
-WebARKitAkazeTracker::WebARKitAkazeTracker() 
-:corners(4), _valid(false), initialized(false)
-, akaze(nullptr), matcher(nullptr), numMatches(0) {
-  output = new double[17];
-}
+
+WebARKitAkazeTracker::WebARKitAkazeTracker()
+    : corners(4), output(17, 0.0), _valid(false), initialized(false),
+      akaze(nullptr), matcher(nullptr), numMatches(0) {}
 
 void WebARKitAkazeTracker::initialize(unsigned char *refData, size_t refCols,
-                                    size_t refRows) {
+                                      size_t refRows) {
   std::cout << "Start!" << std::endl;
   std::cout << MAX_FEATURES << std::endl;
   akaze = cv::AKAZE::create();
@@ -22,7 +21,7 @@ void WebARKitAkazeTracker::initialize(unsigned char *refData, size_t refCols,
   cv::Mat colorFrame(refCols, refRows, CV_8UC3, refData);
   free(refData);
   cv::Mat refGray(refCols, refRows, CV_8UC1);
-  cv::cvtColor(colorFrame, refGray, cv::COLOR_RGB2GRAY); 
+  cv::cvtColor(colorFrame, refGray, cv::COLOR_RGB2GRAY);
   std::cout << "Gray Image!" << std::endl;
   cv::Mat flippedImg;
   cv::flip(refGray, flippedImg, 1);
@@ -45,8 +44,8 @@ void WebARKitAkazeTracker::initialize(unsigned char *refData, size_t refCols,
   std::cout << "Ready!" << std::endl;
 }
 
-void WebARKitAkazeTracker::initialize_raw(unsigned char *refData, size_t refCols,
-                                    size_t refRows) {
+void WebARKitAkazeTracker::initialize_raw(unsigned char *refData,
+                                          size_t refCols, size_t refRows) {
   std::cout << "Start!" << std::endl;
   std::cout << MAX_FEATURES << std::endl;
   akaze = cv::AKAZE::create();
@@ -55,9 +54,9 @@ void WebARKitAkazeTracker::initialize_raw(unsigned char *refData, size_t refCols
   std::cout << "BFMatcher created!" << std::endl;
   std::cout << "refCols: " << refCols << std::endl;
   std::cout << "refRows: " << refRows << std::endl;
-  //cv::Mat refGray = im_gray(refData, refCols, refRows);
+  // cv::Mat refGray = im_gray(refData, refCols, refRows);
   cv::Mat refGray = grayscale(refData, refCols, refRows, ColorSpace::RGBA);
-  //cv::Mat refGray(refCols, refRows, CV_8UC1, refData);
+  // cv::Mat refGray(refCols, refRows, CV_8UC1, refData);
   free(refData);
   std::cout << "Gray Image!" << std::endl;
   akaze->detectAndCompute(refGray, cv::noArray(), refKeyPts, refDescr);
@@ -79,7 +78,8 @@ void WebARKitAkazeTracker::initialize_raw(unsigned char *refData, size_t refCols
 }
 
 void WebARKitAkazeTracker::processFrameData(unsigned char *frameData,
-                                          size_t frameCols, size_t frameRows) {
+                                            size_t frameCols,
+                                            size_t frameRows) {
   cv::Mat colorFrame(frameRows, frameCols, CV_8UC4, frameData);
   cv::Mat grayFrame(frameRows, frameCols, CV_8UC1);
   cv::cvtColor(colorFrame, grayFrame, cv::COLOR_RGBA2GRAY);
@@ -216,7 +216,7 @@ bool WebARKitAkazeTracker::track(cv::Mat frameCurr) {
   return valid;
 }
 
-double *WebARKitAkazeTracker::getOutputData() { return output; }
+std::vector<double> WebARKitAkazeTracker::getOutputData() { return output; }
 
 bool WebARKitAkazeTracker::isValid() { return _valid; }
 
@@ -260,4 +260,4 @@ void WebARKitAkazeTracker::fill_output(cv::Mat H) {
   output[16] = warped[3].y;
 };
 
-void WebARKitAkazeTracker::clear_output() { memset(output, 0, sizeof(output)); };
+void WebARKitAkazeTracker::clear_output() { output.assign(17, 0.0); };

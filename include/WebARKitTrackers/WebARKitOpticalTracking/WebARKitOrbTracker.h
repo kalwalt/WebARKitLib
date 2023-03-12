@@ -28,14 +28,14 @@ class WebARKitOrbTracker {
   cv::Mat framePrev;
   int numMatches;
   std::vector<cv::Point2f> framePts;
-  double *output; // 9 from homography matrix, 8 from warped corners*/
+  std::vector<double> output; // 9 from homography matrix, 8 from warped corners*/
 public:
   WebARKitOrbTracker();
   void initialize(unsigned char *refData, size_t refCols, size_t refRows);
   void initialize_raw(unsigned char *refData, size_t refCols, size_t refRows);
   void processFrameData(unsigned char *frameData, size_t frameCols,
                         size_t frameRows);
-  double *getOutputData();
+  std::vector<double> getOutputData();
   bool isValid();
   emscripten::val getCorners();
 

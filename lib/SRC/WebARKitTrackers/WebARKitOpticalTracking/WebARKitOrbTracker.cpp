@@ -2,11 +2,9 @@
 #include <WebARKitTrackers/WebARKitOpticalTracking/WebARKitOrbTracker.h>
 #include <WebARKitTrackers/WebARKitOpticalTracking/WebARKitUtils.h>
 
-WebARKitOrbTracker::WebARKitOrbTracker() 
-:corners(4), _valid(false), initialized(false)
-, orb(nullptr), matcher(nullptr), numMatches(0) {
-  output = new double[17];
-}
+WebARKitOrbTracker::WebARKitOrbTracker()
+    : corners(4), output(17, 0.0), _valid(false), initialized(false),
+      orb(nullptr), matcher(nullptr), numMatches(0) {}
 
 void WebARKitOrbTracker::initialize(unsigned char *refData, size_t refCols,
                                     size_t refRows) {
@@ -22,7 +20,7 @@ void WebARKitOrbTracker::initialize(unsigned char *refData, size_t refCols,
   cv::Mat colorFrame(refCols, refRows, CV_8UC3, refData);
   free(refData);
   cv::Mat refGray(refCols, refRows, CV_8UC1);
-  cv::cvtColor(colorFrame, refGray, cv::COLOR_RGB2GRAY); 
+  cv::cvtColor(colorFrame, refGray, cv::COLOR_RGB2GRAY);
   std::cout << "Gray Image!" << std::endl;
   cv::Mat flippedImg;
   cv::flip(refGray, flippedImg, 1);
@@ -46,7 +44,7 @@ void WebARKitOrbTracker::initialize(unsigned char *refData, size_t refCols,
 }
 
 void WebARKitOrbTracker::initialize_raw(unsigned char *refData, size_t refCols,
-                                    size_t refRows) {
+                                        size_t refRows) {
   std::cout << "Start!" << std::endl;
   std::cout << MAX_FEATURES << std::endl;
   orb = cv::ORB::create(MAX_FEATURES);
@@ -55,9 +53,9 @@ void WebARKitOrbTracker::initialize_raw(unsigned char *refData, size_t refCols,
   std::cout << "BFMatcher created!" << std::endl;
   std::cout << "refCols: " << refCols << std::endl;
   std::cout << "refRows: " << refRows << std::endl;
-  //cv::Mat refGray = im_gray(refData, refCols, refRows);
+  // cv::Mat refGray = im_gray(refData, refCols, refRows);
   cv::Mat refGray = grayscale(refData, refCols, refRows, ColorSpace::RGBA);
-  //cv::Mat refGray(refCols, refRows, CV_8UC1, refData);
+  // cv::Mat refGray(refCols, refRows, CV_8UC1, refData);
   free(refData);
   std::cout << "Gray Image!" << std::endl;
   orb->detectAndCompute(refGray, cv::noArray(), refKeyPts, refDescr);
@@ -77,7 +75,6 @@ void WebARKitOrbTracker::initialize_raw(unsigned char *refData, size_t refCols,
   std::cout << initialized << std::endl;
   std::cout << "Ready!" << std::endl;
 }
-
 
 void WebARKitOrbTracker::processFrameData(unsigned char *frameData,
                                           size_t frameCols, size_t frameRows) {
@@ -217,7 +214,7 @@ bool WebARKitOrbTracker::track(cv::Mat frameCurr) {
   return valid;
 }
 
-double *WebARKitOrbTracker::getOutputData() { return output; }
+std::vector<double> WebARKitOrbTracker::getOutputData() { return output; }
 
 bool WebARKitOrbTracker::isValid() { return _valid; }
 
@@ -261,4 +258,4 @@ void WebARKitOrbTracker::fill_output(cv::Mat H) {
   output[16] = warped[3].y;
 };
 
-void WebARKitOrbTracker::clear_output() { memset(output, 0, sizeof(output)); };
+void WebARKitOrbTracker::clear_output() { output.assign(17, 0.0); };
