@@ -138,7 +138,7 @@ bool WebARKitOrbTracker::resetTracking(cv::Mat frameCurr) {
     H = cv::findHomography(refPts, framePts, cv::RANSAC);
     if ((valid = homographyValid(H))) {
       numMatches = framePts.size();
-      fill_output(H, output);
+      fill_output(H);
       if (frameCurr.empty()) {
         std::cout << "frameCurr is empty!" << std::endl;
         return NULL;
@@ -208,7 +208,7 @@ bool WebARKitOrbTracker::track(cv::Mat frameCurr) {
     framePts = goodPtsNew;
 
     if ((valid = homographyValid(H))) {
-      fill_output(H, output);
+      fill_output(H);
     }
   }
 
@@ -219,6 +219,16 @@ bool WebARKitOrbTracker::track(cv::Mat frameCurr) {
 
 double *WebARKitOrbTracker::getOutputData() { return output; }
 
+bool WebARKitOrbTracker::isValid() { return _valid; }
+
+emscripten::val WebARKitOrbTracker::getCorners() {
+  emscripten::val corners = emscripten::val::array();
+  for (auto i = 9; i < 17; i++) {
+    corners.call<void>("push", output[i]);
+  }
+  return corners;
+}
+
 // private static methods
 
 bool WebARKitOrbTracker::homographyValid(cv::Mat H) {
@@ -227,7 +237,7 @@ bool WebARKitOrbTracker::homographyValid(cv::Mat H) {
   return 1 / N < fabs(det) && fabs(det) < N;
 }
 
-void WebARKitOrbTracker::fill_output(cv::Mat H, double *output) {
+void WebARKitOrbTracker::fill_output(cv::Mat H) {
   std::vector<cv::Point2f> warped(4);
   cv::perspectiveTransform(corners, warped, H);
 
