@@ -36,13 +36,15 @@ public:
   void processFrameData(unsigned char *frameData, size_t frameCols,
                         size_t frameRows);
   double *getOutputData();
+  bool isValid();
+  emscripten::val getCorners();
 
 private:
   bool resetTracking(cv::Mat frameCurr);
   bool track(cv::Mat frameCurr);
   void processFrame(cv::Mat frame);
   bool homographyValid(cv::Mat H);
-  void fill_output(cv::Mat H, double *output);
+  void fill_output(cv::Mat H);
   void clear_output();
   bool _valid;
   bool initialized;

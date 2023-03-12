@@ -137,7 +137,7 @@ bool WebARKitAkazeTracker::resetTracking(cv::Mat frameCurr) {
     H = cv::findHomography(refPts, framePts, cv::RANSAC);
     if ((valid = homographyValid(H))) {
       numMatches = framePts.size();
-      fill_output(H, output);
+      fill_output(H);
       if (frameCurr.empty()) {
         std::cout << "frameCurr is empty!" << std::endl;
         return NULL;
@@ -207,7 +207,7 @@ bool WebARKitAkazeTracker::track(cv::Mat frameCurr) {
     framePts = goodPtsNew;
 
     if ((valid = homographyValid(H))) {
-      fill_output(H, output);
+      fill_output(H);
     }
   }
 
@@ -218,6 +218,16 @@ bool WebARKitAkazeTracker::track(cv::Mat frameCurr) {
 
 double *WebARKitAkazeTracker::getOutputData() { return output; }
 
+bool WebARKitAkazeTracker::isValid() { return _valid; }
+
+emscripten::val WebARKitAkazeTracker::getCorners() {
+  emscripten::val corners = emscripten::val::array();
+  for (auto i = 9; i < 17; i++) {
+    corners.call<void>("push", output[i]);
+  }
+  return corners;
+}
+
 // private static methods
 
 bool WebARKitAkazeTracker::homographyValid(cv::Mat H) {
@@ -226,7 +236,7 @@ bool WebARKitAkazeTracker::homographyValid(cv::Mat H) {
   return 1 / N < fabs(det) && fabs(det) < N;
 }
 
-void WebARKitAkazeTracker::fill_output(cv::Mat H, double *output) {
+void WebARKitAkazeTracker::fill_output(cv::Mat H) {
   std::vector<cv::Point2f> warped(4);
   cv::perspectiveTransform(corners, warped, H);
 
