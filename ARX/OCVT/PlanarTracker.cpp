@@ -168,6 +168,7 @@ public:
 
             // shouild be Points(finalMatched1), Points(finalMatched2) instead?
             HomographyInfo homoInfo = GetHomographyInliers(Points(finalMatched2), Points(finalMatched1));
+            ARLOGi("Start Homography...\n");
             if(homoInfo.validHomography) {
                 std::cout << "New marker detected" << std::endl;
                 _trackables[bestMatchIndex]._trackSelection.SelectPoints();
@@ -198,10 +199,12 @@ public:
         std::vector<cv::Point2f> flowResultPoints, trackablePointsWarpedResult;
         std::vector<uchar> statusFirstPass, statusSecondPass;
         std::vector<float> err;
-        cv::calcOpticalFlowPyrLK(_prevPyramid, _pyramid, trackablePointsWarped, flowResultPoints, statusFirstPass, err, winSize, 3, termcrit, 0, 0.001);
-        cv::calcOpticalFlowPyrLK(_pyramid, _prevPyramid, flowResultPoints, trackablePointsWarpedResult, statusSecondPass, err, winSize, 3, termcrit, 0, 0.001);
-
-        int killed1 =0;
+        //cv::calcOpticalFlowPyrLK(_prevPyramid, _pyramid, trackablePointsWarped, flowResultPoints, statusFirstPass, err, winSizeFP, 3, termcrit, 0, 0.001);
+        cv::calcOpticalFlowPyrLK(_prevPyramid, _pyramid, trackablePointsWarped, flowResultPoints, statusFirstPass, err);
+        //cv::calcOpticalFlowPyrLK(_pyramid, _prevPyramid, flowResultPoints, trackablePointsWarpedResult, statusSecondPass, err, winSizeFP, 3, termcrit, 0, 0.001);
+        cv::calcOpticalFlowPyrLK(_pyramid, _prevPyramid, flowResultPoints, trackablePointsWarpedResult, statusSecondPass, err);
+        
+        int killed1 = 0;
         std::vector<cv::Point2f> filteredTrackablePoints, filteredTrackedPoints;
         for (auto j = 0; j != flowResultPoints.size(); ++j) {
             if(( !statusFirstPass[j] ) || ( !statusSecondPass[j] )) {
