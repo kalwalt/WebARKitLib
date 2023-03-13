@@ -437,9 +437,10 @@ public:
         // }
         // OCVFeatureDetector::count = 2;
         if(CanDetectNewFeatures()) {
-            cv::Mat detectionFrame;
-            cv::pyrDown(frame, detectionFrame, cv::Size(frame.cols/featureDetectPyramidLevel, frame.rows/featureDetectPyramidLevel));
-            cv::Mat featureMask = CreateFeatureMask(detectionFrame);
+            //cv::Mat detectionFrame;
+            //cv::pyrDown(frame, detectionFrame, cv::Size(frame.cols/featureDetectPyramidLevel, frame.rows/featureDetectPyramidLevel));
+            //cv::Mat featureMask = CreateFeatureMask(detectionFrame);
+            cv::Mat featureMask = CreateFeatureMask(frame);
             // std::vector<cv::KeyPoint> newFrameFeatures = _featureDetector.DetectFeatures(detectionFrame, featureMask);
             cv::Mat newFrameDescriptors;
             std::vector<cv::KeyPoint> newFrameFeatures = _featureDetector.DetectAndCompute(detectionFrame, featureMask, newFrameDescriptors);
