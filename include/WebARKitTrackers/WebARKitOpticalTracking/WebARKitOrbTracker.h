@@ -33,6 +33,7 @@ public:
   WebARKitOrbTracker();
   void initialize(unsigned char *refData, size_t refCols, size_t refRows);
   void initialize_raw(unsigned char *refData, size_t refCols, size_t refRows);
+  void initialize_gray_raw(unsigned char *refData, size_t refCols, size_t refRows);
   void processFrameData(unsigned char *frameData, size_t frameCols,
                         size_t frameRows);
   std::vector<double> getOutputData();
