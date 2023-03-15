@@ -11,6 +11,7 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/opencv.hpp>
 #include <stdio.h>
+#include <WebARKitTrackers/WebARKitOpticalTracking/WebARKitEnums.h>
 
 
 using namespace emscripten;
@@ -33,8 +34,7 @@ public:
   WebARKitAkazeTracker();
   void initialize(unsigned char *refData, size_t refCols, size_t refRows);
   void initialize_raw(unsigned char *refData, size_t refCols, size_t refRows);
-  void processFrameData(unsigned char *frameData, size_t frameCols,
-                        size_t frameRows);
+  void processFrameData(unsigned char *frameData, size_t frameCols, size_t frameRows, ColorSpace colorSpace);
   std::vector<double> getOutputData();
   bool isValid();
   emscripten::val getCorners();

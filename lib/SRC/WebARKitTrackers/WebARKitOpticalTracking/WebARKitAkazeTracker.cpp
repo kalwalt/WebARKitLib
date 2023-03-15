@@ -2,7 +2,6 @@
 #include <WebARKitTrackers/WebARKitOpticalTracking/WebARKitConfig.h>
 #include <WebARKitTrackers/WebARKitOpticalTracking/WebARKitUtils.h>
 
-
 WebARKitAkazeTracker::WebARKitAkazeTracker()
     : corners(4), output(17, 0.0), _valid(false), initialized(false),
       akaze(nullptr), matcher(nullptr), numMatches(0) {}
@@ -78,11 +77,16 @@ void WebARKitAkazeTracker::initialize_raw(unsigned char *refData,
 }
 
 void WebARKitAkazeTracker::processFrameData(unsigned char *frameData,
-                                            size_t frameCols,
-                                            size_t frameRows) {
-  cv::Mat colorFrame(frameRows, frameCols, CV_8UC4, frameData);
-  cv::Mat grayFrame(frameRows, frameCols, CV_8UC1);
-  cv::cvtColor(colorFrame, grayFrame, cv::COLOR_RGBA2GRAY);
+                                            size_t frameCols, size_t frameRows,
+                                            ColorSpace colorSpace) {
+  cv::Mat grayFrame;
+  if (colorSpace == ColorSpace::RGBA) {
+    cv::Mat colorFrame(frameRows, frameCols, CV_8UC4, frameData);
+    grayFrame.create(frameRows, frameCols, CV_8UC1);
+    cv::cvtColor(colorFrame, grayFrame, cv::COLOR_RGBA2GRAY);
+  } else if (colorSpace == ColorSpace::GRAY) {
+    grayFrame = cv::Mat(frameRows, frameCols, CV_8UC1, frameData);
+  }
   processFrame(grayFrame);
   grayFrame.release();
 }

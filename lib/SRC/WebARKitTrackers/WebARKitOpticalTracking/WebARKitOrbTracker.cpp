@@ -76,8 +76,8 @@ void WebARKitOrbTracker::initialize_raw(unsigned char *refData, size_t refCols,
   std::cout << "Ready!" << std::endl;
 }
 
-void WebARKitOrbTracker::initialize_gray_raw(unsigned char *refData, size_t refCols,
-                                        size_t refRows) {
+void WebARKitOrbTracker::initialize_gray_raw(unsigned char *refData,
+                                             size_t refCols, size_t refRows) {
   std::cout << "Start!" << std::endl;
   std::cout << MAX_FEATURES << std::endl;
   orb = cv::ORB::create(MAX_FEATURES);
@@ -86,8 +86,6 @@ void WebARKitOrbTracker::initialize_gray_raw(unsigned char *refData, size_t refC
   std::cout << "BFMatcher created!" << std::endl;
   std::cout << "refCols: " << refCols << std::endl;
   std::cout << "refRows: " << refRows << std::endl;
-  // cv::Mat refGray = im_gray(refData, refCols, refRows);
-  //cv::Mat refGray = grayscale(refData, refCols, refRows, ColorSpace::RGBA);
   cv::Mat refGray(refCols, refRows, CV_8UC1, refData);
   free(refData);
   std::cout << "Gray Image!" << std::endl;
@@ -110,10 +108,16 @@ void WebARKitOrbTracker::initialize_gray_raw(unsigned char *refData, size_t refC
 }
 
 void WebARKitOrbTracker::processFrameData(unsigned char *frameData,
-                                          size_t frameCols, size_t frameRows) {
-  cv::Mat colorFrame(frameRows, frameCols, CV_8UC4, frameData);
-  cv::Mat grayFrame(frameRows, frameCols, CV_8UC1);
-  cv::cvtColor(colorFrame, grayFrame, cv::COLOR_RGBA2GRAY);
+                                          size_t frameCols, size_t frameRows,
+                                          ColorSpace colorSpace) {
+  cv::Mat grayFrame;
+  if (colorSpace == ColorSpace::RGBA) {
+    cv::Mat colorFrame(frameRows, frameCols, CV_8UC4, frameData);
+    grayFrame.create(frameRows, frameCols, CV_8UC1);
+    cv::cvtColor(colorFrame, grayFrame, cv::COLOR_RGBA2GRAY);
+  } else if (colorSpace == ColorSpace::GRAY) {
+    grayFrame = cv::Mat(frameRows, frameCols, CV_8UC1, frameData);
+  }
   processFrame(grayFrame);
   grayFrame.release();
 }
