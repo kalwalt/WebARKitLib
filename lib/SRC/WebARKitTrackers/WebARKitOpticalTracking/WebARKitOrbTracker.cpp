@@ -243,6 +243,18 @@ bool WebARKitOrbTracker::track(cv::Mat frameCurr) {
 
     if ((valid = homographyValid(H))) {
       fill_output(H);
+      EM_ASM_({
+        console.log("output", $0, $1, $2, $3, $4, $5, $6, $7)
+      }, 
+      output[9],
+      output[10],
+      output[11],
+      output[12],
+      output[13],
+      output[14],
+      output[15],
+      output[16]
+      );
     }
   }
 
