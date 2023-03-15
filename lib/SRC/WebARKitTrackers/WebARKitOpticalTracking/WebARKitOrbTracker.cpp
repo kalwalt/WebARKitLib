@@ -54,7 +54,7 @@ void WebARKitOrbTracker::initialize_raw(unsigned char *refData, size_t refCols,
   std::cout << "refCols: " << refCols << std::endl;
   std::cout << "refRows: " << refRows << std::endl;
   // cv::Mat refGray = im_gray(refData, refCols, refRows);
-  cv::Mat refGray = grayscale(refData, refCols, refRows, ColorSpace::RGBA);
+  cv::Mat refGray = grayscale(refData, refRows, refCols, ColorSpace::RGBA);
   // cv::Mat refGray(refCols, refRows, CV_8UC1, refData);
   free(refData);
   std::cout << "Gray Image!" << std::endl;
@@ -86,7 +86,7 @@ void WebARKitOrbTracker::initialize_gray_raw(unsigned char *refData,
   std::cout << "BFMatcher created!" << std::endl;
   std::cout << "refCols: " << refCols << std::endl;
   std::cout << "refRows: " << refRows << std::endl;
-  cv::Mat refGray(refCols, refRows, CV_8UC1, refData);
+  cv::Mat refGray(refRows, refCols, CV_8UC1, refData);
   free(refData);
   std::cout << "Gray Image!" << std::endl;
   orb->detectAndCompute(refGray, cv::noArray(), refKeyPts, refDescr);
@@ -132,7 +132,7 @@ void WebARKitOrbTracker::processFrame(cv::Mat frame) {
   }
 }
 
-bool WebARKitOrbTracker::resetTracking(cv::Mat frameCurr) {
+bool WebARKitOrbTracker::resetTracking(cv::Mat currIm) {
   if (!initialized) {
     std::cout << "Reference image not found. AR is unintialized!" << std::endl;
     return NULL;
@@ -145,7 +145,7 @@ bool WebARKitOrbTracker::resetTracking(cv::Mat frameCurr) {
   cv::Mat frameDescr;
   std::vector<cv::KeyPoint> frameKeyPts;
   // std::cout << refDescr << std::endl;
-  orb->detectAndCompute(frameCurr, cv::noArray(), frameKeyPts, frameDescr);
+  orb->detectAndCompute(currIm, cv::noArray(), frameKeyPts, frameDescr);
   // std::cout << "detectAndCompute is ok..." << std::endl;
   std::vector<std::vector<cv::DMatch>> knnMatches;
   matcher->knnMatch(frameDescr, refDescr, knnMatches, 2);
@@ -153,7 +153,7 @@ bool WebARKitOrbTracker::resetTracking(cv::Mat frameCurr) {
   framePts.clear();
   std::vector<cv::Point2f> refPts;
   // find the best matches
-  std::cout << "Good match ratio is: " << GOOD_MATCH_RATIO << std::endl;
+  // std::cout << "Good match ratio is: " << GOOD_MATCH_RATIO << std::endl;
   for (size_t i = 0; i < knnMatches.size(); ++i) {
     if (knnMatches[i][0].distance <
         GOOD_MATCH_RATIO * knnMatches[i][1].distance) {
@@ -170,27 +170,28 @@ bool WebARKitOrbTracker::resetTracking(cv::Mat frameCurr) {
   // need to lowering the number of framePts to 4 (from 10). Now it track.
   if (framePts.size() >= 10) {
     H = cv::findHomography(refPts, framePts, cv::RANSAC);
-    if ((valid = homographyValid(H))) {
+    valid = homographyValid(H);
+    if (valid == true) {
       numMatches = framePts.size();
       fill_output(H);
-      if (frameCurr.empty()) {
-        std::cout << "frameCurr is empty!" << std::endl;
+      if (currIm.empty()) {
+        std::cout << "prevIm is empty!" << std::endl;
         return NULL;
       }
-      framePrev = frameCurr.clone();
+      prevIm = currIm.clone();
     }
   }
 
   return valid;
 }
 
-bool WebARKitOrbTracker::track(cv::Mat frameCurr) {
+bool WebARKitOrbTracker::track(cv::Mat currIm) {
   if (!initialized) {
     std::cout << "Reference image not found. AR is unintialized!" << std::endl;
     return NULL;
   }
 
-  if (framePrev.empty()) {
+  if (prevIm.empty()) {
     std::cout << "Tracking is uninitialized!" << std::endl;
     return NULL;
   }
@@ -198,39 +199,40 @@ bool WebARKitOrbTracker::track(cv::Mat frameCurr) {
   std::cout << "Start tracking!" << std::endl;
   clear_output();
 
+  // use optical flow to track keypoints
   std::vector<float> err;
   std::vector<uchar> status;
-  std::vector<cv::Point2f> newPts, goodPtsNew, goodPtsOld;
+  std::vector<cv::Point2f> currPts, goodPtsCurr, goodPtsPrev;
   bool valid;
-  cv::calcOpticalFlowPyrLK(framePrev, frameCurr, framePts, newPts, status, err);
+  calcOpticalFlowPyrLK(prevIm, currIm, framePts, currPts, status, err);
 
   // calculate average variance
   double mean, avg_variance = 0.0;
   double sum = 0.0;
   double diff;
   std::vector<double> diffs;
-
   for (size_t i = 0; i < framePts.size(); ++i) {
     if (status[i]) {
-      goodPtsNew.push_back(newPts[i]);
-      goodPtsOld.push_back(framePts[i]);
-      diff = sqrt(pow(newPts[i].x - framePts[i].x, 2.0) +
-                  pow(newPts[i].y - framePts[i].y, 2.0));
+      goodPtsCurr.push_back(currPts[i]);
+      goodPtsPrev.push_back(framePts[i]);
+
+      diff = sqrt(pow(currPts[i].x - framePts[i].x, 2.0) +
+                  pow(currPts[i].y - framePts[i].y, 2.0));
       sum += diff;
       diffs.push_back(diff);
     }
   }
 
   mean = sum / diffs.size();
-  for (int i = 0; i < goodPtsNew.size(); ++i) {
+  for (int i = 0; i < goodPtsCurr.size(); ++i) {
     avg_variance += pow(diffs[i] - mean, 2);
   }
   avg_variance /= diffs.size();
   // if ((goodPtsCurr.size() > numMatches/2) && (1.75 > avg_variance)) {
-  if ((goodPtsNew.size() > numMatches / 2) && (1.75 > avg_variance)) {
-    cv::Mat transform = cv::estimateAffine2D(goodPtsOld, goodPtsNew);
+  if((goodPtsCurr.size() > numMatches / 2) && (1.75 > avg_variance)) {
+    cv::Mat transform = estimateAffine2D(goodPtsPrev, goodPtsCurr);
 
-    // add row of [0,0,1] to transform to make it 3x3
+    // add row of {0,0,1} to transform to make it 3x3
     cv::Mat row = cv::Mat::zeros(1, 3, CV_64F);
     row.at<double>(0, 2) = 1.0;
     transform.push_back(row);
@@ -239,26 +241,17 @@ bool WebARKitOrbTracker::track(cv::Mat frameCurr) {
     H = transform * H;
 
     // set old points to new points
-    framePts = goodPtsNew;
-
-    if ((valid = homographyValid(H))) {
+    framePts = goodPtsCurr;
+    valid = homographyValid(H);
+    if (valid == true) {
       fill_output(H);
-      EM_ASM_({
-        console.log("output", $0, $1, $2, $3, $4, $5, $6, $7)
-      }, 
-      output[9],
-      output[10],
-      output[11],
-      output[12],
-      output[13],
-      output[14],
-      output[15],
-      output[16]
-      );
+      EM_ASM_({console.log("output", $0, $1, $2, $3, $4, $5, $6, $7)},
+              output[9], output[10], output[11], output[12], output[13],
+              output[14], output[15], output[16]);
     }
   }
 
-  framePrev = frameCurr.clone();
+  prevIm = currIm.clone();
 
   return valid;
 }

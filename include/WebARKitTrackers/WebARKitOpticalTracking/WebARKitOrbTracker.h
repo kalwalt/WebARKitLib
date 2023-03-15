@@ -26,7 +26,7 @@ class WebARKitOrbTracker {
   cv::Mat H;
   std::vector<cv::Point2f> corners;
 
-  cv::Mat framePrev;
+  cv::Mat prevIm;
   int numMatches;
   std::vector<cv::Point2f> framePts;
   std::vector<double> output; // 9 from homography matrix, 8 from warped corners*/
