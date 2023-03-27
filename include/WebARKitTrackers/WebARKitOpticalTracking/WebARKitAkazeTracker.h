@@ -34,6 +34,7 @@ public:
   WebARKitAkazeTracker();
   void initialize(unsigned char *refData, size_t refCols, size_t refRows);
   void initialize_raw(unsigned char *refData, size_t refCols, size_t refRows);
+  void initialize_gray_raw(unsigned char *refData, size_t refCols, size_t refRows);
   void processFrameData(unsigned char *frameData, size_t frameCols, size_t frameRows, ColorSpace colorSpace);
   std::vector<double> getOutputData();
   bool isValid();
