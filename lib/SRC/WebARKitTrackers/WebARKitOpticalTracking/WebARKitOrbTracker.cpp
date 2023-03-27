@@ -18,7 +18,7 @@ void WebARKitOrbTracker::initialize(unsigned char *refData, size_t refCols,
   std::cout << "refRows: " << refRows << std::endl;
   // cv::Mat refGray = im_gray(refData, refCols, refRows);
   cv::Mat colorFrame(refCols, refRows, CV_8UC3, refData);
-  free(refData);
+  //free(refData);
   cv::Mat refGray(refCols, refRows, CV_8UC1);
   cv::cvtColor(colorFrame, refGray, cv::COLOR_RGB2GRAY);
   std::cout << "Gray Image!" << std::endl;
@@ -56,7 +56,7 @@ void WebARKitOrbTracker::initialize_raw(unsigned char *refData, size_t refCols,
   // cv::Mat refGray = im_gray(refData, refCols, refRows);
   cv::Mat refGray = grayscale(refData, refRows, refCols, ColorSpace::RGBA);
   // cv::Mat refGray(refCols, refRows, CV_8UC1, refData);
-  free(refData);
+  //free(refData);
   std::cout << "Gray Image!" << std::endl;
   orb->detectAndCompute(refGray, cv::noArray(), refKeyPts, refDescr);
   std::cout << "Reference image keypoints: " << refKeyPts.size() << std::endl;
@@ -87,7 +87,7 @@ void WebARKitOrbTracker::initialize_gray_raw(unsigned char *refData,
   std::cout << "refCols: " << refCols << std::endl;
   std::cout << "refRows: " << refRows << std::endl;
   cv::Mat refGray(refRows, refCols, CV_8UC1, refData);
-  free(refData);
+  //free(refData);
   std::cout << "Gray Image!" << std::endl;
   orb->detectAndCompute(refGray, cv::noArray(), refKeyPts, refDescr);
   std::cout << "Reference image keypoints: " << refKeyPts.size() << std::endl;
