@@ -100,7 +100,7 @@ bool WebARKitOrbTracker::resetTracking(cv::Mat currIm) {
     valid = homographyValid(H);
     if (valid == true) {
       numMatches = framePts.size();
-      fill_output(H);
+
       if (currIm.empty()) {
         std::cout << "prevIm is empty!" << std::endl;
         return NULL;
@@ -155,7 +155,7 @@ bool WebARKitOrbTracker::track(cv::Mat currIm) {
     avg_variance += pow(diffs[i] - mean, 2);
   }
   avg_variance /= diffs.size();
-  // if ((goodPtsCurr.size() > numMatches/2) && (1.75 > avg_variance)) {
+
   if((goodPtsCurr.size() > numMatches / 2) && (1.75 > avg_variance)) {
     cv::Mat transform = estimateAffine2D(goodPtsPrev, goodPtsCurr);
 

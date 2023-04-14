@@ -80,7 +80,7 @@ bool WebARKitAkazeTracker::resetTracking(cv::Mat frameCurr) {
   framePts.clear();
   std::vector<cv::Point2f> refPts;
   // find the best matches
-  std::cout << "Good match ratio is: " << GOOD_MATCH_RATIO << std::endl;
+  // std::cout << "Good match ratio is: " << GOOD_MATCH_RATIO << std::endl;
   for (size_t i = 0; i < knnMatches.size(); ++i) {
     if (knnMatches[i][0].distance <
         GOOD_MATCH_RATIO * knnMatches[i][1].distance) {
@@ -99,7 +99,7 @@ bool WebARKitAkazeTracker::resetTracking(cv::Mat frameCurr) {
     H = cv::findHomography(refPts, framePts, cv::RANSAC);
     if ((valid = homographyValid(H))) {
       numMatches = framePts.size();
-      fill_output(H);
+
       if (frameCurr.empty()) {
         std::cout << "frameCurr is empty!" << std::endl;
         return NULL;
@@ -153,7 +153,7 @@ bool WebARKitAkazeTracker::track(cv::Mat frameCurr) {
     avg_variance += pow(diffs[i] - mean, 2);
   }
   avg_variance /= diffs.size();
-  // if ((goodPtsCurr.size() > numMatches/2) && (1.75 > avg_variance)) {
+
   if ((goodPtsNew.size() > numMatches / 2) && (1.75 > avg_variance)) {
     cv::Mat transform = cv::estimateAffine2D(goodPtsOld, goodPtsNew);
 
