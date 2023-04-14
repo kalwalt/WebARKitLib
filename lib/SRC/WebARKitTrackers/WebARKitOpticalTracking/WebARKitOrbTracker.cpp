@@ -53,13 +53,10 @@ void WebARKitOrbTracker::processFrameData(unsigned char *frameData,
 }
 
 void WebARKitOrbTracker::processFrame(cv::Mat frame) {
-  if (this->_valid == true) {
-    this->_valid = track(frame);
-    // ARLOGi("valid tracking is: %s\n", _valid);
-  } else {
-    // ARLOGi("_valid is: %s\n", _valid ? "true" : "false" );
+  if (!this->_valid) {
     this->_valid = resetTracking(frame);
   }
+  this->_valid = track(frame);
 }
 
 bool WebARKitOrbTracker::resetTracking(cv::Mat currIm) {
