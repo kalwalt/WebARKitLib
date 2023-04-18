@@ -8,21 +8,21 @@ WebARKitAkazeTracker::WebARKitAkazeTracker()
 
 void WebARKitAkazeTracker::initialize_gray_raw(unsigned char *refData,
                                              size_t refCols, size_t refRows) {
-  std::cout << "Start!" << std::endl;
+  //std::cout << "Start!" << std::endl;
   //std::cout << MAX_FEATURES << std::endl;
   akaze = cv::AKAZE::create();
-  std::cout << "Akaze created!" << std::endl;
+  //std::cout << "Akaze created!" << std::endl;
   matcher = cv::BFMatcher::create();
-  std::cout << "BFMatcher created!" << std::endl;
-  std::cout << "refCols: " << refCols << std::endl;
-  std::cout << "refRows: " << refRows << std::endl;
+  //std::cout << "BFMatcher created!" << std::endl;
+  //std::cout << "refCols: " << refCols << std::endl;
+  //std::cout << "refRows: " << refRows << std::endl;
   cv::Mat refGray(refRows, refCols, CV_8UC1, refData);
   //free(refData);
-  std::cout << "Gray Image!" << std::endl;
+  //std::cout << "Gray Image!" << std::endl;
   akaze->detectAndCompute(refGray, cv::noArray(), refKeyPts, refDescr);
-  std::cout << "Reference image keypoints: " << refKeyPts.size() << std::endl;
-  std::cout << "Reference image descriptors: " << refDescr.size() << std::endl;
-  std::cout << "Orb Detect and Compute passed!" << std::endl;
+  //std::cout << "Reference image keypoints: " << refKeyPts.size() << std::endl;
+  //std::cout << "Reference image descriptors: " << refDescr.size() << std::endl;
+  //std::cout << "Akaze Detect and Compute passed!" << std::endl;
   // std::cout << refDescr << std::endl;
 
   corners[0] = cvPoint(0, 0);
@@ -30,10 +30,10 @@ void WebARKitAkazeTracker::initialize_gray_raw(unsigned char *refData,
   corners[2] = cvPoint(refCols, refRows);
   corners[3] = cvPoint(0, refRows);
 
-  std::cout << "corners filled!" << std::endl;
+  //std::cout << "corners filled!" << std::endl;
 
   initialized = true;
-  std::cout << initialized << std::endl;
+  //std::cout << initialized << std::endl;
   std::cout << "Ready!" << std::endl;
 }
 
@@ -91,8 +91,8 @@ bool WebARKitAkazeTracker::resetTracking(cv::Mat frameCurr) {
   // std::cout << "best matches !" << std::endl;
 
   // need at least 4 pts to define homography
-  std::cout << "Frame points size: " << std::endl;
-  std::cout << framePts.size() << std::endl;
+  //std::cout << "Frame points size: " << std::endl;
+  //std::cout << framePts.size() << std::endl;
   bool valid;
   // need to lowering the number of framePts to 4 (from 10). Now it track.
   if (framePts.size() >= 15) {
