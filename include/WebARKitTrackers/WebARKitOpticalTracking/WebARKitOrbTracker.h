@@ -1,8 +1,10 @@
 #ifndef WEBARKIT_ORB_TRACKER_H
 #define WEBARKIT_ORB_TRACKER_H
 
+#ifdef __EMSCRIPTEN__
 #include <emscripten.h>
 #include <emscripten/val.h>
+#endif
 #include <iostream>
 #include <opencv2/calib3d/calib3d.hpp>
 #include <opencv2/core.hpp>
@@ -12,11 +14,17 @@
 #include <opencv2/opencv.hpp>
 #include <stdio.h>
 #include <WebARKitTrackers/WebARKitOpticalTracking/WebARKitEnums.h>
+#include <WebARKitTrackers/WebARKitOpticalTracking/WebARKitTracker.h>
 
-
+#ifdef __EMSCRIPTEN__
 using namespace emscripten;
+#endif
 
-class WebARKitOrbTracker {
+class WebARKitOrbTracker : public WebARKitTracker
+{
+
+  friend class WebARKitTracker;
+
   cv::Ptr<cv::ORB> orb;
   cv::Ptr<cv::BFMatcher> matcher;
 
@@ -29,23 +37,16 @@ class WebARKitOrbTracker {
   cv::Mat prevIm;
   int numMatches;
   std::vector<cv::Point2f> framePts;
-  std::vector<double> output; // 9 from homography matrix, 8 from warped corners*/
+
 public:
   WebARKitOrbTracker();
-  void initialize_gray_raw(unsigned char *refData, size_t refCols, size_t refRows);
-  void processFrameData(unsigned char *frameData, size_t frameCols, size_t frameRows, ColorSpace colorSpace);
-  std::vector<double> getOutputData();
-  bool isValid();
-  emscripten::val getCorners();
+  void initialize_gray_raw(unsigned char *refData, size_t refCols, size_t refRows) override;
+  void processFrameData(unsigned char *frameData, size_t frameCols, size_t frameRows, ColorSpace colorSpace) override;
 
 private:
-  bool resetTracking(cv::Mat frameCurr);
-  bool track(cv::Mat frameCurr);
-  void processFrame(cv::Mat frame);
-  bool homographyValid(cv::Mat H);
-  void fill_output(cv::Mat H);
-  void clear_output();
-  bool _valid;
+  bool resetTracking(cv::Mat frameCurr) override;
+  bool track(cv::Mat frameCurr) override;
+  void processFrame(cv::Mat frame) override;
   bool initialized;
 };
 #endif
