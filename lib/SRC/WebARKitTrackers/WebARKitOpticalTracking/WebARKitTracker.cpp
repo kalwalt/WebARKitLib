@@ -13,14 +13,6 @@ bool WebARKitTracker::isValid()
     return _valid;
 }
 
-emscripten::val WebARKitTracker::getCorners() {
-  emscripten::val corners = emscripten::val::array();
-  for (auto i = 9; i < 17; i++) {
-    corners.call<void>("push", output[i]);
-  }
-  return corners;
-}
-
 bool WebARKitTracker::homographyValid(cv::Mat H)
 {
     if (H.empty())

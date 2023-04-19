@@ -7,33 +7,24 @@ WebARKitOrbTracker::WebARKitOrbTracker()
 
 void WebARKitOrbTracker::initialize_gray_raw(unsigned char *refData,
                                              size_t refCols, size_t refRows) {
-  //std::cout << "Start!" << std::endl;
-  //std::cout << MAX_FEATURES << std::endl;
+  std::cout << "Init Tracker!" << std::endl;
+
   orb = cv::ORB::create(MAX_FEATURES);
-  //std::cout << "Orb created!" << std::endl;
   matcher = cv::BFMatcher::create();
-  //std::cout << "BFMatcher created!" << std::endl;
-  //std::cout << "refCols: " << refCols << std::endl;
-  //std::cout << "refRows: " << refRows << std::endl;
+ 
   cv::Mat refGray(refRows, refCols, CV_8UC1, refData);
   //free(refData);
-  //std::cout << "Gray Image!" << std::endl;
+
   orb->detectAndCompute(refGray, cv::noArray(), refKeyPts, refDescr);
-  //std::cout << "Reference image keypoints: " << refKeyPts.size() << std::endl;
-  //std::cout << "Reference image descriptors: " << refDescr.size() << std::endl;
-  //std::cout << "Orb Detect and Compute passed!" << std::endl;
-  // std::cout << refDescr << std::endl;
 
   corners[0] = cvPoint(0, 0);
   corners[1] = cvPoint(refCols, 0);
   corners[2] = cvPoint(refCols, refRows);
   corners[3] = cvPoint(0, refRows);
 
-  //std::cout << "corners filled!" << std::endl;
-
   initialized = true;
-  //std::cout << initialized << std::endl;
-  std::cout << "Ready!" << std::endl;
+
+  std::cout << "Tracker ready!" << std::endl;
 }
 
 void WebARKitOrbTracker::processFrameData(unsigned char *frameData,
@@ -63,23 +54,23 @@ bool WebARKitOrbTracker::resetTracking(cv::Mat currIm) {
     std::cout << "Reference image not found. AR is unintialized!" << std::endl;
     return NULL;
   }
-  // std::cout << initialized << std::endl;
+
   std::cout << "Reset Tracking!" << std::endl;
 
   clear_output();
 
   cv::Mat frameDescr;
   std::vector<cv::KeyPoint> frameKeyPts;
-  // std::cout << refDescr << std::endl;
+
   orb->detectAndCompute(currIm, cv::noArray(), frameKeyPts, frameDescr);
-  // std::cout << "detectAndCompute is ok..." << std::endl;
+ 
   std::vector<std::vector<cv::DMatch>> knnMatches;
   matcher->knnMatch(frameDescr, refDescr, knnMatches, 2);
-  // std::cout << "knnmatch !" << std::endl;
+
   framePts.clear();
   std::vector<cv::Point2f> refPts;
+
   // find the best matches
-  // std::cout << "Good match ratio is: " << GOOD_MATCH_RATIO << std::endl;
   for (size_t i = 0; i < knnMatches.size(); ++i) {
     if (knnMatches[i][0].distance <
         GOOD_MATCH_RATIO * knnMatches[i][1].distance) {
@@ -87,13 +78,12 @@ bool WebARKitOrbTracker::resetTracking(cv::Mat currIm) {
       refPts.push_back(refKeyPts[knnMatches[i][0].trainIdx].pt);
     }
   }
-  // std::cout << "best matches !" << std::endl;
 
   // need at least 4 pts to define homography
   //std::cout << "Frame points size: " << std::endl;
   //std::cout << framePts.size() << std::endl;
   bool valid;
-  // need to lowering the number of framePts to 4 (from 10). Now it track.
+  
   if (framePts.size() >= 15) {
     H = cv::findHomography(refPts, framePts, cv::RANSAC);
     valid = homographyValid(H);
