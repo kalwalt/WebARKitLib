@@ -41,9 +41,9 @@ protected:
     void fill_output(cv::Mat H);
     void clear_output();
     bool _valid;
+    std::vector<cv::Point2f> corners;
 
 private:
-    std::vector<cv::Point2f> corners;
     std::vector<double> output; // 9 from homography matrix, 8 from warped corners*/
 };
 

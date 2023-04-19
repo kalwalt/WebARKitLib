@@ -3,7 +3,7 @@
 #include <WebARKitTrackers/WebARKitOpticalTracking/WebARKitUtils.h>
 
 WebARKitOrbTracker::WebARKitOrbTracker()
-    : WebARKitTracker(), orb(nullptr), matcher(nullptr), numMatches(0) { }
+    : WebARKitTracker(), initialized(false), orb(nullptr), matcher(nullptr), numMatches(0) { }
 
 void WebARKitOrbTracker::initialize_gray_raw(unsigned char *refData,
                                              size_t refCols, size_t refRows) {

@@ -22,7 +22,6 @@ using namespace emscripten;
 
 class WebARKitOrbTracker : public WebARKitTracker
 {
-
   friend class WebARKitTracker;
 
   cv::Ptr<cv::ORB> orb;
@@ -32,7 +31,6 @@ class WebARKitOrbTracker : public WebARKitTracker
   std::vector<cv::KeyPoint> refKeyPts;
 
   cv::Mat H;
-  std::vector<cv::Point2f> corners;
 
   cv::Mat prevIm;
   int numMatches;
