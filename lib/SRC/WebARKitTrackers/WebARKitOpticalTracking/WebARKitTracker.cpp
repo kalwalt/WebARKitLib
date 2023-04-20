@@ -13,7 +13,7 @@ bool WebARKitTracker::isValid()
     return _valid;
 }
 
-bool WebARKitTracker::homographyValid(cv::Mat H)
+bool WebARKitTracker::homographyValid(cv::Mat& H)
 {
     if (H.empty())
     {
@@ -24,7 +24,7 @@ bool WebARKitTracker::homographyValid(cv::Mat H)
     return 1 / N < fabs(det) && fabs(det) < N;
 }
 
-void WebARKitTracker::fill_output(cv::Mat H)
+void WebARKitTracker::fill_output(cv::Mat& H)
 {
     std::vector<cv::Point2f> warped(4);
     cv::perspectiveTransform(corners, warped, H);

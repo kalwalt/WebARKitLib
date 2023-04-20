@@ -14,7 +14,7 @@ class WebARKitOrbTracker : public WebARKitTracker
   cv::Mat refGray, refDescr;
   std::vector<cv::KeyPoint> refKeyPts;
 
-  cv::Mat H;
+  cv::Mat m_H;
 
   cv::Mat prevIm;
   int numMatches;
@@ -26,9 +26,9 @@ public:
   void processFrameData(unsigned char *frameData, size_t frameCols, size_t frameRows, ColorSpace colorSpace) override;
 
 private:
-  bool resetTracking(cv::Mat frameCurr) override;
-  bool track(cv::Mat frameCurr) override;
-  void processFrame(cv::Mat frame) override;
+  bool resetTracking(cv::Mat& frameCurr) override;
+  bool track(cv::Mat& frameCurr) override;
+  void processFrame(cv::Mat& frame) override;
   bool initialized;
 };
 #endif

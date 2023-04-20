@@ -21,11 +21,11 @@ public:
     bool isValid();
 
 protected:
-    virtual bool resetTracking(cv::Mat frameCurr) = 0;
-    virtual bool track(cv::Mat frameCurr) = 0;
-    virtual void processFrame(cv::Mat frame) = 0;
-    bool homographyValid(cv::Mat H);
-    void fill_output(cv::Mat H);
+    virtual bool resetTracking(cv::Mat& frameCurr) = 0;
+    virtual bool track(cv::Mat& frameCurr) = 0;
+    virtual void processFrame(cv::Mat& frame) = 0;
+    bool homographyValid(cv::Mat& H);
+    void fill_output(cv::Mat& H);
     void clear_output();
     bool _valid;
     std::vector<cv::Point2f> corners;

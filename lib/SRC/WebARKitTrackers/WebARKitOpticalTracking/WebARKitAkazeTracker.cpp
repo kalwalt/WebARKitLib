@@ -41,14 +41,14 @@ void WebARKitAkazeTracker::processFrameData(unsigned char *frameData,
   grayFrame.release();
 }
 
-void WebARKitAkazeTracker::processFrame(cv::Mat frame) {
+void WebARKitAkazeTracker::processFrame(cv::Mat& frame) {
   if (!this->_valid) {
     this->_valid = resetTracking(frame);
   }
   this->_valid = track(frame);
 }
 
-bool WebARKitAkazeTracker::resetTracking(cv::Mat frameCurr) {
+bool WebARKitAkazeTracker::resetTracking(cv::Mat& frameCurr) {
   if (!initialized) {
     std::cout << "Reference image not found. AR is unintialized!" << std::endl;
     return NULL;
@@ -84,8 +84,8 @@ bool WebARKitAkazeTracker::resetTracking(cv::Mat frameCurr) {
   bool valid;
 
   if (framePts.size() >= 15) {
-    H = cv::findHomography(refPts, framePts, cv::RANSAC);
-    if ((valid = homographyValid(H))) {
+    m_H = cv::findHomography(refPts, framePts, cv::RANSAC);
+    if ((valid = homographyValid(m_H))) {
       numMatches = framePts.size();
 
       if (frameCurr.empty()) {
@@ -99,7 +99,7 @@ bool WebARKitAkazeTracker::resetTracking(cv::Mat frameCurr) {
   return valid;
 }
 
-bool WebARKitAkazeTracker::track(cv::Mat frameCurr) {
+bool WebARKitAkazeTracker::track(cv::Mat& frameCurr) {
   if (!initialized) {
     std::cout << "Reference image not found. AR is unintialized!" << std::endl;
     return NULL;
@@ -151,13 +151,13 @@ bool WebARKitAkazeTracker::track(cv::Mat frameCurr) {
     transform.push_back(row);
 
     // update homography matrix
-    H = transform * H;
+    m_H = transform * m_H;
 
     // set old points to new points
     framePts = goodPtsNew;
 
-    if ((valid = homographyValid(H))) {
-      fill_output(H);
+    if ((valid = homographyValid(m_H))) {
+      fill_output(m_H);
     }
   }
 

@@ -42,14 +42,14 @@ void WebARKitOrbTracker::processFrameData(unsigned char *frameData,
   grayFrame.release();
 }
 
-void WebARKitOrbTracker::processFrame(cv::Mat frame) {
+void WebARKitOrbTracker::processFrame(cv::Mat& frame) {
   if (!isValid()) {
     this->_valid = resetTracking(frame);
   }
   this->_valid = track(frame);
 }
 
-bool WebARKitOrbTracker::resetTracking(cv::Mat currIm) {
+bool WebARKitOrbTracker::resetTracking(cv::Mat& currIm) {
   if (!initialized) {
     std::cout << "Reference image not found. AR is unintialized!" << std::endl;
     return NULL;
@@ -85,8 +85,8 @@ bool WebARKitOrbTracker::resetTracking(cv::Mat currIm) {
   bool valid;
   
   if (framePts.size() >= 15) {
-    H = cv::findHomography(refPts, framePts, cv::RANSAC);
-    valid = homographyValid(H);
+    m_H = cv::findHomography(refPts, framePts, cv::RANSAC);
+    valid = homographyValid(m_H);
     if (valid == true) {
       numMatches = framePts.size();
 
@@ -101,7 +101,7 @@ bool WebARKitOrbTracker::resetTracking(cv::Mat currIm) {
   return valid;
 }
 
-bool WebARKitOrbTracker::track(cv::Mat currIm) {
+bool WebARKitOrbTracker::track(cv::Mat& currIm) {
   if (!initialized) {
     std::cout << "Reference image not found. AR is unintialized!" << std::endl;
     return NULL;
@@ -154,12 +154,12 @@ bool WebARKitOrbTracker::track(cv::Mat currIm) {
     transform.push_back(row);
 
     // update homography matrix
-    H = transform * H;
+    m_H = transform * m_H;
 
     // set old points to new points
     framePts = goodPtsCurr;
-   if ((valid = homographyValid(H))) {
-      fill_output(H);
+   if ((valid = homographyValid(m_H))) {
+      fill_output(m_H);
     }
   }
 
