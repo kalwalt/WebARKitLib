@@ -84,7 +84,7 @@ bool WebARKitOrbTracker::resetTracking(cv::Mat& currIm) {
   //std::cout << framePts.size() << std::endl;
   bool valid;
   
-  if (framePts.size() >= 15) {
+  if (framePts.size() >= MIN_NUM_MATCHES) {
     m_H = cv::findHomography(refPts, framePts, cv::RANSAC);
     valid = homographyValid(m_H);
     if (valid == true) {
