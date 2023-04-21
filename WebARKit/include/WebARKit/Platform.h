@@ -82,15 +82,11 @@
 #    endif
 #  endif
 #  define CALL_CONV __stdcall
-#  define LOGI(...) fprintf(stdout, __VA_ARGS__)
-#  define LOGE(...) fprintf(stderr, __VA_ARGS__)
 
 #elif ARX_TARGET_PLATFORM_MACOS || ARX_TARGET_PLATFORM_IOS || ARX_TARGET_PLATFORM_LINUX || ARX_TARGET_PLATFORM_EMSCRIPTEN
 
 #  define ARX_EXTERN
 #  define CALL_CONV
-#  define LOGI(...) fprintf(stdout, __VA_ARGS__)
-#  define LOGE(...) fprintf(stderr, __VA_ARGS__)
 
 #else
 
