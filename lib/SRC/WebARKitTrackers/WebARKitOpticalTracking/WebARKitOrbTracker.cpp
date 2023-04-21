@@ -40,10 +40,11 @@ void WebARKitOrbTracker::processFrameData(unsigned char *frameData,
   }
   processFrame(grayFrame);
   grayFrame.release();
+  free(frameData);
 }
 
 void WebARKitOrbTracker::processFrame(cv::Mat& frame) {
-  if (!isValid()) {
+  if (!this->_valid) {
     this->_valid = resetTracking(frame);
   }
   this->_valid = track(frame);
@@ -86,15 +87,15 @@ bool WebARKitOrbTracker::resetTracking(cv::Mat& currIm) {
   
   if (framePts.size() >= MIN_NUM_MATCHES) {
     m_H = cv::findHomography(refPts, framePts, cv::RANSAC);
-    valid = homographyValid(m_H);
-    if (valid == true) {
+   if ((valid = homographyValid(m_H))) {
       numMatches = framePts.size();
 
       if (currIm.empty()) {
         std::cout << "prevIm is empty!" << std::endl;
         return NULL;
       }
-      prevIm = currIm.clone();
+      //prevIm = currIm.clone();
+      currIm.copyTo(prevIm);
     }
   }
 
@@ -163,7 +164,7 @@ bool WebARKitOrbTracker::track(cv::Mat& currIm) {
     }
   }
 
-  prevIm = currIm.clone();
+  currIm.copyTo(prevIm);
 
   return valid;
 }

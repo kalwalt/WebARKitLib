@@ -39,6 +39,7 @@ void WebARKitAkazeTracker::processFrameData(unsigned char *frameData,
   }
   processFrame(grayFrame);
   grayFrame.release();
+  free(frameData);
 }
 
 void WebARKitAkazeTracker::processFrame(cv::Mat& frame) {
@@ -92,7 +93,8 @@ bool WebARKitAkazeTracker::resetTracking(cv::Mat& frameCurr) {
         std::cout << "frameCurr is empty!" << std::endl;
         return NULL;
       }
-      framePrev = frameCurr.clone();
+      //framePrev = frameCurr.clone();
+      frameCurr.copyTo(framePrev);
     }
   }
 
@@ -161,7 +163,8 @@ bool WebARKitAkazeTracker::track(cv::Mat& frameCurr) {
     }
   }
 
-  framePrev = frameCurr.clone();
+  //framePrev = frameCurr.clone();
+  frameCurr.copyTo(framePrev);
 
   return valid;
 }
