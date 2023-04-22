@@ -50,7 +50,8 @@ m_videoSourceIsStereo(false),
 m_2DTrackerDataLoaded(false),
 m_2DTrackerDetectedImageCount(0),
 m_2DTracker(NULL),
-m_running(false)
+m_running(false),
+m_pageCount(0)
 {
 }
 
@@ -108,26 +109,28 @@ bool WebARKitTracker2d::unloadTwoDData(void)
 {
     m_2DTracker->RemoveAllMarkers();
     m_2DTrackerDataLoaded = false;
+    m_pageCount = 0;
     return true;
 }
 
 bool WebARKitTracker2d::loadTwoDData(std::vector<WebARKitTrackable *>& trackables)
 {
-    // If data was already loaded, stop KPM tracking thread and unload previously loaded data.
+    // If data was already loaded, unload previously loaded data.
     if (m_2DTrackerDataLoaded) {
         ARLOGi("Reloading 2D data.\n");
         unloadTwoDData();
     } else {
         ARLOGi("Loading 2D data.\n");
     }
-    int pageCount = 0;
     for (std::vector<WebARKitTrackable *>::iterator it = trackables.begin(); it != trackables.end(); ++it) {
         if ((*it)->type == WebARKitTrackable::TwoD) {
-            ((WebARKitTrackable2d *)(*it))->pageNo = pageCount;
-            // N.B.: AddMarker takes a copy of the image data.
-            m_2DTracker->AddMarker(((WebARKitTrackable2d *)(*it))->m_refImage.get(),((WebARKitTrackable2d *)(*it))->datasetPathname,((WebARKitTrackable2d *)(*it))->m_refImageX,((WebARKitTrackable2d *)(*it))->m_refImageY,((WebARKitTrackable2d *)(*it))->UID, ((WebARKitTrackable2d *)(*it))->TwoDScale());
-            ARLOGi("'%s' assigned page no. %d.\n", ((WebARKitTrackable2d *)(*it))->datasetPathname, pageCount);
-            pageCount++;
+            //((WebARKitTrackable2d *)(*it))->pageNo = pageCount;
+             WebARKitTrackable2d *t = static_cast<WebARKitTrackable2d *>(*it);
+            t->pageNo = m_pageCount;
+            // N.B.: PlanarTracker::AddMarker takes a copy of the image data.
+            m_2DTracker->AddMarker(t->m_refImage.get(), t->datasetPathname, t->m_refImageX, t->m_refImageY, t->UID, t->TwoDScale());
+            ARLOGi("'%s' assigned page no. %d.\n", t->datasetPathname, t->pageNo);
+            m_pageCount++; // For 2D tracker, no fixed upper limit on number of trackables that can be loaded.
         }
     }
     
@@ -159,19 +162,19 @@ bool WebARKitTracker2d::update(AR2VideoBufferT *buff, std::vector<WebARKitTracka
     for (std::vector<WebARKitTrackable *>::iterator it = trackables.begin(); it != trackables.end(); ++it) {
         if ((*it)->type == WebARKitTrackable::TwoD) {
             WebARKitTrackable2d *trackable2D = static_cast<WebARKitTrackable2d *>(*it);
-            bool trackable2DFound = false;
+            //bool trackable2DFound = false;
             if (m_2DTracker->IsTrackableVisible(trackable2D->UID)) {
-                float* transMat = m_2DTracker->GetTrackablePose(trackable2D->UID);
-                if (transMat) {
+                float transMat[3][4];
+                if (m_2DTracker->GetTrackablePose(trackable2D->UID, transMat)) {
                     ARdouble *transL2R = (m_videoSourceIsStereo ? (ARdouble *)m_transL2R : NULL);
-                    bool success = ((WebARKitTrackable2d *)(*it))->updateWithTwoDResults(trackable2D->pageNo, (float (*)[4])transMat, (ARdouble (*)[4])transL2R);
+                    bool success = trackable2D->updateWithTwoDResults(transMat, (ARdouble (*)[4])transL2R);
                     m_2DTrackerDetectedImageCount++;
-                    trackable2DFound = true;
+                    //trackable2DFound = true;
                 } else {
-                    trackable2D->updateWithTwoDResults(-1, NULL, NULL);
+                    trackable2D->updateWithTwoDResults(NULL, NULL);
                 }
             } else {
-                trackable2D->updateWithTwoDResults(-1, NULL, NULL);
+                trackable2D->updateWithTwoDResults(NULL, NULL);
             }
         }
     }

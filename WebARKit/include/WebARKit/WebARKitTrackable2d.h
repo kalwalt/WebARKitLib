@@ -71,7 +71,7 @@ public:
     bool load(const char* dataSetPathname_in);
     bool load2DData(const char* dataSetPathname_in, std::shared_ptr<unsigned char> refImage, int m_refImageX, int m_refImageY);
 
-    bool updateWithTwoDResults(int detectedPage, float trackingTrans[3][4], ARdouble transL2R[3][4] = NULL);
+    bool updateWithTwoDResults(float trackingTrans[3][4], ARdouble transL2R[3][4] = NULL);
     
     void setTwoDScale(const float scale);
     float TwoDScale();

@@ -57,7 +57,8 @@ WebARKitTrackerNFT::WebARKitTrackerNFT() :
     m_kpmHandle(NULL),
     m_surfaceSet{NULL},
     m_detectedPage(-2),
-    m_surfaceSetCount(0)
+    m_surfaceSetCount(0),
+    m_pageCount(0)
 {
 }
 

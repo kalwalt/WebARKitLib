@@ -100,6 +100,7 @@ private:
     bool m_running;
     bool unloadTwoDData();
     bool loadTwoDData(std::vector<WebARKitTrackable *>& trackables);
+    int m_pageCount;                    ///< Number of loaded pages.
 };
 
 #endif // HAVE_2D
