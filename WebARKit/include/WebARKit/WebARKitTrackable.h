@@ -45,6 +45,15 @@
 #include <WebARKit/WebARKitPattern.h>
 
 #include <vector>
+#include <utility>
+
+#ifdef ARDOUBLE_IS_FLOAT
+#  define _0_0 0.0f
+#  define _1_0 1.0f
+#else
+#  define _0_0 0.0
+#  define _1_0 1.0
+#endif
 
 class WebARKitController; // Forward declaration of owner.
 
@@ -64,12 +73,12 @@ protected:
 	 * Allocates space for patterns within this trackable.
 	 * @param count	The number of patterns to allocate
 	 */
-	void allocatePatterns(int count);
+	//void allocatePatterns(int count);
 
 	/**
 	 * Frees allocated patterns and resets the pattern count to zero.
 	 */
-	void freePatterns();
+	//void freePatterns();
 
     ARdouble m_positionScaleFactor;
 
@@ -87,16 +96,16 @@ public:
 	int UID;								///< Internal unique ID (note: not the same as artoolkitX pattern ID)
 	TrackableType type;						///< Type of trackable: single, multi, ...
 
-  // Inputs from subclasses.
-  bool visiblePrev;                       ///< Whether or not the trackable was visible prior to last update.
+    // Inputs from subclasses.
+    bool visiblePrev;                       ///< Whether or not the trackable was visible prior to last update.
 	bool visible;							///< Whether or not the trackable is visible at current time.
 
     // Output.
 	ARdouble transformationMatrix[16];		///< Transformation suitable for use in OpenGL
 	ARdouble transformationMatrixR[16];		///< Transformation suitable for use in OpenGL
 
-	int patternCount;						///< If this trackable has a surface appearance, the number of patterns that it has (1 for single).
-	WebARKitPattern** patterns;					///< Array of pointers to patterns
+	//int patternCount;						///< If this trackable has a surface appearance, the number of patterns that it has (1 for single).
+	//WebARKitPattern** patterns;					///< Array of pointers to patterns
 
 	/**
 	 * Constructor takes the type of this trackable.
@@ -124,7 +133,15 @@ public:
 	 * Returns the specified pattern within this trackable.
 	 * @param n		The pattern to retrieve
 	 */
-	WebARKitPattern* getPattern(int n);
+	//WebARKitPattern* getPattern(int n);
+
+	virtual int getPatternCount() = 0;
+    virtual std::pair<float, float> getPatternSize(int patternIndex) = 0;
+    virtual std::pair<int, int> getPatternImageSize(int patternIndex, AR_MATRIX_CODE_TYPE matrixCodeType) = 0;
+    /// Get the transform, relative to this trackable's origin, of this pattern.
+    /// Fills T with the transform in column-major (OpenGL) order.
+    virtual bool getPatternTransform(int patternIndex, ARdouble T[16]) = 0;
+    virtual bool getPatternImage(int patternIndex, uint32_t *pattImageBuffer, AR_MATRIX_CODE_TYPE matrixCodeType) = 0;
 
     // Filter control.
     void setFiltered(bool flag);

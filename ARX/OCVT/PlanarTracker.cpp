@@ -47,13 +47,13 @@
 #include "HomographyInfo.h"
 #include "OCVUtils.h"
 #include <opencv2/video.hpp>
-//#include <opencv2/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <iostream>
 
 class PlanarTracker::PlanarTrackerImpl
 {
 private:
+    int _maxNumberOfMarkersToTrack;
     OCVFeatureDetector _featureDetector;
     HarrisDetector _harrisDetector;
     std::vector<cv::Mat> _pyramid, _prevPyramid;
@@ -66,11 +66,13 @@ private:
     int _frameSizeX;
     int _frameSizeY;
     cv::Mat _K;
+    cv::Mat _distortionCoeff;
 
     int _selectedFeatureDetectorType;
 public:
     PlanarTrackerImpl()
     {
+        _maxNumberOfMarkersToTrack = 1;
         _featureDetector = OCVFeatureDetector();
         SetFeatureDetector(defaultDetectorType);
         _harrisDetector = HarrisDetector();
@@ -80,31 +82,44 @@ public:
         _frameSizeX = 0;
         _frameSizeY = 0;
         _K = cv::Mat();
+        _distortionCoeff = cv::Mat();
     }
 
-    void Initialise(int xFrameSize, int yFrameSize, ARdouble cParam[][4])
+    void Initialise(ARParam cParam)
     {
-        _frameSizeX = xFrameSize;
-        _frameSizeY = yFrameSize;
+        _frameSizeX = cParam.xsize;
+        _frameSizeY = cParam.ysize;
         _K = cv::Mat(3,3, CV_64FC1);
-        for(int i=0; i<3; i++) {
-            for(int j=0; j<3; j++) {
-                _K.at<double>(i,j) = (double)(cParam[i][j]);
+        for (int i = 0; i < 3; i++) {
+            for (int j = 0; j < 3; j++) {
+                _K.at<double>(i,j) = (double)(cParam.mat[i][j]);
             }
+        }
+        if (cParam.dist_function_version == 5) {
+            // k1,k2,p1,p2,k3,k4,k5,k6,s1,s2,s3,s4.
+            _distortionCoeff = cv::Mat::zeros(12, 1, CV_64F);
+            for (int i = 0; i < 12; i++) _distortionCoeff.at<double>(i) = cParam.dist_factor[i];
+        } else if (cParam.dist_function_version == 4) {
+            _distortionCoeff = cv::Mat::zeros(5, 1, CV_64F);
+            // k1,k2,p1,p2, and k3=0.
+            for (int i = 0; i < 4; i++) _distortionCoeff.at<double>(i) = cParam.dist_factor[i];
+            _distortionCoeff.at<double>(4) = 0.0;
+        } else {
+            ARLOGw("Unsupported camera parameters.\n");
         }
     }
 
     cv::Mat CreateFeatureMask(cv::Mat frame)
     {
         cv::Mat featureMask;
-        for(int i=0;i<_trackables.size(); i++) {
-            if(_trackables[i]._isDetected) {
-                if(featureMask.empty()) {
+        for (int i = 0; i < _trackables.size(); i++) {
+            if (_trackables[i]._isDetected) {
+                if (featureMask.empty()) {
                     //Only create mask if we have something to draw in it.
                     featureMask = cv::Mat::ones(frame.size(), CV_8UC1);
                 }
                 std::vector<std::vector<cv::Point> > contours(1);
-                for(int j=0; j<4; j++) {
+                for (int j = 0; j < 4; j++) {
                     contours[0].push_back(cv::Point(_trackables[i]._bBoxTransformed[j].x/featureDetectPyramidLevel,_trackables[i]._bBoxTransformed[j].y/featureDetectPyramidLevel));
                 }
                 drawContours(featureMask, contours, 0, cv::Scalar(0), -1, 8);
@@ -115,7 +130,8 @@ public:
 
     bool CanDetectNewFeatures()
     {
-        return (maxNumberOfToTrack>_currentlyTrackedMarkers);
+        //return (maxNumberOfToTrack>_currentlyTrackedMarkers);
+        return (_currentlyTrackedMarkers < _maxNumberOfMarkersToTrack);
     }
 
     bool CanMatchNewFeatures(int detectedFeaturesSize)
@@ -128,28 +144,27 @@ public:
         int maxMatches = 0;
         int bestMatchIndex = -1;
         std::vector<cv::KeyPoint> finalMatched1, finalMatched2;
-        for(int i=0;i<_trackables.size(); i++) {
-            if(!_trackables[i]._isDetected) {
+        for (int i = 0; i < _trackables.size(); i++) {
+            if (!_trackables[i]._isDetected) {
                 std::vector< std::vector<cv::DMatch> >  matches = _featureDetector.MatchFeatures(newFrameDescriptors, _trackables[i]._descriptors);
                 ARLOGi("Matches: %d\n", matches.size());
-                if(matches.size()>=minRequiredDetectedFeatures) {
+                if (matches.size()>=minRequiredDetectedFeatures) {
                     ARLOGi("Matches ok!!\n");
                     std::vector<cv::KeyPoint> matched1, matched2;
                     std::vector<uchar> status;
                     int totalGoodMatches = 0;
-                    for(unsigned int j = 0; j < matches.size(); j++) {
+                    for (unsigned int j = 0; j < matches.size(); j++) {
                         //Ratio Test for outlier removal, removes ambiguous matches.
-                        if(matches[j][0].distance < nn_match_ratio * matches[j][1].distance) {
+                        if (matches[j][0].distance < nn_match_ratio * matches[j][1].distance) {
                             matched1.push_back(newFrameFeatures[matches[j][0].queryIdx]);
                             matched2.push_back(_trackables[i]._featurePoints[matches[j][0].trainIdx]);
                             status.push_back(1);
                             totalGoodMatches++;
-                        }
-                        else {
+                        } else {
                             status.push_back(0);
                         }
                     }
-                    if(totalGoodMatches>maxMatches) {
+                    if (totalGoodMatches>maxMatches) {
                         finalMatched1 = matched1;
                         finalMatched2 = matched2;
                         maxMatches = totalGoodMatches;
@@ -159,9 +174,9 @@ public:
             }
         }
 
-        if(maxMatches>0) {
+        if (maxMatches > 0) {
             ARLOGi("Max matches: %d\n", maxMatches);
-            for(int i =0; i<finalMatched1.size();i++) {
+            for(int i = 0; i < finalMatched1.size(); i++) {
                 finalMatched1[i].pt.x *=featureDetectPyramidLevel;
                 finalMatched1[i].pt.y *=featureDetectPyramidLevel;
             }
@@ -169,7 +184,7 @@ public:
             // shouild be Points(finalMatched1), Points(finalMatched2) instead?
             HomographyInfo homoInfo = GetHomographyInliers(Points(finalMatched2), Points(finalMatched1));
             ARLOGi("Start Homography...\n");
-            if(homoInfo.validHomography) {
+            if (homoInfo.validHomography) {
                 std::cout << "New marker detected" << std::endl;
                 _trackables[bestMatchIndex]._trackSelection.SelectPoints();
                 _trackables[bestMatchIndex]._trackSelection.SetHomography(homoInfo.homography);
@@ -188,8 +203,7 @@ public:
             _trackables[trackableIndex]._trackSelection.SelectPoints();
             _trackables[trackableIndex]._resetTracks = false;
             return _trackables[trackableIndex]._trackSelection.GetSelectedFeatures();
-        }
-        else {
+        } else {
             return _trackables[trackableIndex]._trackSelection.GetTrackedFeatures();
         }
     }
@@ -199,15 +213,15 @@ public:
         std::vector<cv::Point2f> flowResultPoints, trackablePointsWarpedResult;
         std::vector<uchar> statusFirstPass, statusSecondPass;
         std::vector<float> err;
-        //cv::calcOpticalFlowPyrLK(_prevPyramid, _pyramid, trackablePointsWarped, flowResultPoints, statusFirstPass, err, winSizeFP, 3, termcrit, 0, 0.001);
-        cv::calcOpticalFlowPyrLK(_prevPyramid, _pyramid, trackablePointsWarped, flowResultPoints, statusFirstPass, err);
-        //cv::calcOpticalFlowPyrLK(_pyramid, _prevPyramid, flowResultPoints, trackablePointsWarpedResult, statusSecondPass, err, winSizeFP, 3, termcrit, 0, 0.001);
-        cv::calcOpticalFlowPyrLK(_pyramid, _prevPyramid, flowResultPoints, trackablePointsWarpedResult, statusSecondPass, err);
+        cv::calcOpticalFlowPyrLK(_prevPyramid, _pyramid, trackablePointsWarped, flowResultPoints, statusFirstPass, err, winSize, 3, termcrit, 0, 0.001);
+        //cv::calcOpticalFlowPyrLK(_prevPyramid, _pyramid, trackablePointsWarped, flowResultPoints, statusFirstPass, err);
+        cv::calcOpticalFlowPyrLK(_pyramid, _prevPyramid, flowResultPoints, trackablePointsWarpedResult, statusSecondPass, err, winSize, 3, termcrit, 0, 0.001);
+        //cv::calcOpticalFlowPyrLK(_pyramid, _prevPyramid, flowResultPoints, trackablePointsWarpedResult, statusSecondPass, err);
         
         int killed1 = 0;
         std::vector<cv::Point2f> filteredTrackablePoints, filteredTrackedPoints;
         for (auto j = 0; j != flowResultPoints.size(); ++j) {
-            if(( !statusFirstPass[j] ) || ( !statusSecondPass[j] )) {
+            if (!statusFirstPass[j] || !statusSecondPass[j]) {
                 statusFirstPass[j] = (uchar)0;
                 killed1++;
                 continue;
@@ -215,10 +229,9 @@ public:
             filteredTrackablePoints.push_back(trackablePoints[j]);
             filteredTrackedPoints.push_back(flowResultPoints[j]);
         }
-        if(UpdateTrackableHomography(trackableId, filteredTrackablePoints, filteredTrackedPoints)) {
+        if (UpdateTrackableHomography(trackableId, filteredTrackablePoints, filteredTrackedPoints)) {
             _trackables[trackableId]._isTracking = true;
-        }
-        else {
+        } else {
             _trackables[trackableId]._isDetected = false;
             _trackables[trackableId]._isTracking = false;
             _currentlyTrackedMarkers--;
@@ -227,13 +240,13 @@ public:
 
     bool UpdateTrackableHomography(int trackableId, std::vector<cv::Point2f> matchedPoints1, std::vector<cv::Point2f> matchedPoints2)
     {
-        if(matchedPoints1.size()>4) {
+        if (matchedPoints1.size() > 4) {
             HomographyInfo homoInfo = GetHomographyInliers(matchedPoints1, matchedPoints2);
-            if(homoInfo.validHomography) {
+            if (homoInfo.validHomography) {
                 _trackables[trackableId]._trackSelection.UpdatePointStatus(homoInfo.status);
                 _trackables[trackableId]._trackSelection.SetHomography(homoInfo.homography);
                 perspectiveTransform(_trackables[trackableId]._bBox, _trackables[trackableId]._bBoxTransformed, homoInfo.homography);
-                if(_frameCount>1){
+                if (_frameCount > 1){
                     _trackables[trackableId]._resetTracks = true;
                 }
                 return true;
@@ -287,17 +300,17 @@ public:
         std::vector<cv::Point2f> testVertexPoints = vertexPoints;
         float minX = std::numeric_limits<float>::max();
         float minY = std::numeric_limits<float>::max();
-        for(int k=0; k<testVertexPoints.size();k++) {
-            if(testVertexPoints[k].x<minX) {
+        for (int k = 0; k<testVertexPoints.size(); k++) {
+            if (testVertexPoints[k].x < minX) {
                 minX=testVertexPoints[k].x;
             }
-            if(testVertexPoints[k].y<minY) {
+            if (testVertexPoints[k].y < minY) {
                 minY=testVertexPoints[k].y;
             }
         }
-        for(int k=0; k<testVertexPoints.size();k++) {
-            testVertexPoints[k].x-=minX;
-            testVertexPoints[k].y-=minY;
+        for (int k = 0; k < testVertexPoints.size(); k++) {
+            testVertexPoints[k].x -= minX;
+            testVertexPoints[k].y -= minY;
         }
         return testVertexPoints;
     }
@@ -306,7 +319,7 @@ public:
     {
         int result_cols =  searchImage.cols - warpedTemplate.cols + 1;
         int result_rows = searchImage.rows - warpedTemplate.rows + 1;
-        if((result_cols>0)&&(result_rows>0)) {
+        if (result_cols > 0 && result_rows > 0) {
             cv::Mat result;
             result.create( result_rows, result_cols, CV_32FC1 );
 
@@ -334,9 +347,9 @@ public:
         std::vector<cv::Point2f> trackablePointsWarped = _trackables[trackableId]._trackSelection.GetSelectedFeaturesWarped();
         //Create an empty result image - May be able to pre-initialize this container
 
-        for(int j=0; j<trackablePointsWarped.size();j++) {
+        for (int j = 0; j<trackablePointsWarped.size(); j++) {
             auto pt = trackablePointsWarped[j];
-            if(cv::pointPolygonTest( _trackables[trackableId]._bBoxTransformed, trackablePointsWarped[j], true )>0) {
+            if (cv::pointPolygonTest( _trackables[trackableId]._bBoxTransformed, trackablePointsWarped[j], true ) > 0) {
                 auto ptOrig = trackablePoints[j];
 
                 cv::Rect templateRoi = GetTemplateRoi(pt);
@@ -358,14 +371,14 @@ public:
                     std::vector<cv::Point2f> finalWarpPoints = GetVerticesFromTopCorner(0, 0, srcBoundingBox.width, srcBoundingBox.height);
                     cv::Mat templateHomography = findHomography(testVertexPoints, finalWarpPoints, cv::RANSAC, ransac_thresh);
 
-                    if(!templateHomography.empty()) {
+                    if (!templateHomography.empty()) {
                         cv::Rect templateBoundingBox = cv::boundingRect(cv::Mat(vertexPointsResults));
                         cv::Rect searchROI = InflateRoi(templateRoi, searchRadius);
-                        if(IsRoiValidForFrame(frameROI, searchROI)) {
+                        if (IsRoiValidForFrame(frameROI, searchROI)) {
                             searchROI = searchROI & frameROI;
                             templateBoundingBox = templateBoundingBox & markerRoi;
 
-                            if((templateBoundingBox.area() > 0) &&(searchROI.area() > templateBoundingBox.area())) {
+                            if (templateBoundingBox.area() > 0 && searchROI.area() > templateBoundingBox.area()) {
                                 cv::Mat searchImage = frame(searchROI);
                                 cv::Mat templateImage = _trackables[trackableId]._image(templateBoundingBox);
                                 cv::Mat warpedTemplate;
@@ -373,11 +386,11 @@ public:
                                 warpPerspective(templateImage, warpedTemplate, templateHomography, srcBoundingBox.size());
                                 cv::Mat matchResult =  MatchTemplateToImage(searchImage, warpedTemplate);
 
-                                if(!matchResult.empty()) {
+                                if (!matchResult.empty()) {
                                     double minVal; double maxVal;
                                     cv::Point minLoc, maxLoc, matchLoc;
                                     minMaxLoc( matchResult, &minVal, &maxVal, &minLoc, &maxLoc, cv::Mat() );
-                                    if(minVal<0.5) {
+                                    if (minVal < 0.5) {
                                         matchLoc = minLoc;
                                         matchLoc.x+=searchROI.x + (warpedTemplate.cols/2);
                                         matchLoc.y+=searchROI.y + (warpedTemplate.rows/2);
@@ -385,13 +398,11 @@ public:
                                         finalTemplateMatchPoints.push_back(matchLoc);
                                     }
                                 }
-                            }
-                            else {
+                            } else {
                                 //std::cout << "ROIs not good" << std::endl;
                             }
                         }
-                    }
-                    else {
+                    } else {
                         //std::cout << "Empty homography" << std::endl;
                     }
                 }
@@ -413,15 +424,19 @@ public:
     {
         _pyramid.swap(_prevPyramid);
     }
-
+  
+    // Just wraps `frame` rather than copying it, i.e. `frame` must remain valid
+    // for the duration of the call.
     void ProcessFrameData(unsigned char * frame)
     {
         // When using emscripten the image comes in as RGB image from the browser
         // Convert it to Gray
         #if ARX_TARGET_PLATFORM_EMSCRIPTEN
-          cv::Mat colorFrame(_frameSizeY, _frameSizeX, CV_8UC4, frame);
-          cv::Mat grayFrame(_frameSizeY, _frameSizeX, CV_8UC1);
-          cv::cvtColor(colorFrame, grayFrame, cv::COLOR_RGBA2GRAY);
+          //cv::Mat colorFrame(_frameSizeY, _frameSizeX, CV_8UC4, frame);
+          //cv::Mat grayFrame(_frameSizeY, _frameSizeX, CV_8UC1);
+          // this because we are passing buffLuma now...
+          cv::Mat grayFrame(_frameSizeY, _frameSizeX, CV_8UC1, frame);
+          //v::cvtColor(colorFrame, grayFrame, cv::COLOR_RGBA2GRAY);
           ProcessFrame(grayFrame);
           grayFrame.release();
         #else
@@ -446,18 +461,17 @@ public:
             cv::Mat detectionFrame;
             cv::pyrDown(frame, detectionFrame, cv::Size(frame.cols/featureDetectPyramidLevel, frame.rows/featureDetectPyramidLevel));
             cv::Mat featureMask = CreateFeatureMask(detectionFrame);
-            // std::vector<cv::KeyPoint> newFrameFeatures = _featureDetector.DetectFeatures(detectionFrame, featureMask);
-            cv::Mat newFrameDescriptors;
-            std::vector<cv::KeyPoint> newFrameFeatures = _featureDetector.DetectAndCompute(detectionFrame, featureMask, newFrameDescriptors);
-            if(CanMatchNewFeatures(static_cast<int>(newFrameFeatures.size()))) {
+            std::vector<cv::KeyPoint> newFrameFeatures = _featureDetector.DetectFeatures(detectionFrame, featureMask);
+
+            if (CanMatchNewFeatures(static_cast<int>(newFrameFeatures.size()))) {
                 // std::cout << "Matching new features" << newFrameDescriptors << std::endl;
-                // cv::Mat newFrameDescriptors = _featureDetector.CalcDescriptors(detectionFrame, newFrameFeatures);
+                cv::Mat newFrameDescriptors = _featureDetector.CalcDescriptors(detectionFrame, newFrameFeatures);
                 MatchFeatures(newFrameFeatures, newFrameDescriptors);
             }
         }
-        if(_frameCount>0)
+        if (_frameCount > 0)
         {
-            if ((_currentlyTrackedMarkers>0) && (_prevPyramid.size()>0)) {
+            if ((_currentlyTrackedMarkers > 0) && (_prevPyramid.size() > 0)) {
                 std::cout << "Begin tracking phase" << std::endl;
                 for(int i=0;i<_trackables.size(); i++) {
                     if(_trackables[i]._isDetected) {
@@ -473,13 +487,13 @@ public:
                 }
             }
         }
-        for(int i=0;i<_trackables.size(); i++) {
-            if((_trackables[i]._isDetected)||(_trackables[i]._isTracking)) {
+        for (auto&& t : _trackables) {
+            if (t._isDetected || t._isTracking) {
 
-                std::vector<cv::Point2f> imgPoints = _trackables[i]._trackSelection.GetSelectedFeaturesWarped();
-                std::vector<cv::Point3f> objPoints = _trackables[i]._trackSelection.GetSelectedFeatures3d();
+                std::vector<cv::Point2f> imgPoints = t._trackSelection.GetSelectedFeaturesWarped();
+                std::vector<cv::Point3f> objPoints = t._trackSelection.GetSelectedFeatures3d();
 
-                CameraPoseFromPoints(_trackables[i]._pose, objPoints, imgPoints);
+                CameraPoseFromPoints(t._pose, objPoints, imgPoints);
             }
         }
         SwapImagePyramid();
@@ -488,8 +502,8 @@ public:
 
     void RemoveAllMarkers()
     {
-        for(int i=0;i<_trackables.size(); i++) {
-            _trackables[i].CleanUp();
+        for (auto&& t : _trackables) {
+            t.CleanUp();
         }
         _trackables.clear();
     }
@@ -519,12 +533,14 @@ public:
                 }
                 success = true;
             } catch (std::exception e) {
-                std::cout << "Error: Something went wrong when saving " << fileName << std::endl;
+                //std::cout << "Error: Something went wrong when saving " << fileName << std::endl;
+                ARLOGe("Error: Something went wrong while writing trackable database to path '%s'.\n", fileName.c_str());
             }
         }
         else
         {
-            std::cout << "Error: Could not open - " << fileName << std::endl;
+            //std::cout << "Error: Could not open - " << fileName << std::endl;
+            ARLOGe("Error: Could not create new trackable database at path '%s'.\n", fileName.c_str());
         }
         fs.release();
         return success;
@@ -567,42 +583,53 @@ public:
                 }
                 success = true;
             } catch(std::exception e) {
-                std::cout << "Error: Something went wrong when loading " << fileName << std::endl;
+                //std::cout << "Error: Something went wrong when loading " << fileName << std::endl;
+                ARLOGe("Error: Something went wrong while reading trackable database from path '%s'.\n", fileName.c_str());
             }
         }
         else
         {
-            std::cout << "Error: Could not open - " << fileName << std::endl;
+            //std::cout << "Error: Could not open - " << fileName << std::endl;
+            ARLOGe("Error: Could not open trackable database from path '%s'.\n", fileName.c_str());
         }
         fs.release();
         return success;
     }
 
-    void AddMarker(unsigned char* buff, std::string fileName, int width, int height, int uid, float scale)
+    void AddMarker(std::shared_ptr<unsigned char> buff, std::string fileName, int width, int height, int uid, float scale)
     {
         std::cout << "Add Marker" << std::endl;
         TrackableInfo newTrackable;
         #if ARX_TARGET_PLATFORM_EMSCRIPTEN
           std::cout << "Add Marker EM" << std::endl;
-          cv::Mat colorImage(height, width, CV_8UC4, buff);
-          //cv::Mat grayImage(_frameSizeY, _frameSizeX, CV_8UC1);
+          ARLOGi("We take the buff...\n");
+          newTrackable._imageBuff = buff;
+          cv::Mat colorImage(height, width, CV_8UC4, buff.get());
           cv::Mat grayImage(height, width, CV_8UC1);
           cv::cvtColor(colorImage, grayImage, cv::COLOR_RGBA2GRAY);
-          newTrackable._image = grayImage;
+          newTrackable._image = grayImage; 
+          //newTrackable._image = cv::Mat(height, width, CV_8UC1, buff.get());
+          ARLOGi("Image trackable...\n");
         #else
-          newTrackable._image = cv::Mat(height, width, CV_8UC1, buff);
+        
+        //newTrackable._image = cv::Mat(height, width, CV_8UC1, buff);
+        // cv::Mat() wraps `buff` rather than copying it, but this is OK as we share ownership with caller via the shared_ptr.
+        newTrackable._imageBuff = buff;
+        newTrackable._image = cv::Mat(height, width, CV_8UC1, buff.get());
+         
         #endif
         std::cout << "Add Marker _image" << std::endl;
-        if(!newTrackable._image.empty()) {
+        if(!newTrackable._image.empty()) {       
             newTrackable._id = uid;
             newTrackable._fileName = fileName;
             newTrackable._scale = scale;
             newTrackable._width = newTrackable._image.cols;
             newTrackable._height = newTrackable._image.rows;
             std::cout << "Add Marker DetectFeatures" << std::endl;
-            newTrackable._featurePoints = _featureDetector.DetectAndCompute(newTrackable._image, cv::Mat(), newTrackable._descriptors);
+            //newTrackable._featurePoints = _featureDetector.DetectAndCompute(newTrackable._image, cv::Mat(), newTrackable._descriptors);
+            newTrackable._featurePoints = _featureDetector.DetectFeatures(newTrackable._image, cv::Mat());
             std::cout << "Add Marker CalcDescriptors" << std::endl;
-            // newTrackable._descriptors = _featureDetector.CalcDescriptors(newTrackable._image, newTrackable._featurePoints);
+            newTrackable._descriptors = _featureDetector.CalcDescriptors(newTrackable._image, newTrackable._featurePoints);
             std::cout << "Add Marker FindCorners" << std::endl;
             newTrackable._cornerPoints = _harrisDetector.FindCorners(newTrackable._image);
             newTrackable._bBox.push_back(cv::Point2f(0,0));
@@ -615,7 +642,7 @@ public:
             newTrackable._trackSelection = TrackingPointSelector(newTrackable._cornerPoints, newTrackable._width, newTrackable._height, markerTemplateWidth);
 
             _trackables.push_back(newTrackable);
-            std::cout << "Marker Added" << std::endl;
+            ARLOGi("2D marker added.\n");
         }
     }
 
@@ -636,12 +663,9 @@ public:
 
     bool IsTrackableVisible(int trackableId)
     {
-        for(int i=0;i<_trackables.size(); i++) {
-            if(_trackables[i]._id==trackableId) {
-                if((_trackables[i]._isDetected) || (_trackables[i]._isTracking)) {
-                    return true;
-                }
-            }
+        auto t = std::find_if(_trackables.begin(), _trackables.end(), [&](const TrackableInfo& e) { return e._id == trackableId; });
+        if (t != _trackables.end()) {
+            return (t->_isDetected || t->_isTracking);
         }
         return false;
     }
@@ -655,7 +679,7 @@ public:
         #if ARX_TARGET_PLATFORM_EMSCRIPTEN
           cv::solvePnP(objPts, imgPts, _K, cv::Mat(), rvec, tvec);
         #else
-          cv::solvePnPRansac(objPts, imgPts, _K, cv::Mat(), rvec, tvec);
+          cv::solvePnPRansac(objPts, imgPts, _K, _distortionCoeff, rvec, tvec);
         #endif
 
         cv::Mat rMat;
@@ -674,11 +698,10 @@ public:
 
     bool ChangeImageId(int prevId, int newId)
     {
-        for(int i=0;i<_trackables.size(); i++) {
-            if(_trackables[i]._id==prevId) {
-                _trackables[i]._id = newId;
-                return true;
-            }
+        auto t = std::find_if(_trackables.begin(), _trackables.end(), [&](const TrackableInfo& e) { return e._id == prevId; });
+        if (t != _trackables.end()) {
+            t->_id = newId;
+            return true;
         }
         return false;
     }
@@ -693,7 +716,7 @@ public:
     TrackedImageInfo GetTrackableImageInfo(int trackableId)
     {
         TrackedImageInfo info;
-         auto t = std::find_if(_trackables.begin(), _trackables.end(), [&](const TrackableInfo& e) { return e._id == trackableId; });
+        auto t = std::find_if(_trackables.begin(), _trackables.end(), [&](const TrackableInfo& e) { return e._id == trackableId; });
         if (t != _trackables.end()) {
             info.uid = t->_id;
             info.scale = t->_scale;
@@ -714,6 +737,23 @@ public:
         _selectedFeatureDetectorType = detectorType;
         _featureDetector.SetFeatureDetector(detectorType);
     }
+
+    int GetFeatureDetector(void)
+    {
+        return _selectedFeatureDetectorType;
+    }
+
+    void SetMaximumNumberOfMarkersToTrack(int maximumNumberOfMarkersToTrack)
+    {
+        if (_maxNumberOfMarkersToTrack > 0) {
+            _maxNumberOfMarkersToTrack = maximumNumberOfMarkersToTrack;
+        }
+    }
+
+    int GetMaximumNumberOfMarkersToTrack(void)
+    {
+        return _maxNumberOfMarkersToTrack;
+    }
 };
 
 PlanarTracker::PlanarTracker() : _trackerImpl(new PlanarTrackerImpl())
@@ -724,9 +764,11 @@ PlanarTracker::~PlanarTracker() = default;
 PlanarTracker::PlanarTracker(PlanarTracker&&) = default;
 PlanarTracker& PlanarTracker::operator=(PlanarTracker&&) = default;
 
-void PlanarTracker::Initialise(int xFrameSize, int yFrameSize, ARdouble cParam[][4])
+//void PlanarTracker::Initialise(int xFrameSize, int yFrameSize, ARdouble cParam[][4])
+void PlanarTracker::Initialise(ARParam cParam)
 {
-    _trackerImpl->Initialise(xFrameSize, yFrameSize, cParam);
+    //_trackerImpl->Initialise(xFrameSize, yFrameSize, cParam);
+    _trackerImpl->Initialise(cParam);
 }
 
 void PlanarTracker::ProcessFrameData(unsigned char * frame)
@@ -739,7 +781,7 @@ void PlanarTracker::RemoveAllMarkers()
     _trackerImpl->RemoveAllMarkers();
 }
 
-void PlanarTracker::AddMarker(unsigned char* buff, std::string fileName, int width, int height, int uid, float scale)
+void PlanarTracker::AddMarker(std::shared_ptr<unsigned char> buff, std::string fileName, int width, int height, int uid, float scale)
 {
     _trackerImpl->AddMarker(buff, fileName, width, height, uid, scale);
 }
@@ -780,4 +822,19 @@ TrackedImageInfo PlanarTracker::GetTrackableImageInfo(int trackableId)
 void PlanarTracker::SetFeatureDetector(int detectorType)
 {
     _trackerImpl->SetFeatureDetector(detectorType);
+}
+
+int PlanarTracker::GetFeatureDetector(void)
+{
+    return _trackerImpl->GetFeatureDetector();
+}
+
+void PlanarTracker::SetMaximumNumberOfMarkersToTrack(int maximumNumberOfMarkersToTrack)
+{
+    _trackerImpl->SetMaximumNumberOfMarkersToTrack(maximumNumberOfMarkersToTrack);
+}
+
+int PlanarTracker::GetMaximumNumberOfMarkersToTrack(void)
+{
+    return _trackerImpl->GetMaximumNumberOfMarkersToTrack();
 }

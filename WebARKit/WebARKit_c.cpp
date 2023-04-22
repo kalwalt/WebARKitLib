@@ -68,6 +68,7 @@ static union { unsigned char __c[4]; float __d; } __nan_union = { __nan_bytes };
 // ----------------------------------------------------------------------------------------------------
 
 static WebARKitController *gARTK = NULL;
+static ARVideoSourceInfoListT *gARVideoSourceInfoList = NULL;
 
 // ----------------------------------------------------------------------------------------------------
 
@@ -327,8 +328,6 @@ void arwSetTrackerOptionBool(int option, bool value)
     if (option == ARW_TRACKER_OPTION_NFT_MULTIMODE) {
 #if HAVE_NFT
         gARTK->getNFTTracker()->setNFTMultiMode(value);
-#else
-        return;
 #endif
     } else if (option == ARW_TRACKER_OPTION_SQUARE_DEBUG_MODE) {
         gARTK->getSquareTracker()->setDebugMode(value);
@@ -361,8 +360,10 @@ void arwSetTrackerOptionInt(int option, int value)
         if (value < 0 || value > 3) return;
         gARTK->get2dTracker()->setDetectorType(value);
         gARTK->getOrb2dTracker()->setDetectorType(value);
-#else
-        return;
+#endif
+    } else if (option == ARW_TRACKER_OPTION_2D_MAXIMUM_MARKERS_TO_TRACK) {
+#if HAVE_2D
+        gARTK->get2dTracker()->setMaxMarkersToTrack(value);
 #endif
     }
 }
@@ -384,8 +385,6 @@ bool arwGetTrackerOptionBool(int option)
     if (option == ARW_TRACKER_OPTION_NFT_MULTIMODE) {
 #if HAVE_NFT
         return  gARTK->getNFTTracker()->NFTMultiMode();
-#else
-        return false;
 #endif
     } else if (option == ARW_TRACKER_OPTION_SQUARE_DEBUG_MODE) {
         return gARTK->getSquareTracker()->debugMode();
@@ -413,6 +412,14 @@ int arwGetTrackerOptionInt(int option)
         return gARTK->getSquareTracker()->patternSize();
     } else if (option == ARW_TRACKER_OPTION_SQUARE_PATTERN_COUNT_MAX) {
         return gARTK->getSquareTracker()->patternCountMax();
+     } else if (option == ARW_TRACKER_OPTION_2D_TRACKER_FEATURE_TYPE) {
+#if HAVE_2D
+        return gARTK->get2dTracker()->getDetectorType();
+#endif
+    } else if (option == ARW_TRACKER_OPTION_2D_MAXIMUM_MARKERS_TO_TRACK) {
+#if HAVE_2D
+        return gARTK->get2dTracker()->getMaxMarkersToTrack();
+#endif       
     }
     return (INT_MAX);
 }
@@ -538,13 +545,13 @@ int arwGetTrackablePatternCount(int trackableUID)
         ARLOGe("arwGetTrackablePatternCount(): Couldn't locate trackable with UID %d.\n", trackableUID);
         return 0;
     }
-    return trackable->patternCount;
+    return (int)trackable->getPatternCount();
 }
 
 bool arwGetTrackablePatternConfig(int trackableUID, int patternID, float matrix[16], float *width, float *height, int *imageSizeX, int *imageSizeY)
 {
     WebARKitTrackable *trackable;
-    WebARKitPattern *p;
+    //WebARKitPattern *p;
 
     if (!gARTK) return false;
 	if (!(trackable = gARTK->findTrackable(trackableUID))) {
@@ -552,25 +559,34 @@ bool arwGetTrackablePatternConfig(int trackableUID, int patternID, float matrix[
         return false;
     }
 
-    if (!(p = trackable->getPattern(patternID))) {
+    /*if (!(p = trackable->getPattern(patternID))) {
         ARLOGe("arwGetTrackablePatternConfig(): Trackable with UID %d has no pattern with ID %d.\n", trackableUID, patternID);
         return false;
-    }
+    }*/
 
     if (matrix) {
-        for (int i = 0; i < 16; i++) matrix[i] = (float)p->m_matrix[i];
+        //for (int i = 0; i < 16; i++) matrix[i] = (float)p->m_matrix[i];
+        ARdouble pattMtx[16];
+        if (!trackable->getPatternTransform(patternID, pattMtx)) return false;
+        for (int i = 0; i < 16; i++) matrix[i] = (float)pattMtx[i];
     }
-    if (width) *width = (float)p->m_width;
+    /*if (width) *width = (float)p->m_width;
     if (height) *height = (float)p->m_height;
     if (imageSizeX) *imageSizeX = p->m_imageSizeX;
-    if (imageSizeY) *imageSizeY = p->m_imageSizeY;
+    if (imageSizeY) *imageSizeY = p->m_imageSizeY;*/
+    std::pair<float, float> size = trackable->getPatternSize(patternID);
+    if (width) *width = size.first;
+    if (height) *height = size.second;
+    std::pair<int, int> imageSize = trackable->getPatternImageSize(patternID, trackable->type == WebARKitTrackable::SINGLE || trackable->type == WebARKitTrackable::MULTI || trackable->type == WebARKitTrackable::MULTI_AUTO ? gARTK->getSquareTracker()->matrixCodeType() : (AR_MATRIX_CODE_TYPE)0);
+    if (imageSizeX) *imageSizeX = imageSize.first;
+    if (imageSizeY) *imageSizeY = imageSize.second;
     return true;
 }
 
 bool arwGetTrackablePatternImage(int trackableUID, int patternID, uint32_t *buffer)
 {
     WebARKitTrackable *trackable;
-    WebARKitPattern *p;
+    //WebARKitPattern *p;
 
     if (!gARTK) return false;
 	if (!(trackable = gARTK->findTrackable(trackableUID))) {
@@ -578,7 +594,7 @@ bool arwGetTrackablePatternImage(int trackableUID, int patternID, uint32_t *buff
         return false;
     }
 
-    if (!(p = trackable->getPattern(patternID))) {
+    /*if (!(p = trackable->getPattern(patternID))) {
         ARLOGe("arwGetTrackablePatternImage(): Trackable with UID %d has no pattern with ID %d.\n", trackableUID, patternID);
         return false;
     }
@@ -588,7 +604,8 @@ bool arwGetTrackablePatternImage(int trackableUID, int patternID, uint32_t *buff
     }
 
     memcpy(buffer, p->m_image, sizeof(uint32_t) * p->m_imageSizeX * p->m_imageSizeY);
-    return true;
+    return true;*/
+    return trackable->getPatternImage(patternID, buffer, trackable->type == WebARKitTrackable::SINGLE || trackable->type == WebARKitTrackable::MULTI || trackable->type == WebARKitTrackable::MULTI_AUTO ? gARTK->getSquareTracker()->matrixCodeType() : (AR_MATRIX_CODE_TYPE)0);
 
 }
 
@@ -811,3 +828,75 @@ int arwVideoPushInitWeb(int videoSourceIndex, int width, int height, const char 
 }
 
 #endif
+
+// ----------------------------------------------------------------------------------------------------
+#pragma mark  Video source info list management
+// ----------------------------------------------------------------------------------------------------
+
+int arwCreateVideoSourceInfoList(char *config)
+{
+    if (gARVideoSourceInfoList) {
+        ar2VideoDeleteSourceInfoList(&gARVideoSourceInfoList);
+    }
+    gARVideoSourceInfoList = ar2VideoCreateSourceInfoList(config);
+    if (!gARVideoSourceInfoList) {
+        return 0;
+    } else if (gARVideoSourceInfoList->count == 0) {
+        ar2VideoDeleteSourceInfoList(&gARVideoSourceInfoList);
+        return 0;
+    } else {
+        return gARVideoSourceInfoList->count;
+    }
+}
+
+bool arwGetVideoSourceInfoListEntry(int index, char *nameBuf, int nameBufLen, char *modelBuf, int modelBufLen, char *UIDBuf, int UIDBufLen, uint32_t *flags_p, char *openTokenBuf, int openTokenBufLen)
+{
+    if (!gARVideoSourceInfoList) {
+        return false;
+    }
+    if (index < 0 || index >= gARVideoSourceInfoList->count) {
+        return false;
+    }
+    if (nameBuf && nameBufLen > 0) {
+        if (!gARVideoSourceInfoList->info[index].name) *nameBuf = '\0';
+        else {
+            strncpy(nameBuf, gARVideoSourceInfoList->info[index].name, nameBufLen);
+            nameBuf[nameBufLen - 1] = '\0';
+        }
+    }
+    if (modelBuf && modelBufLen > 0) {
+        if (!gARVideoSourceInfoList->info[index].model) *modelBuf = '\0';
+        else {
+            strncpy(modelBuf, gARVideoSourceInfoList->info[index].model, modelBufLen);
+            modelBuf[modelBufLen - 1] = '\0';
+        }
+    }
+    if (UIDBuf && UIDBufLen > 0) {
+        if (!gARVideoSourceInfoList->info[index].UID) *UIDBuf = '\0';
+        else {
+            strncpy(UIDBuf, gARVideoSourceInfoList->info[index].UID, UIDBufLen);
+            UIDBuf[UIDBufLen - 1] = '\0';
+        }
+    }
+    if (flags_p) {
+        *flags_p = gARVideoSourceInfoList->info[index].flags;
+    }
+    if (openTokenBuf && openTokenBufLen > 0) {
+        if (!gARVideoSourceInfoList->info[index].open_token) *openTokenBuf = '\0';
+        else {
+            strncpy(openTokenBuf, gARVideoSourceInfoList->info[index].open_token, openTokenBufLen);
+            openTokenBuf[openTokenBufLen - 1] = '\0';
+        }
+    }
+    return true;
+}
+
+void arwDeleteVideoSourceInfoList(void)
+{
+    if (gARVideoSourceInfoList) {
+        ar2VideoDeleteSourceInfoList(&gARVideoSourceInfoList);
+        gARVideoSourceInfoList = NULL;
+    }
+}
+
+

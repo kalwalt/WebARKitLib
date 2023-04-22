@@ -46,6 +46,7 @@ class TrackableInfo
 public:
     int _id;
     float _scale;
+    std::shared_ptr<unsigned char> _imageBuff;
     cv::Mat _image;
     std::vector<cv::Point2f> _points;
     int _width;
@@ -67,11 +68,12 @@ public:
     
     void CleanUp()
     {
-        _image.release();
         _descriptors.release();
         _pose.release();
         _featurePoints.clear();
         _trackSelection.CleanUp();
+        _image.release();
+        _imageBuff.reset();
     }
 };
 

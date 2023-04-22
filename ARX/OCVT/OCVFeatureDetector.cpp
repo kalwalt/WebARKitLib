@@ -84,7 +84,7 @@ void OCVFeatureDetector::CreateKazeFeatureDetector()
 
 void OCVFeatureDetector::CreateORBFeatureDetector()
 {
-    _featureDetector = cv::ORB::create();
+    _featureDetector = cv::ORB::create(8000);
     _matcher = cv::BFMatcher::create();
 }
 
@@ -101,6 +101,20 @@ std::vector<cv::KeyPoint> OCVFeatureDetector::DetectAndCompute(cv::Mat frame, cv
   std::vector<cv::KeyPoint> kp;
   _featureDetector->detectAndCompute(frame, mask, kp, desc);
   return kp;
+}
+
+std::vector<cv::KeyPoint> OCVFeatureDetector::DetectFeatures(cv::Mat frame, cv::Mat mask)
+{
+    std::vector<cv::KeyPoint> kp;
+    _featureDetector->detect(frame, kp, mask);
+    return kp;
+}
+
+cv::Mat OCVFeatureDetector::CalcDescriptors(cv::Mat frame, std::vector<cv::KeyPoint> kp)
+{
+    cv::Mat desc;
+    _featureDetector->compute(frame, kp, desc);
+    return desc;
 }
 
 std::vector< std::vector<cv::DMatch> >  OCVFeatureDetector::MatchFeatures(cv::Mat first_desc, cv::Mat desc)

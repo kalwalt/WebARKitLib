@@ -1,5 +1,5 @@
 /*
- *  WebARKitTrackableNFT.h
+ *  matrixCode.h
  *  artoolkitX
  *
  *  This file is part of artoolkitX.
@@ -28,58 +28,35 @@
  *  are not obligated to do so. If you do not wish to do so, delete this exception
  *  statement from your version.
  *
+ *  Copyright 2023 Philip Lamb
  *  Copyright 2018 Realmax, Inc.
  *  Copyright 2015 Daqri, LLC.
- *  Copyright 2011-2015 ARToolworks, Inc.
+ *  Copyright 2003-2015 ARToolworks, Inc.
  *
  *  Author(s): Philip Lamb
  *
  */
 
-#ifndef WEBARKITMARKERNFT_H
-#define WEBARKITMARKERNFT_H
+#ifndef matrixCode_h
+#define matrixCode_h
 
-#include <WebARKit/WebARKitTrackable.h>
-#if HAVE_NFT
-#include <ARX/AR2/tracking.h>
-#include <ARX/KPM/kpm.h>
+#include <stdio.h>
+#include <stdint.h>
+#include <ARX/AR/ar.h>
 
-/**
- * NFT marker type of WebARKitTrackable.
- */
-class WebARKitTrackableNFT : public WebARKitTrackable {
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-    friend class WebARKitTrackerNFT;
+/// Caller must free *out_bits_p;
+/// Returns length of *out_bits_p*
+int encode_bch(int length, int k, const int *g, uint64_t number, uint8_t **out_bits_p);
 
-private:
-    bool m_loaded;
-    float m_nftScale;
-    bool robustFlag;                                    ///< Flag specifying which pose estimation approach to use
-    int pageNo; ///< "Page number" (first page is page 0), or -1 if NFT data not yet loaded into tracker.
-    char *datasetPathname;
-    AR2SurfaceSetT *surfaceSet;
-    bool unload();
-    AR2ImageT *getBestImage(int patternIndex);
+/// Caller must free *out_bits_p;
+/// Returns length of *out_bits_p*
+int encodeMatrixCode(const AR_MATRIX_CODE_TYPE matrixCodeType, uint64_t in, uint8_t **out_bits_p);
 
-public:
-
-	WebARKitTrackableNFT();
-	~WebARKitTrackableNFT();
-
-	bool load(const char* dataSetPathname_in);
-
-	bool updateWithNFTResults(int detectedPage, float trackingTrans[3][4], ARdouble transL2R[3][4] = NULL);
-
-    void setNFTScale(const float scale);
-    float NFTScale();
-
-    int getPatternCount() override;
-    std::pair<float, float> getPatternSize(int patternIndex) override;
-    std::pair<int, int> getPatternImageSize(int patternIndex, AR_MATRIX_CODE_TYPE matrixCodeType) override;
-    bool getPatternTransform(int patternIndex, ARdouble T[16]) override;
-    bool getPatternImage(int patternIndex, uint32_t *pattImageBuffer, AR_MATRIX_CODE_TYPE matrixCodeType) override;
-};
-
-#endif // HAVE_NFT
-
-#endif // !WEBARKITMARKERNFT_H
+#ifdef __cplusplus
+}
+#endif
+#endif /* matrixCode_h */

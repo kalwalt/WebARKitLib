@@ -69,24 +69,26 @@ bool WebARKitTracker2d::initialize()
     return true;
 }
 
-void WebARKitTracker2d::setTwoDMultiMode(bool on)
+void WebARKitTracker2d::setMaxMarkersToTrack(int maximumNumberOfMarkersToTrack)
 {
-    m_twoDMultiMode = on;
+    m_2DTracker->SetMaximumNumberOfMarkersToTrack(maximumNumberOfMarkersToTrack);
 }
 
-bool WebARKitTracker2d::TwoDMultiMode() const
+int WebARKitTracker2d::getMaxMarkersToTrack() const
 {
-    return m_twoDMultiMode;
+    return m_2DTracker->GetMaximumNumberOfMarkersToTrack();
 }
 
 bool WebARKitTracker2d::start(ARParamLT *paramLT, AR_PIXEL_FORMAT pixelFormat)
 {
     if (!paramLT || pixelFormat == AR_PIXEL_FORMAT_INVALID) return false;
     
-    m_cameraXSize = paramLT->param.xsize;
-    m_cameraYSize = paramLT->param.ysize;
+    ARLOGd("ARTracker2d::start(): Camera parameters: frame %dx%d, intrinsics:", paramLT->param.xsize, paramLT->param.ysize);
+    for (int i = 0; i < 3; i++) {
+        ARLOGd("[% 5.3f % 5.3f % 5.3f] [% 6.1f]\n", paramLT->param.mat[i][0], paramLT->param.mat[i][1], paramLT->param.mat[i][2], paramLT->param.mat[i][3]);
+    }
 
-    m_2DTracker->Initialise(m_cameraXSize,m_cameraYSize, paramLT->param.mat);
+    m_2DTracker->Initialise(paramLT->param);
     
     m_videoSourceIsStereo = false;
     m_running = true;
@@ -124,11 +126,10 @@ bool WebARKitTracker2d::loadTwoDData(std::vector<WebARKitTrackable *>& trackable
     }
     for (std::vector<WebARKitTrackable *>::iterator it = trackables.begin(); it != trackables.end(); ++it) {
         if ((*it)->type == WebARKitTrackable::TwoD) {
-            //((WebARKitTrackable2d *)(*it))->pageNo = pageCount;
-             WebARKitTrackable2d *t = static_cast<WebARKitTrackable2d *>(*it);
+            WebARKitTrackable2d *t = static_cast<WebARKitTrackable2d *>(*it);
             t->pageNo = m_pageCount;
             // N.B.: PlanarTracker::AddMarker takes a copy of the image data.
-            m_2DTracker->AddMarker(t->m_refImage.get(), t->datasetPathname, t->m_refImageX, t->m_refImageY, t->UID, t->TwoDScale());
+            m_2DTracker->AddMarker(t->m_refImage, t->datasetPathname, t->m_refImageX, t->m_refImageY, t->UID, t->TwoDScale());
             ARLOGi("'%s' assigned page no. %d.\n", t->datasetPathname, t->pageNo);
             m_pageCount++; // For 2D tracker, no fixed upper limit on number of trackables that can be loaded.
         }
@@ -156,20 +157,20 @@ bool WebARKitTracker2d::update(AR2VideoBufferT *buff, std::vector<WebARKitTracka
         }
     }
     
-    m_2DTracker->ProcessFrameData(buff->buff);
+    // need to check if it is correct also for Emscripten
+    m_2DTracker->ProcessFrameData(buff->buffLuma);
     // Loop through all loaded 2D targets and match against tracking results.
     m_2DTrackerDetectedImageCount = 0;
     for (std::vector<WebARKitTrackable *>::iterator it = trackables.begin(); it != trackables.end(); ++it) {
         if ((*it)->type == WebARKitTrackable::TwoD) {
             WebARKitTrackable2d *trackable2D = static_cast<WebARKitTrackable2d *>(*it);
-            //bool trackable2DFound = false;
+            
             if (m_2DTracker->IsTrackableVisible(trackable2D->UID)) {
                 float transMat[3][4];
                 if (m_2DTracker->GetTrackablePose(trackable2D->UID, transMat)) {
                     ARdouble *transL2R = (m_videoSourceIsStereo ? (ARdouble *)m_transL2R : NULL);
                     bool success = trackable2D->updateWithTwoDResults(transMat, (ARdouble (*)[4])transL2R);
                     m_2DTrackerDetectedImageCount++;
-                    //trackable2DFound = true;
                 } else {
                     trackable2D->updateWithTwoDResults(NULL, NULL);
                 }
@@ -251,11 +252,9 @@ void WebARKitTracker2d::deleteTrackable(WebARKitTrackable **trackable_p)
     if (!trackable_p || !(*trackable_p)) return;
     if ((*trackable_p)->type != WebARKitTrackable::TwoD) return;
 
-    m_2DTracker->RemoveAllMarkers();
+    unloadTwoDData();
     delete (*trackable_p);
     (*trackable_p) = NULL;
-    
-    unloadTwoDData();
 }
 
 std::vector<WebARKitTrackable*> WebARKitTracker2d::loadImageDatabase(std::string fileName)
@@ -296,5 +295,11 @@ void WebARKitTracker2d::setDetectorType(int detectorType)
         m_2DTracker->SetFeatureDetector(detectorType);
     }
 }
+
+int WebARKitTracker2d::getDetectorType(void)
+{
+    return m_2DTracker->GetFeatureDetector();
+}
+
 #endif // HAVE_2D
 

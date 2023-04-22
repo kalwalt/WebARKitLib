@@ -65,12 +65,17 @@ public:
     PlanarTracker(PlanarTracker&&);
     PlanarTracker& operator = (PlanarTracker&&);
     
-    void Initialise(int xFrameSize, int yFrameSize, ARdouble cParam[][4]);
-    
+     void Initialise(ARParam cParam);
+
+    /// Perform tracking on a single frame of video.
+    /// The frame is passed as a single buffer of 8-bit greyscale pixels, starting with the top-left-most pixel
+    /// of the frame and proceeding first by row, then by column. The size of the buffer must exactly match
+    /// that passed in xFrameSize and yFrameSize parameters to Initialise() (i.e. xFrameSize * yFrameSize bytes).
+    /// The frame data must remain valid for the entire duration of the call.
     void ProcessFrameData(unsigned char * frame);
     
     void RemoveAllMarkers();
-    void AddMarker(unsigned char* buff, std::string fileName, int width, int height, int uid, float scale);
+    void AddMarker(std::shared_ptr<unsigned char> buff, std::string fileName, int width, int height, int uid, float scale);
     void AddMarker(std::string imageName, int uid, float scale);
     
     bool GetTrackablePose(int trackableId, float transMat[3][4]);
@@ -84,6 +89,10 @@ public:
     TrackedImageInfo GetTrackableImageInfo(int trackableId);
     
     void SetFeatureDetector(int detectorType);
+    int GetFeatureDetector(void);
+
+    void SetMaximumNumberOfMarkersToTrack(int maximumNumberOfMarkersToTrack);
+    int GetMaximumNumberOfMarkersToTrack(void);
 
 private:
     class PlanarTrackerImpl;

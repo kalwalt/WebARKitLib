@@ -44,10 +44,10 @@
 
 WebARKitTrackable2d::WebARKitTrackable2d() : WebARKitTrackable(TwoD),
 m_loaded(false),
-m_twoDScale(1.0f),
+m_twoDScale(1000.0f),
 pageNo(-1),
-datasetPathname(NULL),
-m_height(1.0f)
+datasetPathname(NULL)
+//m_height(1.0f)
 {
     WebARKitTrackable::setFiltered(true);
 }
@@ -87,10 +87,10 @@ bool WebARKitTrackable2d::load2DData(const char* dataSetPathname_in, std::shared
 
     datasetPathname = strdup(dataSetPathname_in);
     
-    allocatePatterns(1);
+    /*allocatePatterns(1);
     patterns[0]->load2DTrackerImage(m_refImage, m_refImageX, m_refImageY, m_height*((float)m_refImageX)/((float)m_refImageY), m_height);
     
-    allocatePatterns(1);
+    allocatePatterns(1);*/
     m_loaded = true;
     
     return true;
@@ -100,7 +100,7 @@ bool WebARKitTrackable2d::load2DData(const char* dataSetPathname_in, std::shared
 bool WebARKitTrackable2d::unload()
 {
     if (m_loaded) {
-        freePatterns();
+        //freePatterns();
         pageNo = -1;
         m_refImage.reset();
         if (datasetPathname) {
@@ -124,9 +124,9 @@ bool WebARKitTrackable2d::updateWithTwoDResults(float trackingTrans[3][4], ARdou
         visible = true;
         for (int j = 0; j < 3; j++) {
             trans[j][0] = (ARdouble)trackingTrans[j][0];
-            trans[j][1] = (ARdouble)trackingTrans[j][1];
-            trans[j][2] = (ARdouble)trackingTrans[j][2];
-            trans[j][3] = (ARdouble)(trackingTrans[j][3]) * m_twoDScale;
+            trans[j][1] = -(ARdouble)trackingTrans[j][1];
+            trans[j][2] = -(ARdouble)trackingTrans[j][2];
+            trans[j][3] =  (ARdouble)(trackingTrans[j][3] * m_twoDScale * 0.001f * 1.64f );
         }
     } else visible = false;
     
@@ -142,6 +142,53 @@ float WebARKitTrackable2d::TwoDScale()
 {
     return (m_twoDScale);
 }
+
+int WebARKitTrackable2d::getPatternCount()
+{
+    return 1;
+}
+
+std::pair<float, float> WebARKitTrackable2d::getPatternSize(int patternIndex)
+{
+    if (patternIndex != 0) return std::pair<float, float>();
+    return std::pair<float, float>(m_twoDScale, m_twoDScale/((float)m_refImageX / (float)m_refImageY));
+}
+
+std::pair<int, int> WebARKitTrackable2d::getPatternImageSize(int patternIndex, AR_MATRIX_CODE_TYPE matrixCodeType)
+{
+    if (patternIndex != 0) return std::pair<int, int>();
+    return std::pair<int, int>(m_refImageX, m_refImageY);
+}
+
+bool WebARKitTrackable2d::getPatternTransform(int patternIndex, ARdouble T[16])
+{
+    if (patternIndex != 0) return false;
+    T[ 0] = _1_0; T[ 1] = _0_0; T[ 2] = _0_0; T[ 3] = _0_0;
+    T[ 4] = _0_0; T[ 5] = _1_0; T[ 6] = _0_0; T[ 7] = _0_0;
+    T[ 8] = _0_0; T[ 9] = _0_0; T[10] = _1_0; T[11] = _0_0;
+    T[12] = _0_0; T[13] = _0_0; T[14] = _0_0; T[15] = _1_0;
+    return true;
+}
+
+bool WebARKitTrackable2d::getPatternImage(int patternIndex, uint32_t *pattImageBuffer, AR_MATRIX_CODE_TYPE matrixCodeType)
+{
+    if (patternIndex != 0) return false;
+    if (m_refImage == nullptr) return false;
+    unsigned char *buff = m_refImage.get();
+    for (int y = 0; y < m_refImageY; y++) {
+        unsigned char *buffRow = buff + (m_refImageY - 1 - y)*m_refImageX; // Flip in y as output image has origin at lower-left.
+        for (int x = 0; x < m_refImageX; x++) {
+            unsigned char c = buffRow[x];
+#ifdef AR_LITTLE_ENDIAN
+            *pattImageBuffer++ = 0xff000000 | c << 16 | c << 8 | c;
+#else
+            *pattImageBuffer++ = c << 24 | c << 16 | c << 8 | 0xff;
+#endif
+        }
+    }
+    return true;
+}
+
 
 #endif // HAVE_2D
 

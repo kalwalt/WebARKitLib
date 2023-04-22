@@ -66,9 +66,9 @@ WebARKitTrackable::WebARKitTrackable(TrackableType type) :
 #endif
     type(type),
     visiblePrev(false),
-    visible(false),
-    patternCount(0),
-    patterns(NULL)
+    visible(false)
+    //patternCount(0),
+   // patterns(NULL)
 {
 	static int nextUID = 0;
 	UID = nextUID++;
@@ -76,12 +76,12 @@ WebARKitTrackable::WebARKitTrackable(TrackableType type) :
 
 WebARKitTrackable::~WebARKitTrackable()
 {
-    freePatterns();
+    //freePatterns();
 
     if (m_ftmi) arFilterTransMatFinal(m_ftmi);
 }
 
-void WebARKitTrackable::allocatePatterns(int count)
+/*void WebARKitTrackable::allocatePatterns(int count)
 {
 	freePatterns();
 
@@ -120,6 +120,7 @@ WebARKitPattern* WebARKitTrackable::getPattern(int n)
 
 	return patterns[n];
 }
+*/
 
 void WebARKitTrackable::setPositionScalefactor(ARdouble scale)
 {

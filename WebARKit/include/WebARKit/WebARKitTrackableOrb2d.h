@@ -42,7 +42,8 @@
 #include <WebARKit/WebARKitTrackable.h>
 #if HAVE_2D
 //this include was excluded, maybe that was the issue?
-#include <ARX/AR2/imageSet.h>
+//#include <ARX/AR2/imageSet.h>
+#include <memory>
 
 /**
  * 2D marker type of ARTrackable.
@@ -75,6 +76,12 @@ public:
     
     void setTwoDScale(const float scale);
     float TwoDScale();
+
+    int getPatternCount() override;
+    std::pair<float, float> getPatternSize(int patternIndex) override;
+    std::pair<int, int> getPatternImageSize(int patternIndex, AR_MATRIX_CODE_TYPE matrixCodeType) override;
+    bool getPatternTransform(int patternIndex, ARdouble T[16]) override;
+    bool getPatternImage(int patternIndex, uint32_t *pattImageBuffer, AR_MATRIX_CODE_TYPE matrixCodeType) override;
 };
 
 #endif // HAVE_2D

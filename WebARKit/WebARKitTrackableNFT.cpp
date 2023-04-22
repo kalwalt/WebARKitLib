@@ -77,10 +77,10 @@ bool WebARKitTrackableNFT::load(const char* dataSetPathname_in)
 
  	datasetPathname = strdup(dataSetPathname_in);
 
-    allocatePatterns(1);
+    //allocatePatterns(1);
     
     // that seems causing the out of memory issue.
-    patterns[0]->loadISet(surfaceSet->surface[0].imageSet, m_nftScale);
+    //patterns[0]->loadISet(surfaceSet->surface[0].imageSet, m_nftScale);
 
     m_loaded = true;
 
@@ -90,7 +90,7 @@ bool WebARKitTrackableNFT::load(const char* dataSetPathname_in)
 bool WebARKitTrackableNFT::unload()
 {
     if (m_loaded) {
-        freePatterns();
+        //freePatterns();
         pageNo = -1;
         if (surfaceSet) {
             ARLOGi("Unloading '%s.fset'.\n", datasetPathname);
@@ -129,12 +129,98 @@ bool WebARKitTrackableNFT::updateWithNFTResults(int detectedPage, float tracking
 void WebARKitTrackableNFT::setNFTScale(const float scale)
 {
     m_nftScale = scale;
-    patterns[0]->loadISet(surfaceSet->surface[0].imageSet, m_nftScale);
+    //patterns[0]->loadISet(surfaceSet->surface[0].imageSet, m_nftScale);
 }
 
 float WebARKitTrackableNFT::NFTScale()
 {
     return (m_nftScale);
 }
+
+int WebARKitTrackableNFT::getPatternCount()
+{
+    if (!surfaceSet) return 0;
+    return surfaceSet->num;
+}
+
+AR2ImageT *WebARKitTrackableNFT::getBestImage(int patternIndex)
+{
+    if (!surfaceSet
+        || patternIndex < 0 || patternIndex >= surfaceSet->num
+        || !surfaceSet->surface
+        || !surfaceSet->surface[patternIndex].imageSet
+        || surfaceSet->surface[patternIndex].imageSet->num < 1
+        || !surfaceSet->surface[patternIndex].imageSet->scale) {
+        return nullptr;
+    }
+    return surfaceSet->surface[patternIndex].imageSet->scale[0]; // Assume best scale (largest image) is first entry in array scale[index] (index is in range [0, imageSet->num - 1]).
+}
+
+std::pair<float, float> WebARKitTrackableNFT::getPatternSize(int patternIndex)
+{
+    AR2ImageT *image = getBestImage(patternIndex);
+    if (!image) return std::pair<float, float>();
+
+    float w = image->xsize * 25.4f / image->dpi * m_nftScale;
+    float h = image->ysize * 25.4f / image->dpi * m_nftScale;
+    return std::pair<float, float>(w, h);
+}
+
+std::pair<int, int> WebARKitTrackableNFT::getPatternImageSize(int patternIndex, AR_MATRIX_CODE_TYPE matrixCodeType)
+{
+    AR2ImageT *image = getBestImage(patternIndex);
+    if (!image) return std::pair<int, int>();
+
+    return std::pair<int, int>(image->xsize, image->ysize);
+}
+
+bool WebARKitTrackableNFT::getPatternTransform(int patternIndex, ARdouble T[16])
+{
+    if (!surfaceSet
+        || patternIndex < 0 || patternIndex >= surfaceSet->num
+        || !surfaceSet->surface) {
+        return false;
+    }
+    T[ 0] = surfaceSet->surface[patternIndex].trans[0][0];
+    T[ 1] = surfaceSet->surface[patternIndex].trans[1][0];
+    T[ 2] = surfaceSet->surface[patternIndex].trans[2][0];
+    T[ 3] = _0_0;
+    T[ 4] = surfaceSet->surface[patternIndex].trans[0][1];
+    T[ 5] = surfaceSet->surface[patternIndex].trans[1][1];
+    T[ 6] = surfaceSet->surface[patternIndex].trans[2][1];
+    T[ 7] = _0_0;
+    T[ 8] = surfaceSet->surface[patternIndex].trans[0][2];
+    T[ 9] = surfaceSet->surface[patternIndex].trans[1][2];
+    T[10] = surfaceSet->surface[patternIndex].trans[2][2];
+    T[11] = _0_0;
+    T[12] = surfaceSet->surface[patternIndex].trans[0][3] * m_nftScale;
+    T[13] = surfaceSet->surface[patternIndex].trans[1][3] * m_nftScale;
+    T[14] = surfaceSet->surface[patternIndex].trans[2][3] * m_nftScale;
+    T[15] = _1_0;
+    return true;
+}
+
+bool WebARKitTrackableNFT::getPatternImage(int patternIndex, uint32_t *pattImageBuffer, AR_MATRIX_CODE_TYPE matrixCodeType)
+{
+    AR2ImageT *image = getBestImage(patternIndex);
+    if (!image) return false;
+
+    for (int y = 0; y < image->ysize; y++) {
+        for (int x = 0; x < image->xsize; x++) {
+#if AR2_CAPABLE_ADAPTIVE_TEMPLATE
+            ARUint8 c = image->imgBWBlur[0][(image->ysize - 1 - y) * image->xsize + x]; // flip in y as output image has origin at lower-left.
+#else
+            ARUint8 c = image->imgBW[(image->ysize - 1 - y) * image->xsize + x]; // flip in y as output image has origin at lower-left.
+#endif
+#ifdef AR_LITTLE_ENDIAN
+            *pattImageBuffer++ = 0xff000000 | c << 16 | c << 8 | c;
+#else
+            *pattImageBuffer++ = c << 24 | c << 16 | c << 8 | 0xff;
+#endif
+        }
+    }
+    return true;
+}
+
 
 #endif // HAVE_NFT

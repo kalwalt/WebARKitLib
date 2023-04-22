@@ -139,7 +139,7 @@ public:
     bool valid;
     // need at least 4 pts to define homography
     //ARLOGi("framePts.size: %d\n", framePts.size());
-    if (framePts.size() > 4) {
+    if (framePts.size() > minRequiredDetectedFeatures) {
         _H = cv::findHomography(refPts, framePts, cv::RANSAC);
         if ( (valid = homographyValid(_H)) ) {
             numMatches = framePts.size();
@@ -223,7 +223,7 @@ public:
       prevIm = frame.clone();
 
       for(int i=0;i<_trackables.size(); i++) {
-          if((_trackables[i]._isDetected)||(_trackables[i]._isTracking)) {
+          if((_trackables[i]._isDetected) && (_trackables[i]._isTracking)) {
 
               std::vector<cv::Point2f> imgPoints = _trackables[i]._trackSelection.GetSelectedFeaturesWarped();
               std::vector<cv::Point3f> objPoints = _trackables[i]._trackSelection.GetSelectedFeatures3d();

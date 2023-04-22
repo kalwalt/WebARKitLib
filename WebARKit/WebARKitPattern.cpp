@@ -36,6 +36,9 @@
  *
  */
 
+
+// WebARKitPattern will be removed!!!
+
 #include <WebARKit/WebARKitPattern.h>
 #include <WebARKit/WebARKitController.h>
 #ifdef ARDOUBLE_IS_FLOAT
