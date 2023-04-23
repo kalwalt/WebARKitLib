@@ -2,8 +2,6 @@
  *  TrackingPointSelector.h
  *  artoolkitX
  *
- *  A C++ class implementing the artoolkitX square fiducial marker tracker.
- *
  *  This file is part of artoolkitX.
  *
  *  artoolkitX is free software: you can redistribute it and/or modify
@@ -59,7 +57,7 @@ public:
     cv::Mat GetHomography();
     
     void UpdatePointStatus(std::vector<uchar> status);
-    
+
     /// Reset selected points and then randomly select one point from each bin.
     void SelectPoints();
     
@@ -76,7 +74,7 @@ public:
     
     void CleanUp();
 
-    private:
+private:
     std::vector<TrackedPoint> _selectedPts;
     std::vector<cv::Point2f> _pts;
     std::map<int, std::vector<TrackedPoint> > trackingPointBin;

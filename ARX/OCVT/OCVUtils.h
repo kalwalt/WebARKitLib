@@ -2,8 +2,6 @@
 #define OCV_UTILS_H
 #include "OCVConfig.h"
 
-//#define N 10
-
 std::vector<cv::Point2f> Points(std::vector<cv::KeyPoint> keypoints)
 {
     std::vector<cv::Point2f> res;
@@ -59,6 +57,5 @@ HomographyInfo GetHomographyInliers(std::vector<cv::Point2f> pts1, std::vector<c
     //Return homography and corresponding inlier point sets
     return HomographyInfo(homography, status, inlier_matches);
 }
-
 
 #endif
