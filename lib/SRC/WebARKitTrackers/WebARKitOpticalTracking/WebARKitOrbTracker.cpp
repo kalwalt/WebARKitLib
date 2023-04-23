@@ -5,15 +5,14 @@
 WebARKitOrbTracker::WebARKitOrbTracker()
     : WebARKitTracker(), initialized(false), orb(nullptr), matcher(nullptr), numMatches(0) { }
 
-void WebARKitOrbTracker::initialize_gray_raw(unsigned char *refData,
+void WebARKitOrbTracker::initialize_gray_raw(std::shared_ptr<unsigned char> refData,
                                              size_t refCols, size_t refRows) {
   std::cout << "Init Tracker!" << std::endl;
 
   orb = cv::ORB::create(MAX_FEATURES);
   matcher = cv::BFMatcher::create();
  
-  cv::Mat refGray(refRows, refCols, CV_8UC1, refData);
-  //free(refData);
+  cv::Mat refGray(refRows, refCols, CV_8UC1, refData.get());
 
   orb->detectAndCompute(refGray, cv::noArray(), refKeyPts, refDescr);
 
@@ -27,20 +26,19 @@ void WebARKitOrbTracker::initialize_gray_raw(unsigned char *refData,
   std::cout << "Tracker ready!" << std::endl;
 }
 
-void WebARKitOrbTracker::processFrameData(unsigned char *frameData,
+void WebARKitOrbTracker::processFrameData(std::shared_ptr<unsigned char> frameData,
                                           size_t frameCols, size_t frameRows,
                                           ColorSpace colorSpace) {
   cv::Mat grayFrame;
   if (colorSpace == ColorSpace::RGBA) {
-    cv::Mat colorFrame(frameRows, frameCols, CV_8UC4, frameData);
+    cv::Mat colorFrame(frameRows, frameCols, CV_8UC4, frameData.get());
     grayFrame.create(frameRows, frameCols, CV_8UC1);
     cv::cvtColor(colorFrame, grayFrame, cv::COLOR_RGBA2GRAY);
   } else if (colorSpace == ColorSpace::GRAY) {
-    grayFrame = cv::Mat(frameRows, frameCols, CV_8UC1, frameData);
+    grayFrame = cv::Mat(frameRows, frameCols, CV_8UC1, frameData.get());
   }
   processFrame(grayFrame);
   grayFrame.release();
-  free(frameData);
 }
 
 void WebARKitOrbTracker::processFrame(cv::Mat& frame) {

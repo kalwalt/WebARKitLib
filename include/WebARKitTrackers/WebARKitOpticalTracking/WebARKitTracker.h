@@ -9,14 +9,15 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/opencv.hpp>
 #include "WebARKitEnums.h"
+#include <memory>
 
 class WebARKitTracker
 {
 public:
     WebARKitTracker();
 
-    virtual void initialize_gray_raw(unsigned char *refData, size_t refCols, size_t refRows) = 0;
-    virtual void processFrameData(unsigned char *frameData, size_t frameCols, size_t frameRows, ColorSpace colorSpace) = 0;
+    virtual void initialize_gray_raw(std::shared_ptr<unsigned char> refData, size_t refCols, size_t refRows) = 0;
+    virtual void processFrameData(std::shared_ptr<unsigned char> frameData, size_t frameCols, size_t frameRows, ColorSpace colorSpace) = 0;
     std::vector<double> getOutputData();
     bool isValid();
 
