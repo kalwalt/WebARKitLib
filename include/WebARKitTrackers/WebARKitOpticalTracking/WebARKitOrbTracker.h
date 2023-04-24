@@ -3,7 +3,6 @@
 
 #include <WebARKitTrackers/WebARKitOpticalTracking/WebARKitEnums.h>
 #include <WebARKitTrackers/WebARKitOpticalTracking/WebARKitTracker.h>
-#include <memory>
 
 class WebARKitOrbTracker : public WebARKitTracker
 {
@@ -23,8 +22,8 @@ class WebARKitOrbTracker : public WebARKitTracker
 
 public:
   WebARKitOrbTracker();
-  void initialize_gray_raw(std::shared_ptr<unsigned char> refData, size_t refCols, size_t refRows) override;
-  void processFrameData(std::shared_ptr<unsigned char> frameData, size_t frameCols, size_t frameRows, ColorSpace colorSpace) override;
+  void initialize_gray_raw(uchar* refData, size_t refCols, size_t refRows) override;
+  void processFrameData(uchar* frameData, size_t frameCols, size_t frameRows, ColorSpace colorSpace) override;
 
 private:
   bool resetTracking(cv::Mat& frameCurr) override;
