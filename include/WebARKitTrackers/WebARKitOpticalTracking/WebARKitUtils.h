@@ -1,5 +1,7 @@
 #include <WebARKitTrackers/WebARKitOpticalTracking/WebARKitEnums.h>
 
+namespace webarkit {
+
 static cv::Mat im_gray(uchar data[], size_t cols, size_t rows) {
   uint32_t idx;
   uchar gray[rows][cols];
@@ -21,7 +23,8 @@ static cv::Mat im_gray(uchar data[], size_t cols, size_t rows) {
   return cv::Mat(rows, cols, CV_8UC1, gray);
 }
 
-static cv::Mat grayscale(uchar data[], size_t cols, size_t rows, ColorSpace colorType) {
+static cv::Mat grayscale(uchar data[], size_t cols, size_t rows,
+                         ColorSpace colorType) {
   int cn;
   switch (colorType) {
   case ColorSpace::RGBA:
@@ -52,3 +55,5 @@ static cv::Mat grayscale(uchar data[], size_t cols, size_t rows, ColorSpace colo
   }
   return cv::Mat(cols, rows, CV_8UC1, gray.data());
 }
+
+} // namespace webarkit

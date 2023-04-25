@@ -2,16 +2,19 @@
 #include <WebARKitTrackers/WebARKitOpticalTracking/WebARKitOrbTracker.h>
 #include <WebARKitTrackers/WebARKitOpticalTracking/WebARKitUtils.h>
 
-WebARKitOrbTracker::WebARKitOrbTracker()
-    : WebARKitTracker(), initialized(false), orb(nullptr), matcher(nullptr), numMatches(0) { }
+namespace webarkit {
 
-void WebARKitOrbTracker::initialize_gray_raw(uchar* refData,
-                                             size_t refCols, size_t refRows) {
+WebARKitOrbTracker::WebARKitOrbTracker()
+    : WebARKitTracker(), initialized(false), orb(nullptr), matcher(nullptr),
+      numMatches(0) {}
+
+void WebARKitOrbTracker::initialize_gray_raw(uchar *refData, size_t refCols,
+                                             size_t refRows) {
   std::cout << "Init Tracker!" << std::endl;
 
   orb = cv::ORB::create(MAX_FEATURES);
   matcher = cv::BFMatcher::create();
- 
+
   cv::Mat refGray(refRows, refCols, CV_8UC1, refData);
 
   orb->detectAndCompute(refGray, cv::noArray(), refKeyPts, refDescr);
@@ -28,8 +31,8 @@ void WebARKitOrbTracker::initialize_gray_raw(uchar* refData,
   std::cout << "Tracker ready!" << std::endl;
 }
 
-void WebARKitOrbTracker::processFrameData(uchar* frameData,
-                                          size_t frameCols, size_t frameRows,
+void WebARKitOrbTracker::processFrameData(uchar *frameData, size_t frameCols,
+                                          size_t frameRows,
                                           ColorSpace colorSpace) {
   cv::Mat grayFrame;
   if (colorSpace == ColorSpace::RGBA) {
@@ -44,14 +47,14 @@ void WebARKitOrbTracker::processFrameData(uchar* frameData,
   free(frameData);
 }
 
-void WebARKitOrbTracker::processFrame(cv::Mat& frame) {
+void WebARKitOrbTracker::processFrame(cv::Mat &frame) {
   if (!this->_valid) {
     this->_valid = resetTracking(frame);
   }
   this->_valid = track(frame);
 }
 
-bool WebARKitOrbTracker::resetTracking(cv::Mat& currIm) {
+bool WebARKitOrbTracker::resetTracking(cv::Mat &currIm) {
   if (!initialized) {
     std::cout << "Reference image not found. AR is unintialized!" << std::endl;
     return NULL;
@@ -65,7 +68,7 @@ bool WebARKitOrbTracker::resetTracking(cv::Mat& currIm) {
   std::vector<cv::KeyPoint> frameKeyPts;
 
   orb->detectAndCompute(currIm, cv::noArray(), frameKeyPts, frameDescr);
- 
+
   std::vector<std::vector<cv::DMatch>> knnMatches;
   matcher->knnMatch(frameDescr, refDescr, knnMatches, 2);
 
@@ -82,20 +85,20 @@ bool WebARKitOrbTracker::resetTracking(cv::Mat& currIm) {
   }
 
   // need at least 4 pts to define homography
-  //std::cout << "Frame points size: " << std::endl;
-  //std::cout << framePts.size() << std::endl;
+  // std::cout << "Frame points size: " << std::endl;
+  // std::cout << framePts.size() << std::endl;
   bool valid;
-  
+
   if (framePts.size() >= MIN_NUM_MATCHES) {
     m_H = cv::findHomography(refPts, framePts, cv::RANSAC);
-   if ((valid = homographyValid(m_H))) {
+    if ((valid = homographyValid(m_H))) {
       numMatches = framePts.size();
 
       if (currIm.empty()) {
         std::cout << "prevIm is empty!" << std::endl;
         return NULL;
       }
-      //prevIm = currIm.clone();
+      // prevIm = currIm.clone();
       currIm.copyTo(prevIm);
     }
   }
@@ -103,7 +106,7 @@ bool WebARKitOrbTracker::resetTracking(cv::Mat& currIm) {
   return valid;
 }
 
-bool WebARKitOrbTracker::track(cv::Mat& currIm) {
+bool WebARKitOrbTracker::track(cv::Mat &currIm) {
   if (!initialized) {
     std::cout << "Reference image not found. AR is unintialized!" << std::endl;
     return NULL;
@@ -147,7 +150,7 @@ bool WebARKitOrbTracker::track(cv::Mat& currIm) {
   }
   avg_variance /= diffs.size();
 
-  if((goodPtsCurr.size() > numMatches / 2) && (1.75 > avg_variance)) {
+  if ((goodPtsCurr.size() > numMatches / 2) && (1.75 > avg_variance)) {
     cv::Mat transform = estimateAffine2D(goodPtsPrev, goodPtsCurr);
 
     // add row of {0,0,1} to transform to make it 3x3
@@ -160,7 +163,7 @@ bool WebARKitOrbTracker::track(cv::Mat& currIm) {
 
     // set old points to new points
     framePts = goodPtsCurr;
-   if ((valid = homographyValid(m_H))) {
+    if ((valid = homographyValid(m_H))) {
       fill_output(m_H);
     }
   }
@@ -169,3 +172,5 @@ bool WebARKitOrbTracker::track(cv::Mat& currIm) {
 
   return valid;
 }
+
+} // namespace webarkit

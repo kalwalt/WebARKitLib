@@ -2,15 +2,18 @@
 #include <WebARKitTrackers/WebARKitOpticalTracking/WebARKitConfig.h>
 #include <WebARKitTrackers/WebARKitOpticalTracking/WebARKitUtils.h>
 
-WebARKitAkazeTracker::WebARKitAkazeTracker()
-    : WebARKitTracker(), initialized(false), akaze(nullptr), matcher(nullptr), numMatches(0) {}
+namespace webarkit {
 
-void WebARKitAkazeTracker::initialize_gray_raw(uchar* refData,
-                                             size_t refCols, size_t refRows) {
+WebARKitAkazeTracker::WebARKitAkazeTracker()
+    : WebARKitTracker(), initialized(false), akaze(nullptr), matcher(nullptr),
+      numMatches(0) {}
+
+void WebARKitAkazeTracker::initialize_gray_raw(uchar *refData, size_t refCols,
+                                               size_t refRows) {
   std::cout << "Init Tracker!" << std::endl;
   akaze = cv::AKAZE::create();
   matcher = cv::BFMatcher::create();
-  
+
   cv::Mat refGray(refRows, refCols, CV_8UC1, refData);
 
   akaze->detectAndCompute(refGray, cv::noArray(), refKeyPts, refDescr);
@@ -26,8 +29,8 @@ void WebARKitAkazeTracker::initialize_gray_raw(uchar* refData,
   std::cout << "Tracker ready!" << std::endl;
 }
 
-void WebARKitAkazeTracker::processFrameData(uchar* frameData,
-                                            size_t frameCols, size_t frameRows,
+void WebARKitAkazeTracker::processFrameData(uchar *frameData, size_t frameCols,
+                                            size_t frameRows,
                                             ColorSpace colorSpace) {
   cv::Mat grayFrame;
   if (colorSpace == ColorSpace::RGBA) {
@@ -42,14 +45,14 @@ void WebARKitAkazeTracker::processFrameData(uchar* frameData,
   free(frameData);
 }
 
-void WebARKitAkazeTracker::processFrame(cv::Mat& frame) {
+void WebARKitAkazeTracker::processFrame(cv::Mat &frame) {
   if (!this->_valid) {
     this->_valid = resetTracking(frame);
   }
   this->_valid = track(frame);
 }
 
-bool WebARKitAkazeTracker::resetTracking(cv::Mat& frameCurr) {
+bool WebARKitAkazeTracker::resetTracking(cv::Mat &frameCurr) {
   if (!initialized) {
     std::cout << "Reference image not found. AR is unintialized!" << std::endl;
     return NULL;
@@ -60,12 +63,12 @@ bool WebARKitAkazeTracker::resetTracking(cv::Mat& frameCurr) {
 
   cv::Mat frameDescr;
   std::vector<cv::KeyPoint> frameKeyPts;
-  
+
   akaze->detectAndCompute(frameCurr, cv::noArray(), frameKeyPts, frameDescr);
-  
+
   std::vector<std::vector<cv::DMatch>> knnMatches;
   matcher->knnMatch(frameDescr, refDescr, knnMatches, 2);
- 
+
   framePts.clear();
   std::vector<cv::Point2f> refPts;
 
@@ -79,8 +82,8 @@ bool WebARKitAkazeTracker::resetTracking(cv::Mat& frameCurr) {
   }
 
   // need at least 4 pts to define homography
-  //std::cout << "Frame points size: " << std::endl
-  //std::cout << framePts.size() << std::endl;
+  // std::cout << "Frame points size: " << std::endl
+  // std::cout << framePts.size() << std::endl;
   bool valid;
 
   if (framePts.size() >= MIN_NUM_MATCHES) {
@@ -92,7 +95,7 @@ bool WebARKitAkazeTracker::resetTracking(cv::Mat& frameCurr) {
         std::cout << "frameCurr is empty!" << std::endl;
         return NULL;
       }
-      //framePrev = frameCurr.clone();
+      // framePrev = frameCurr.clone();
       frameCurr.copyTo(framePrev);
     }
   }
@@ -100,7 +103,7 @@ bool WebARKitAkazeTracker::resetTracking(cv::Mat& frameCurr) {
   return valid;
 }
 
-bool WebARKitAkazeTracker::track(cv::Mat& frameCurr) {
+bool WebARKitAkazeTracker::track(cv::Mat &frameCurr) {
   if (!initialized) {
     std::cout << "Reference image not found. AR is unintialized!" << std::endl;
     return NULL;
@@ -162,8 +165,10 @@ bool WebARKitAkazeTracker::track(cv::Mat& frameCurr) {
     }
   }
 
-  //framePrev = frameCurr.clone();
+  // framePrev = frameCurr.clone();
   frameCurr.copyTo(framePrev);
 
   return valid;
 }
+
+} // namespace webarkit

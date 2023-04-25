@@ -4,8 +4,9 @@
 #include <WebARKitTrackers/WebARKitOpticalTracking/WebARKitEnums.h>
 #include <WebARKitTrackers/WebARKitOpticalTracking/WebARKitTracker.h>
 
-class WebARKitAkazeTracker : public WebARKitTracker
-{
+namespace webarkit {
+
+class WebARKitAkazeTracker : public WebARKitTracker {
   friend class WebARKitTracker;
 
   cv::Ptr<cv::AKAZE> akaze;
@@ -22,13 +23,18 @@ class WebARKitAkazeTracker : public WebARKitTracker
 
 public:
   WebARKitAkazeTracker();
-  void initialize_gray_raw(uchar* refData, size_t refCols, size_t refRows) override;
-  void processFrameData(uchar* frameData, size_t frameCols, size_t frameRows, ColorSpace colorSpace) override;
+  void initialize_gray_raw(uchar *refData, size_t refCols,
+                           size_t refRows) override;
+  void processFrameData(uchar *frameData, size_t frameCols, size_t frameRows,
+                        ColorSpace colorSpace) override;
 
 private:
-  bool resetTracking(cv::Mat& frameCurr) override;
-  bool track(cv::Mat& frameCurr) override;
-  void processFrame(cv::Mat& frame) override;
+  bool resetTracking(cv::Mat &frameCurr) override;
+  bool track(cv::Mat &frameCurr) override;
+  void processFrame(cv::Mat &frame) override;
   bool initialized;
 };
+
+} // namespace webarkit
+
 #endif
